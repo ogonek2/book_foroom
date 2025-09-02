@@ -3,6 +3,81 @@
 @section('title', 'Головна - Книжковий форум')
 
 @section('main')
+        <!-- Hero Banner -->
+        <section class="relative mb-12 overflow-hidden">
+            <!-- Simple Background -->
+            <div class="absolute inset-0 z-0">
+                <div class="absolute top-4 left-4 w-12 h-12 bg-gradient-to-r from-orange-500/20 to-pink-500/20 rounded-full"></div>
+                <div class="absolute top-8 right-8 w-8 h-8 bg-gradient-to-r from-pink-500/20 to-orange-500/20 rounded-full"></div>
+                <div class="absolute bottom-4 left-1/4 w-6 h-6 bg-gradient-to-r from-orange-400/20 to-pink-400/20 rounded-full"></div>
+            </div>
+            
+            <!-- Main Banner Content -->
+            <div class="relative z-10 bg-gray-900/30 backdrop-blur-xl border border-gray-700/30 rounded-2xl p-6 md:p-8 shadow-2xl">
+                <div class="text-center max-w-4xl mx-auto">
+                    <!-- Badge -->
+                    <div class="inline-flex items-center bg-gradient-to-r from-orange-500/20 to-pink-500/20 backdrop-blur-sm border border-orange-500/30 rounded-full px-4 py-2 mb-4">
+                        <svg class="w-4 h-4 text-orange-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        <span class="text-orange-300 text-sm font-medium">Найкраща платформа для книголюбів</span>
+                    </div>
+                    
+                    <!-- Main Heading -->
+                    <h1 class="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4">
+                        <span class="block text-white">
+                            Відкрийте світ
+                        </span>
+                        <span class="block bg-gradient-to-r from-orange-400 via-pink-400 to-orange-500 bg-clip-text text-transparent mt-1">
+                            нескінченних історій
+                        </span>
+                    </h1>
+                    
+                    <!-- Subtitle -->
+                    <p class="text-base md:text-lg text-gray-300 mb-6 max-w-2xl mx-auto leading-relaxed">
+                        Приєднуйтесь до найбільшої спільноти читачів України. 
+                        <span class="text-orange-300 font-medium">Діліться думками, відкривайте нові автори та знаходьте натхнення.</span>
+                    </p>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+                        <a href="{{ route('books.index') }}" class="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold text-base hover:from-orange-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <span class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
+                                Переглянути книги
+                            </span>
+                        </a>
+                        <a href="{{ route('forum.index') }}" class="bg-gray-800/50 backdrop-blur-sm border border-gray-600/50 text-white px-6 py-3 rounded-lg font-semibold text-base hover:bg-gray-700/50 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <span class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                Приєднатися до обговорення
+                            </span>
+                        </a>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-gray-800/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-4 text-center hover:bg-gray-800/40 transition-all duration-300">
+                            <div class="text-xl font-bold text-orange-400 mb-1">1,200+</div>
+                            <div class="text-gray-300 text-xs">Активних читачів</div>
+                        </div>
+                        <div class="bg-gray-800/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-4 text-center hover:bg-gray-800/40 transition-all duration-300">
+                            <div class="text-xl font-bold text-pink-400 mb-1">5,000+</div>
+                            <div class="text-gray-300 text-xs">Книг у каталозі</div>
+                        </div>
+                        <div class="bg-gray-800/30 backdrop-blur-sm border border-gray-700/30 rounded-xl p-4 text-center hover:bg-gray-800/40 transition-all duration-300">
+                            <div class="text-xl font-bold text-orange-400 mb-1">15,000+</div>
+                            <div class="text-gray-300 text-xs">Рецензій та відгуків</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- 1. Книги якими зацікавились -->
         <section class="mb-16">
             <div class="flex items-center justify-between mb-8">
@@ -560,6 +635,134 @@
 /* Custom hover state */
 .hover\:bg-gray-750:hover {
     background-color: #374151;
+}
+
+/* Custom animations for hero banner */
+@keyframes blob {
+    0% {
+        transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+        transform: translate(0px, 0px) scale(1);
+    }
+}
+
+@keyframes fade-in-up {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes float-delayed {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse-delayed {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Animation classes */
+.animate-blob {
+    animation: blob 7s infinite;
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: float-delayed 6s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+.animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+}
+
+.animate-pulse-delayed {
+    animation: pulse-delayed 2s ease-in-out infinite;
+    animation-delay: 1s;
+}
+
+/* Animation delays */
+.animation-delay-200 {
+    animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+    animation-delay: 0.4s;
+}
+
+.animation-delay-600 {
+    animation-delay: 0.6s;
+}
+
+.animation-delay-800 {
+    animation-delay: 0.8s;
+}
+
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
+
+.animation-delay-1000 {
+    animation-delay: 1s;
+}
+
+.animation-delay-1200 {
+    animation-delay: 1.2s;
+}
+
+/* Initial state for fade-in animations */
+.animate-fade-in-up {
+    opacity: 0;
 }
 </style>
 @endpush
