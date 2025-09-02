@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Главная - Книжный форум')
+@section('title', 'Головна - Книжковий форум')
 
 @section('main')
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
@@ -11,15 +11,15 @@
             <div class="relative max-w-4xl z-10">
                 <div class="animate-fade-in-up">
                     <h1 class="text-6xl font-black mb-6 bg-gradient-to-r from-white via-purple-100 to-pink-100 bg-clip-text text-transparent leading-tight">
-                        Добро пожаловать в BookForum
+                        Ласкаво просимо до BookForum
                     </h1>
                     <p class="text-xl text-purple-100 mb-8 leading-relaxed font-medium">
-                        Открывайте новые книги, делитесь мнениями и находите единомышленников в мире литературы
+                        Відкривайте нові книги, діліться думками та знаходьте однодумців у світі літератури
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4">
                         <a href="{{ route('books.index') }}" class="group bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/30 transition-all duration-300 border border-white/20 hover:border-white/40 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1">
                             <span class="flex items-center gap-3">
-                                📚 Посмотреть книги
+                                📚 Переглянути книги
                                 <svg class="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                 </svg>
@@ -27,7 +27,7 @@
                         </a>
                         <a href="{{ route('forum.index') }}" class="group bg-white text-purple-600 px-8 py-4 rounded-2xl font-bold hover:bg-gray-50 transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1">
                             <span class="flex items-center gap-3">
-                                💬 Присоединиться к обсуждению
+                                💬 Приєднатися до обговорення
                                 <svg class="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                 </svg>
@@ -57,7 +57,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-4xl font-black text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">{{ $stats['books'] ?? 0 }}</p>
-                                <p class="text-slate-600 dark:text-slate-400 font-semibold">Книг в каталоге</p>
+                                <p class="text-slate-600 dark:text-slate-400 font-semibold">Книг у каталозі</p>
                             </div>
                         </div>
                     </div>
@@ -71,7 +71,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-4xl font-black text-slate-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-300">{{ $stats['reviews'] ?? 0 }}</p>
-                                <p class="text-slate-600 dark:text-slate-400 font-semibold">Рецензий</p>
+                                <p class="text-slate-600 dark:text-slate-400 font-semibold">Рецензій</p>
                             </div>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-4xl font-black text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">{{ $stats['topics'] ?? 0 }}</p>
-                                <p class="text-slate-600 dark:text-slate-400 font-semibold">Тем в форуме</p>
+                                <p class="text-slate-600 dark:text-slate-400 font-semibold">Тем у форумі</p>
                             </div>
                         </div>
                     </div>
@@ -99,7 +99,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-4xl font-black text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300">{{ $stats['users'] ?? 0 }}</p>
-                                <p class="text-slate-600 dark:text-slate-400 font-semibold">Участников</p>
+                                <p class="text-slate-600 dark:text-slate-400 font-semibold">Учасників</p>
                             </div>
                         </div>
                     </div>
@@ -110,11 +110,11 @@
                     <div class="p-8 border-b border-slate-200/30 dark:border-slate-700/30">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h2 class="text-3xl font-black text-slate-900 dark:text-white">Рекомендуемые книги</h2>
-                                <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">Лучшие произведения для вашего чтения</p>
+                                <h2 class="text-3xl font-black text-slate-900 dark:text-white">Рекомендовані книги</h2>
+                                <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">Найкращі твори для вашого читання</p>
                             </div>
                             <a href="{{ route('books.index') }}" class="group bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
-                                Посмотреть все →
+                                Переглянути все →
                             </a>
                         </div>
                     </div>
@@ -157,7 +157,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                                     </svg>
                                 </div>
-                                <p class="text-slate-500 dark:text-slate-400 text-lg font-medium">Пока нет рекомендуемых книг</p>
+                                <p class="text-slate-500 dark:text-slate-400 text-lg font-medium">Поки немає рекомендованих книг</p>
                             </div>
                         @endif
                     </div>
@@ -168,11 +168,11 @@
                     <div class="p-8 border-b border-slate-200/30 dark:border-slate-700/30">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h2 class="text-3xl font-black text-slate-900 dark:text-white">Последние обсуждения</h2>
-                                <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">Актуальные темы форума</p>
+                                <h2 class="text-3xl font-black text-slate-900 dark:text-white">Останні обговорення</h2>
+                                <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">Актуальні теми форуму</p>
                             </div>
                             <a href="{{ route('forum.index') }}" class="group bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-2xl font-bold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
-                                Посмотреть все →
+                                Переглянути все →
                             </a>
                         </div>
                     </div>
@@ -193,18 +193,18 @@
                                                 </a>
                                                 @if($topic->is_pinned)
                                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                                        Закреплено
+                                                        Закріплено
                                                     </span>
                                                 @endif
                                             </div>
                                             <div class="flex items-center text-sm text-slate-500 dark:text-slate-400 space-x-4 font-medium">
-                                                <span>в {{ $topic->category->name }}</span>
+                                                <span>у {{ $topic->category->name }}</span>
                                                 <span>•</span>
                                                 <span>{{ $topic->user->name }}</span>
                                                 <span>•</span>
                                                 <span>{{ $topic->created_at->diffForHumans() }}</span>
                                                 <span>•</span>
-                                                <span>{{ $topic->replies_count }} ответов</span>
+                                                <span>{{ $topic->replies_count }} відповідей</span>
                                             </div>
                                         </div>
                                     </div>
@@ -217,7 +217,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
                                     </svg>
                                 </div>
-                                <p class="text-slate-500 dark:text-slate-400 text-lg font-medium">Пока нет обсуждений</p>
+                                <p class="text-slate-500 dark:text-slate-400 text-lg font-medium">Поки немає обговорень</p>
                             </div>
                         @endif
                     </div>
@@ -228,7 +228,7 @@
             <div class="lg:col-span-1 space-y-8">
                 <!-- Categories Widget -->
                 <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
-                    <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Категории</h3>
+                    <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Категорії</h3>
                     <div class="space-y-4">
                         @if(isset($categories) && $categories->count() > 0)
                             @foreach($categories as $category)
@@ -250,7 +250,7 @@
 
                 <!-- Quick Actions -->
                 <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
-                    <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Быстрые действия</h3>
+                    <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Швидкі дії</h3>
                     <div class="space-y-4">
                         <a href="{{ route('books.index') }}" class="flex items-center space-x-4 p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,7 +268,7 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
-                            <span class="font-bold">Поиск</span>
+                            <span class="font-bold">Пошук</span>
                         </a>
                     </div>
                 </div>

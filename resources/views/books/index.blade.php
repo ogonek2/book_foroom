@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Каталог книг</h1>
-        <p class="text-gray-600 dark:text-gray-400">Найдите интересные книги для чтения</p>
+        <p class="text-gray-600 dark:text-gray-400">Знайдіть цікаві книги для читання</p>
     </div>
 
     <!-- Main Grid -->
@@ -16,21 +16,21 @@
         <div class="lg:col-span-1">
             <!-- Filters -->
             <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/30 dark:border-gray-700/30 p-6 sticky top-24">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Фильтры</h3>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Фільтри</h3>
                 <form method="GET" action="{{ route('books.index') }}" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Поиск</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Пошук</label>
                         <input type="text" 
                                name="search" 
                                value="{{ request('search') }}"
-                               placeholder="Название, автор..."
+                               placeholder="Назва, автор..."
                                class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Категория</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Категорія</label>
                         <select name="category" 
                                 class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
-                            <option value="">Все категории</option>
+                            <option value="">Всі категорії</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->slug }}" {{ request('category') === $category->slug ? 'selected' : '' }}>
                                     {{ $category->name }}
@@ -39,19 +39,19 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Сортировка</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Сортування</label>
                         <select name="sort" 
                                 class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
-                            <option value="rating" {{ request('sort') === 'rating' ? 'selected' : '' }}>По рейтингу</option>
-                            <option value="title" {{ request('sort') === 'title' ? 'selected' : '' }}>По названию</option>
-                            <option value="author" {{ request('sort') === 'author' ? 'selected' : '' }}>По автору</option>
-                            <option value="year" {{ request('sort') === 'year' ? 'selected' : '' }}>По году</option>
-                            <option value="reviews" {{ request('sort') === 'reviews' ? 'selected' : '' }}>По отзывам</option>
+                            <option value="rating" {{ request('sort') === 'rating' ? 'selected' : '' }}>За рейтингом</option>
+                            <option value="title" {{ request('sort') === 'title' ? 'selected' : '' }}>За назвою</option>
+                            <option value="author" {{ request('sort') === 'author' ? 'selected' : '' }}>За автором</option>
+                            <option value="year" {{ request('sort') === 'year' ? 'selected' : '' }}>За роком</option>
+                            <option value="reviews" {{ request('sort') === 'reviews' ? 'selected' : '' }}>За відгуками</option>
                         </select>
                     </div>
                     <button type="submit" 
                             class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105">
-                        Применить фильтры
+                        Застосувати фільтри
                     </button>
                 </form>
             </div>
@@ -112,8 +112,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Книги не найдены</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Попробуйте изменить параметры поиска</p>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Книги не знайдені</h3>
+                    <p class="text-gray-500 dark:text-gray-400">Спробуйте змінити параметри пошуку</p>
                 </div>
             @endif
         </div>

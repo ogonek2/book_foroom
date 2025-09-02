@@ -22,7 +22,7 @@
                     <!-- Navigation Links -->
                     <div class="hidden md:ml-8 md:flex md:space-x-1">
                         <a href="{{ route('home') }}" class="text-gray-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
-                            Главная
+                            Головна
                         </a>
                         <a href="{{ route('books.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
                             Книги
@@ -31,7 +31,7 @@
                             Форум
                         </a>
                         <a href="{{ route('categories.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
-                            Категории
+                            Категорії
                         </a>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                         </div>
                         <input type="text" name="q" value="{{ request('q') }}" 
                                class="block w-full pl-12 pr-4 py-3 border-0 rounded-xl leading-5 bg-gray-100 dark:bg-gray-800/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-200 backdrop-blur-sm" 
-                               placeholder="Поиск книг, авторов, обсуждений...">
+                               placeholder="Пошук книг, авторів, обговорень...">
                     </form>
                 </div>
 
@@ -73,11 +73,11 @@
 
                             <div x-show="open" @click.away="open = false" 
                                  class="absolute right-0 mt-2 w-48 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-xl shadow-xl py-2 z-50 border border-gray-200/20 dark:border-gray-700/20">
-                                <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">Панель управления</a>
+                                <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">Панель керування</a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
-                                        Выйти
+                                        Вийти
                                     </button>
                                 </form>
                             </div>
@@ -85,10 +85,10 @@
                     @else
                         <!-- Auth Links -->
                         <a href="{{ route('login') }}" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
-                            Войти
+                            Увійти
                         </a>
                         <a href="{{ route('register') }}" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl">
-                            Регистрация
+                            Реєстрація
                         </a>
                     @endauth
                 </div>
@@ -115,30 +115,30 @@
                         <span class="ml-2 text-xl font-bold text-gray-900 dark:text-white">BookForum</span>
                     </div>
                     <p class="text-gray-600 dark:text-gray-400 text-sm">
-                        Книжный форум для обсуждения литературы, обмена мнениями и поиска новых книг для чтения.
+                        Книжковий форум для обговорення літератури, обміну думками та пошуку нових книг для читання.
                     </p>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Навигация</h3>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Навігація</h3>
                     <ul class="space-y-2">
-                        <li><a href="{{ route('home') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Главная</a></li>
+                        <li><a href="{{ route('home') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Головна</a></li>
                         <li><a href="{{ route('books.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Книги</a></li>
                         <li><a href="{{ route('forum.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Форум</a></li>
-                        <li><a href="{{ route('categories.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Категории</a></li>
+                        <li><a href="{{ route('categories.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Категорії</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Сообщество</h3>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Спільнота</h3>
                     <ul class="space-y-2">
                         <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Правила</a></li>
-                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Помощь</a></li>
-                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Контакты</a></li>
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Допомога</a></li>
+                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Контакти</a></li>
                     </ul>
                 </div>
             </div>
             <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
                 <p class="text-center text-gray-600 dark:text-gray-400 text-sm">
-                    © {{ date('Y') }} BookForum. Все права защищены.
+                    © {{ date('Y') }} BookForum. Всі права захищені.
                 </p>
             </div>
         </div>

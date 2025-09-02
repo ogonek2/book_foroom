@@ -45,7 +45,7 @@
                         <div>
                             <div class="text-xl font-bold text-slate-900 dark:text-white flex items-center">
                                 {{ $review->getAuthorName() }}
-                                <span class="ml-3 px-3 py-1 text-sm bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-full font-semibold">Гость</span>
+                                <span class="ml-3 px-3 py-1 text-sm bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-full font-semibold">Гість</span>
                             </div>
                             <div class="text-base text-slate-500 dark:text-slate-400 font-medium">{{ $review->created_at->diffForHumans() }}</div>
                         </div>
@@ -61,7 +61,7 @@
                     @endif
                 </div>
                 
-                <!-- Rating Stars (только для основных рецензий) -->
+                <!-- Rating Stars (тільки для основних рецензій) -->
                 @if($review->rating && !$review->isReply())
                     <div class="flex items-center space-x-2 bg-slate-50 dark:bg-slate-700/50 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600">
                         @for($i = 1; $i <= 5; $i++)
@@ -87,7 +87,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
-                        <span>Ответить</span>
+                        <span>Відповісти</span>
                     </button>
                     
                     @if(auth()->check() && auth()->id() === $review->user_id)
@@ -96,7 +96,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
-                            <span>Редактировать</span>
+                            <span>Редагувати</span>
                         </button>
                         
                         <button class="flex items-center space-x-3 text-base text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 font-semibold hover:scale-105" 
@@ -104,7 +104,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
-                            <span>Удалить</span>
+                            <span>Видалити</span>
                         </button>
                     @endif
                 </div>
@@ -115,21 +115,21 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
-                        <span>{{ $review->replies_count }} {{ $review->replies_count == 1 ? 'ответ' : ($review->replies_count < 5 ? 'ответа' : 'ответов') }}</span>
+                        <span>{{ $review->replies_count }} {{ $review->replies_count == 1 ? 'відповідь' : ($review->replies_count < 5 ? 'відповіді' : 'відповідей') }}</span>
                     </div>
                 @endif
             </div>
 
             <!-- Reply Form -->
             <div id="replyForm{{ $review->id }}" class="hidden mt-6 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600">
-                <h5 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Ваш ответ</h5>
+                <h5 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Ваша відповідь</h5>
                 <form onsubmit="submitReply(event, {{ $review->id }}, null)" class="space-y-4">
                     @csrf
-                    <textarea name="content" rows="3" class="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-4 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-600 dark:text-white resize-none" placeholder="Напишите ваш ответ..." required></textarea>
+                    <textarea name="content" rows="3" class="w-full px-4 py-3 text-base border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-4 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-600 dark:text-white resize-none" placeholder="Напишіть вашу відповідь..." required></textarea>
                     <div class="flex items-center justify-end space-x-3">
-                        <button type="button" onclick="toggleReplyForm({{ $review->id }})" class="px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors font-semibold">Отмена</button>
+                        <button type="button" onclick="toggleReplyForm({{ $review->id }})" class="px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors font-semibold">Скасувати</button>
                         <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl">
-                            Ответить
+                            Відповісти
                         </button>
                     </div>
                 </form>
@@ -143,7 +143,7 @@
                         <svg class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
-                        <span>Показать ответы ({{ $review->replies_count }})</span>
+                        <span>Показати відповіді ({{ $review->replies_count }})</span>
                     </button>
                     
                     <div id="repliesContainer{{ $review->id }}" class="hidden mt-4">
@@ -157,7 +157,7 @@
                             <div class="mt-4 text-center">
                                 <button onclick="loadMoreReplies({{ $review->id }})" 
                                         class="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-6 py-3 rounded-xl font-semibold hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-300">
-                                    Загрузить еще
+                                    Завантажити ще
                                 </button>
                             </div>
                         @endif

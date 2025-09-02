@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 class ReviewController extends Controller
 {
     /**
-     * Store a new review (для авторизованных пользователей)
+     * Store a new review (для авторизованих користувачів)
      */
     public function store(Request $request, Book $book)
     {
@@ -28,18 +28,18 @@ class ReviewController extends Controller
             'parent_id' => null,
         ]);
 
-        // Обновляем рейтинг книги
+        // Оновлюємо рейтинг книги
         $book->updateRating();
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Рецензия добавлена!',
+                'message' => 'Рецензію додано!',
                 'review' => $review->load('user')
             ]);
         }
 
-        return redirect()->back()->with('success', 'Рецензия добавлена!');
+        return redirect()->back()->with('success', 'Рецензію додано!');
     }
 
     /**
@@ -56,26 +56,26 @@ class ReviewController extends Controller
             'content' => $request->content,
             'rating' => $request->rating,
             'book_id' => $book->id,
-            'user_id' => null, // Гость
+            'user_id' => null, // Гість
             'parent_id' => null,
         ]);
 
-        // Обновляем рейтинг книги
+        // Оновлюємо рейтинг книги
         $book->updateRating();
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Рецензия добавлена!',
+                'message' => 'Рецензію додано!',
                 'review' => $review
             ]);
         }
 
-        return redirect()->back()->with('success', 'Рецензия добавлена!');
+        return redirect()->back()->with('success', 'Рецензію додано!');
     }
 
     /**
-     * Store a reply to a review (для всех пользователей)
+     * Store a reply to a review (для всіх користувачів)
      */
     public function storeReply(Request $request, Book $book, Review $review)
     {
@@ -83,29 +83,29 @@ class ReviewController extends Controller
             'content' => 'required|string|max:5000',
         ]);
 
-        // Определяем, авторизован ли пользователь
+        // Визначаємо, чи авторизований користувач
         $userId = Auth::check() ? Auth::id() : null;
 
         $reply = Review::create([
             'content' => $request->content,
-            'rating' => null, // Ответы не имеют рейтинга
+            'rating' => null, // Відповіді не мають рейтингу
             'book_id' => $book->id,
-            'user_id' => $userId, // null для гостей, ID пользователя для авторизованных
+            'user_id' => $userId, // null для гостей, ID користувача для авторизованих
             'parent_id' => $review->id,
         ]);
 
-        // Обновляем счетчик ответов
+        // Оновлюємо лічильник відповідей
         $review->updateRepliesCount();
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Ответ добавлен!',
+                'message' => 'Відповідь додано!',
                 'reply' => $reply->load('user')
             ]);
         }
 
-        return redirect()->back()->with('success', 'Ответ добавлен!');
+        return redirect()->back()->with('success', 'Відповідь додано!');
     }
 
     /**
@@ -135,18 +135,18 @@ class ReviewController extends Controller
             'rating' => $request->rating,
         ]);
 
-        // Обновляем рейтинг книги
+        // Оновлюємо рейтинг книги
         $review->book->updateRating();
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Рецензия обновлена!',
+                'message' => 'Рецензію оновлено!',
                 'review' => $review
             ]);
         }
 
-        return redirect()->back()->with('success', 'Рецензия обновлена!');
+        return redirect()->back()->with('success', 'Рецензію оновлено!');
     }
 
     /**
@@ -159,16 +159,16 @@ class ReviewController extends Controller
         $book = $review->book;
         $review->delete();
 
-        // Обновляем рейтинг книги
+        // Оновлюємо рейтинг книги
         $book->updateRating();
 
         if (request()->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Рецензия удалена!'
+                'message' => 'Рецензію видалено!'
             ]);
         }
 
-        return redirect()->back()->with('success', 'Рецензия удалена!');
+        return redirect()->back()->with('success', 'Рецензію видалено!');
     }
 }

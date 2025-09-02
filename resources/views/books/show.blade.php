@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $book->title . ' - Книжный форум')
+@section('title', $book->title . ' - Книжковий форум')
 
 @section('main')
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
@@ -8,7 +8,7 @@
         <!-- Breadcrumb -->
         <nav class="mb-8">
             <ol class="flex items-center space-x-3 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                <li><a href="{{ route('home') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">Главная</a></li>
+                <li><a href="{{ route('home') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">Головна</a></li>
                 <li class="flex items-center">
                     <svg class="w-5 h-5 mx-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
@@ -54,7 +54,7 @@
                                                 @endfor
                                             </div>
                                             <span class="text-4xl font-black text-slate-900 dark:text-white">{{ $book->rating }}</span>
-                                            <span class="text-slate-600 dark:text-slate-400 text-xl font-semibold">({{ $book->reviews_count }} отзывов)</span>
+                                            <span class="text-slate-600 dark:text-slate-400 text-xl font-semibold">({{ $book->reviews_count }} відгуків)</span>
                                         </div>
                                     </div>
                                     <div class="flex-shrink-0">
@@ -66,7 +66,7 @@
 
                                 @if($book->description)
                                     <div class="mb-8">
-                                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Описание</h3>
+                                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Опис</h3>
                                         <p class="text-slate-700 dark:text-slate-300 leading-relaxed text-lg font-medium">{{ $book->description }}</p>
                                     </div>
                                 @endif
@@ -80,19 +80,19 @@
                                     @endif
                                     @if($book->publication_year)
                                         <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
-                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Год издания</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Рік видання</p>
                                             <p class="font-bold text-slate-900 dark:text-white text-lg">{{ $book->publication_year }}</p>
                                         </div>
                                     @endif
                                     @if($book->publisher)
                                         <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
-                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Издательство</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Видавництво</p>
                                             <p class="font-bold text-slate-900 dark:text-white text-lg">{{ $book->publisher }}</p>
                                         </div>
                                     @endif
                                     @if($book->pages)
                                         <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
-                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Страниц</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Сторінок</p>
                                             <p class="font-bold text-slate-900 dark:text-white text-lg">{{ $book->pages }}</p>
                                         </div>
                                     @endif
@@ -107,22 +107,22 @@
                     <div class="p-8 border-b border-slate-200/30 dark:border-slate-700/30">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h2 class="text-3xl font-black text-slate-900 dark:text-white">Рецензии</h2>
-                                <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">Поделитесь своим мнением о книге</p>
+                                <h2 class="text-3xl font-black text-slate-900 dark:text-white">Рецензії</h2>
+                                <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">Поділіться своєю думкою про книгу</p>
                             </div>
                             @auth
                                 <button onclick="toggleReviewForm()" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
                                     <svg class="w-6 h-6 mr-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    Написать рецензию
+                                    Написати рецензію
                                 </button>
                             @else
                                 <button onclick="toggleReviewForm()" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
                                     <svg class="w-6 h-6 mr-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    Написать рецензию (гость)
+                                    Написати рецензію (гість)
                                 </button>
                             @endauth
                         </div>
@@ -135,7 +135,7 @@
                             <form action="{{ route('books.reviews.store', $book) }}" method="POST" class="space-y-6">
                                 @csrf
                                 <div>
-                                    <label class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Оценка</label>
+                                    <label class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Оцінка</label>
                                     <div class="flex items-center space-x-3" id="ratingStars">
                                         @for($i = 1; $i <= 5; $i++)
                                             <button type="button" class="star-rating w-12 h-12 text-slate-300 dark:text-slate-600 hover:text-yellow-400 transition-all duration-300 hover:scale-125" data-rating="{{ $i }}">
@@ -148,20 +148,20 @@
                                     <input type="hidden" name="rating" id="ratingInput" value="">
                                 </div>
                                 <div>
-                                    <label class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Рецензия</label>
+                                    <label class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Рецензія</label>
                                     <textarea name="content" rows="6" 
                                               class="w-full px-6 py-4 border border-slate-300 dark:border-slate-600 rounded-2xl focus:ring-4 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white transition-all duration-300 text-lg font-medium resize-none"
-                                              placeholder="Поделитесь своими мыслями о книге, персонажах, сюжете..."></textarea>
+                                              placeholder="Поділіться своїми думками про книгу, персонажів, сюжет..."></textarea>
                                 </div>
                                 <div class="flex justify-end space-x-4">
                                     <button type="button" onclick="toggleReviewForm()" class="px-8 py-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-bold text-lg">
-                                        Отмена
+                                        Скасувати
                                     </button>
                                     <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
                                         <svg class="w-6 h-6 mr-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v8"/>
                                         </svg>
-                                        Опубликовать
+                                        Опублікувати
                                     </button>
                                 </div>
                             </form>
@@ -170,7 +170,7 @@
                             <form action="{{ route('books.reviews.guest-store', $book) }}" method="POST" class="space-y-6">
                                 @csrf
                                 <div>
-                                    <label class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Оценка</label>
+                                    <label class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Оцінка</label>
                                 <div class="flex items-center space-x-3" id="ratingStarsGuest">
                                     @for($i = 1; $i <= 5; $i++)
                                         <button type="button" class="star-rating w-12 h-12 text-slate-300 dark:text-slate-600 hover:text-yellow-400 transition-all duration-300 hover:scale-125" data-rating="{{ $i }}">
@@ -196,7 +196,7 @@
                                     <svg class="w-6 h-6 mr-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v8"/>
                                     </svg>
-                                    Опубликовать как гость
+                                    Опублікувати як гість
                                 </button>
                             </div>
                             </form>
@@ -223,12 +223,12 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                     </svg>
                                 </div>
-                                <h3 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Пока нет рецензий</h3>
-                                <p class="text-slate-500 dark:text-slate-400 text-xl font-medium">Станьте первым, кто поделится своим мнением об этой книге</p>
+                                <h3 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Поки немає рецензій</h3>
+                                <p class="text-slate-500 dark:text-slate-400 text-xl font-medium">Станьте першим, хто поділиться своєю думкою про цю книгу</p>
                                 @guest
                                     <div class="mt-8">
                                         <button onclick="toggleReviewForm()" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
-                                            Написать рецензию как гость
+                                            Написати рецензію як гість
                                         </button>
                                     </div>
                                 @endguest
@@ -243,7 +243,7 @@
                 <!-- Related Books -->
                 @if($relatedBooks->count() > 0)
                     <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
-                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Похожие книги</h3>
+                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Схожі книги</h3>
                         <div class="space-y-5">
                             @foreach($relatedBooks as $relatedBook)
                                 <a href="{{ route('books.show', $relatedBook->slug) }}" class="group flex space-x-4 p-4 rounded-2xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-300 hover:scale-105">
@@ -277,15 +277,15 @@
                     <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Статистика</h3>
                     <div class="space-y-5">
                         <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Средняя оценка</span>
+                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Середня оцінка</span>
                             <span class="font-black text-slate-900 dark:text-white text-xl">{{ $book->rating }}</span>
                         </div>
                         <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Всего рецензий</span>
+                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Всього рецензій</span>
                             <span class="font-black text-slate-900 dark:text-white text-xl">{{ $book->reviews_count }}</span>
                         </div>
                         <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Категория</span>
+                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Категорія</span>
                             <span class="font-black text-slate-900 dark:text-white text-xl">{{ $book->category->name }}</span>
                         </div>
                     </div>

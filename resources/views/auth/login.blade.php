@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Вход - Книжный форум')
+@section('title', 'Вхід - Книжковий форум')
 
 @section('main')
 <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -12,12 +12,12 @@
                 </svg>
             </div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-                Войти в аккаунт
+                Увійти до акаунту
             </h2>
             <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-                Или
+                Або
                 <a href="{{ route('register') }}" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors">
-                    зарегистрироваться
+                    зареєструватися
                 </a>
             </p>
         </div>
@@ -72,14 +72,14 @@
                     <input id="remember_me" name="remember" type="checkbox" 
                            class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
                     <label for="remember_me" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-                        Запомнить меня
+                        Запам'ятати мене
                     </label>
                 </div>
 
                 @if (Route::has('password.request'))
                     <div class="text-sm">
                         <a href="{{ route('password.request') }}" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors">
-                            Забыли пароль?
+                            Забули пароль?
                         </a>
                     </div>
                 @endif
@@ -90,7 +90,7 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                     </svg>
-                    Войти
+                    Увійти
                 </button>
             </div>
         </form>
