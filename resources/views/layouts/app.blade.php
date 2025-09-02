@@ -1,36 +1,34 @@
 @extends('app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-black dark:to-gray-800">
+<div class="min-h-screen bg-gray-900">
     <!-- Navigation -->
-    <nav class="bg-white/90 dark:bg-black/90 backdrop-blur-xl border-b border-gray-200/30 dark:border-gray-800/30 sticky top-0 z-50 shadow-lg shadow-gray-200/20 dark:shadow-gray-900/20">
+    <nav class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <!-- Logo -->
                     <div class="flex-shrink-0">
                         <a href="{{ route('home') }}" class="flex items-center group">
-                            <div class="w-8 h-8 bg-gradient-to-br from-[#F6762E] to-[#F78F54] rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <span class="ml-3 text-xl font-bold bg-gradient-to-r from-[#F6762E] to-[#F78F54] bg-clip-text text-transparent">BookForum</span>
+                            <span class="text-2xl font-bold text-white">BookForum</span>
                         </a>
                     </div>
 
                     <!-- Navigation Links -->
                     <div class="hidden md:ml-8 md:flex md:space-x-1">
-                        <a href="{{ route('home') }}" class="text-gray-900 dark:text-white hover:text-[#FF843E] dark:hover:text-[#FF843E] px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
+                        <a href="{{ route('home') }}" class="text-white bg-gray-800 px-3 py-2 text-sm font-medium rounded-lg">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
                             Головна
                         </a>
-                        <a href="{{ route('books.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-[#FF843E] dark:hover:text-[#FF843E] px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
+                        <a href="{{ route('books.index') }}" class="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-800 transition-all duration-200">
                             Книги
                         </a>
-                        <a href="{{ route('forum.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-[#FF843E] dark:hover:text-[#FF843E] px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
+                        <a href="{{ route('forum.index') }}" class="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-800 transition-all duration-200">
                             Форум
                         </a>
-                        <a href="{{ route('categories.index') }}" class="text-gray-600 dark:text-gray-300 hover:text-[#FF843E] dark:hover:text-[#FF843E] px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
+                        <a href="{{ route('categories.index') }}" class="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-800 transition-all duration-200">
                             Категорії
                         </a>
                     </div>
@@ -39,14 +37,17 @@
                 <!-- Search Bar -->
                 <div class="flex-1 max-w-lg mx-8 hidden lg:block">
                     <form action="{{ route('search') }}" method="GET" class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
                         <input type="text" name="q" value="{{ request('q') }}" 
-                               class="block w-full pl-12 pr-4 py-3 border-0 rounded-xl leading-5 bg-gray-100 dark:bg-gray-800/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-800 transition-all duration-200 backdrop-blur-sm" 
-                               placeholder="Пошук книг, авторів, обговорень...">
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" 
+                               placeholder="Пошук книг...">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <span class="text-gray-400 text-sm">/</span>
+                        </div>
                     </form>
                 </div>
 
@@ -84,12 +85,8 @@
                         </div>
                     @else
                         <!-- Auth Links -->
-                        <a href="{{ route('login') }}" class="text-gray-600 dark:text-gray-300 hover:text-[#FF843E] dark:hover:text-[#FF843E] px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-200">
-                            Увійти
-                        </a>
-                        <a href="{{ route('register') }}" class="bg-gradient-to-r from-[#F6762E] to-[#F78F54] hover:from-[#FF843E] hover:to-[#F6762E] text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl">
-                            Реєстрація
-                        </a>
+                        <a href="{{ route('login') }}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Увійти</a>
+                        <a href="{{ route('register') }}" class="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-orange-600 hover:to-pink-600 transition-all duration-200">Реєстрація</a>
                     @endauth
                 </div>
             </div>
@@ -102,7 +99,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
+    <footer class="bg-gray-900 border-t border-gray-800 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div class="col-span-1 md:col-span-2">
