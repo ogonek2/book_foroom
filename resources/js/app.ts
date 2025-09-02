@@ -1,25 +1,18 @@
-import '../css/app.css';
+import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/vue3';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import type { DefineComponent } from 'vue';
-import { createApp, h } from 'vue';
-import { initializeTheme } from './composables/useAppearance';
+// Import Tailwind CSS
+import '../css/app.scss';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// Import Vue components if needed
+// import Vue from 'vue';
+// import ExampleComponent from './components/ExampleComponent.vue';
 
-createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<DefineComponent>('./pages/**/*.vue')),
-    setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
-            .use(plugin)
-            .mount(el);
-    },
-    progress: {
-        color: '#4B5563',
-    },
-});
+// Initialize Vue app if needed
+// new Vue({
+//     el: '#app',
+//     components: {
+//         ExampleComponent
+//     }
+// });
 
-// This will set light / dark mode on page load...
-initializeTheme();
+console.log('App loaded successfully!');

@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"  @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-appearance="{{ $appearance ?? 'system' }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="user-id" content="{{ auth()->id() ?? '' }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
@@ -19,30 +21,182 @@
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
-        <style>
-            html {
-                background-color: oklch(1 0 0);
-            }
-
-            html.dark {
-                background-color: oklch(0.145 0 0);
-            }
-        </style>
-
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title>@yield('title', 'Книжный форум')</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
 
-        @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
-        @inertiaHead
+        <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+        @stack('styles')
+        
+        <style>
+            /* Custom animations */
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideInRight {
+                from {
+                    opacity: 0;
+                    transform: translateX(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            
+            .animate-fade-in-up {
+                animation: fadeInUp 0.6s ease-out;
+            }
+            
+            .animate-fade-in {
+                animation: fadeIn 0.4s ease-out;
+            }
+            
+            .animate-slide-in-right {
+                animation: slideInRight 0.5s ease-out;
+            }
+            
+            /* Loading state */
+            body:not(.loaded) {
+                overflow: hidden;
+            }
+            
+            body:not(.loaded)::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            body:not(.loaded)::after {
+                content: '';
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                width: 50px;
+                height: 50px;
+                margin: -25px 0 0 -25px;
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                border-top: 3px solid white;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                z-index: 10000;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            /* Smooth scrolling */
+            html {
+                scroll-behavior: smooth;
+            }
+            
+            /* Custom scrollbar */
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+            
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+                background: rgba(156, 163, 175, 0.5);
+                border-radius: 4px;
+            }
+            
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(156, 163, 175, 0.8);
+            }
+            
+            /* Glass morphism effect */
+            .glass {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .glass-dark {
+                background: rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            /* Hover effects */
+            .hover-lift {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            
+            .hover-lift:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            
+            /* Gradient text */
+            .gradient-text {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            
+            /* Pulse animation for interactive elements */
+            .pulse-slow {
+                animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            
+            /* Stagger animation for lists */
+            .stagger-item {
+                opacity: 0;
+                transform: translateY(20px);
+                animation: fadeInUp 0.6s ease-out forwards;
+            }
+            
+            .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+            .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+            .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+            .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+            .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+        </style>
     </head>
-    <body class="font-sans antialiased">
-        @inertia
+    <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900">
+        @yield('content')
+        @stack('scripts')
+        
+        <script src="{{ mix('js/app.js') }}"></script>
+        
+        <script>
+            // Add loading animation
+            window.addEventListener('load', function() {
+                document.body.classList.add('loaded');
+            });
+        </script>
     </body>
 </html>
