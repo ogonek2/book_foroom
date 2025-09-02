@@ -201,7 +201,7 @@
 
         <!-- 2. Рекомендовані книги -->
         <section class="mb-16">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <div class="grid grid-cols-1 lg:grid-cols-3 items-center" style="gap: 5rem">
                 <!-- Content Side -->
                 <div class="lg:col-span-1 space-y-6">
                     <div>
@@ -255,9 +255,18 @@
                                     <div class="bg-gray-800 rounded-2xl overflow-hidden">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
                                             <div class="relative">
-                                                <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=500&fit=crop&crop=center" 
-                                                     alt="Собаче серце" 
-                                                     class="w-full h-80 md:h-96 object-cover">
+                                                <div class="relative h-80 md:h-96 bg-gray-900/20">
+                                                    <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=1200&fit=crop&crop=center" 
+                                                         alt="Собаче серце (background)" 
+                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
+                                                                                                       <div class="absolute inset-0 flex items-center justify-center p-4">
+                                                       <div class="relative w-36 h-52 md:w-44 md:h-64">
+                                                           <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=176&h=256&fit=crop&crop=center" 
+                                                                alt="Собаче серце" 
+                                                                class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
+                                                       </div>
+                                                   </div>
+                                                </div>
                                                 <div class="absolute top-4 left-4 bg-orange-500/90 backdrop-blur-sm rounded-full px-3 py-1">
                                                     <span class="text-xs font-medium text-white">Рекомендовано</span>
                                                 </div>
@@ -296,9 +305,18 @@
                                     <div class="bg-gray-800 rounded-2xl overflow-hidden">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
                                             <div class="relative">
-                                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=center" 
-                                                     alt="Гра престолів" 
-                                                     class="w-full h-80 md:h-96 object-cover">
+                                                <div class="relative h-80 md:h-96 bg-gray-900/20">
+                                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=1200&fit=crop&crop=center" 
+                                                         alt="Гра престолів (background)" 
+                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
+                                                                                                       <div class="absolute inset-0 flex items-center justify-center p-4">
+                                                       <div class="relative w-36 h-52 md:w-44 md:h-64">
+                                                           <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=176&h=256&fit=crop&crop=center" 
+                                                                alt="Гра престолів" 
+                                                                class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
+                                                       </div>
+                                                   </div>
+                                                </div>
                                                 <div class="absolute top-4 left-4 bg-orange-500/90 backdrop-blur-sm rounded-full px-3 py-1">
                                                     <span class="text-xs font-medium text-white">Популярно</span>
                                                 </div>
@@ -337,9 +355,18 @@
                                     <div class="bg-gray-800 rounded-2xl overflow-hidden">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
                                             <div class="relative">
-                                                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=500&fit=crop&crop=center" 
-                                                     alt="Дюна" 
-                                                     class="w-full h-80 md:h-96 object-cover">
+                                                <div class="relative h-80 md:h-96 bg-gray-900/20">
+                                                    <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&h=1200&fit=crop&crop=center" 
+                                                         alt="Дюна (background)" 
+                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
+                                                                                                       <div class="absolute inset-0 flex items-center justify-center p-4">
+                                                       <div class="relative w-36 h-52 md:w-44 md:h-64">
+                                                           <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=176&h=256&fit=crop&crop=center" 
+                                                                alt="Дюна" 
+                                                                class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
+                                                       </div>
+                                                   </div>
+                                                </div>
                                                 <div class="absolute top-4 left-4 bg-orange-500/90 backdrop-blur-sm rounded-full px-3 py-1">
                                                     <span class="text-xs font-medium text-white">Класика</span>
                                                 </div>
