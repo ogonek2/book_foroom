@@ -5,92 +5,111 @@
 @section('main')
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Hero Section -->
-        <div class="relative overflow-hidden bg-gradient-to-br from-[#F6762E] via-[#F78F54] to-[#FF843E] rounded-3xl p-16 text-white mb-16 group">
-            <!-- Animated background elements -->
-            <div class="absolute inset-0 bg-gradient-to-br from-black/5 to-black/20"></div>
-            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -translate-y-60 translate-x-60 animate-float blur-sm"></div>
-            <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-white/5 rounded-full translate-y-40 -translate-x-40 animate-float-delayed blur-sm"></div>
-            <div class="absolute top-1/2 right-1/4 w-[300px] h-[300px] bg-white/5 rounded-full animate-spin-slow blur-sm"></div>
+        <!-- Hero Section - Completely Redesigned -->
+        <div class="relative min-h-[60vh] flex items-center justify-center overflow-hidden mb-8">
+            <!-- Animated Geometric Shapes -->
+            <div class="absolute inset-0">
+                <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-[#F6762E] to-[#FF843E] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
+                <div class="absolute top-1/3 right-1/4 w-72 h-72 bg-gradient-to-r from-[#F78F54] to-[#F6762E] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
+                <div class="absolute -bottom-8 left-1/3 w-72 h-72 bg-gradient-to-r from-[#FF843E] to-[#F78F54] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000"></div>
+            </div>
             
-            <!-- Grid pattern overlay -->
-            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0); background-size: 20px 20px;"></div>
+            <!-- Floating Books Animation -->
+            <div class="absolute inset-0 overflow-hidden">
+                <div class="absolute top-20 left-10 w-16 h-20 bg-gradient-to-b from-[#F6762E] to-[#FF843E] rounded-lg shadow-2xl animate-float opacity-30"></div>
+                <div class="absolute top-32 right-20 w-12 h-16 bg-gradient-to-b from-[#F78F54] to-[#F6762E] rounded-lg shadow-2xl animate-float-delayed opacity-20"></div>
+                <div class="absolute bottom-32 left-1/4 w-14 h-18 bg-gradient-to-b from-[#FF843E] to-[#F78F54] rounded-lg shadow-2xl animate-float opacity-25"></div>
+                <div class="absolute top-1/2 right-1/3 w-10 h-14 bg-gradient-to-b from-[#F6762E] to-[#FF843E] rounded-lg shadow-2xl animate-float-delayed opacity-15"></div>
+            </div>
             
-            <!-- Floating particles -->
-            <div class="absolute top-20 left-20 w-3 h-3 bg-white/40 rounded-full animate-pulse shadow-lg"></div>
-            <div class="absolute top-32 right-32 w-2 h-2 bg-white/50 rounded-full animate-pulse-delayed shadow-lg"></div>
-            <div class="absolute bottom-20 left-1/3 w-2.5 h-2.5 bg-white/30 rounded-full animate-pulse shadow-lg"></div>
-            <div class="absolute top-1/2 left-1/4 w-1.5 h-1.5 bg-white/60 rounded-full animate-pulse shadow-lg"></div>
-            
-            <div class="relative max-w-6xl z-10">
-                <div class="animate-fade-in-up">
-                    <!-- Badge -->
-                    <div class="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md text-white px-6 py-3 rounded-full text-sm font-bold mb-8 border border-white/30 shadow-lg">
-                        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-                        <span>Активне співтовариство читачів</span>
+            <!-- Main Content -->
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="space-y-8">
+                    <!-- Animated Badge -->
+                    <div class="inline-flex items-center gap-3 bg-gradient-to-r from-[#F6762E] to-[#FF843E] text-white px-6 py-3 rounded-full text-sm font-medium shadow-lg animate-fade-in-up">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span>✨ Активне співтовариство читачів</span>
                         <div class="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
                     </div>
                     
-                    <h1 class="text-8xl font-black mb-8 bg-gradient-to-r from-white via-orange-50 to-yellow-50 bg-clip-text text-transparent leading-tight tracking-tight">
-                        Ласкаво просимо до
-                        <span class="block bg-gradient-to-r from-yellow-200 to-orange-200 bg-clip-text text-transparent relative">
-                            BookForum
-                            <div class="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-yellow-300 to-orange-300 rounded-full opacity-60"></div>
-                        </span>
-                    </h1>
+                    <!-- Main Heading -->
+                    <div class="space-y-4 animate-fade-in-up animation-delay-200">
+                        <h1 class="text-6xl md:text-8xl font-black leading-tight">
+                            <span class="block text-gray-800 dark:text-white">
+                                Ласкаво просимо
+                            </span>
+                            <span class="block bg-gradient-to-r from-[#F6762E] via-[#F78F54] to-[#FF843E] bg-clip-text text-transparent mt-2">
+                                BookForum
+                            </span>
+                        </h1>
+                        <div class="w-32 h-1 bg-gradient-to-r from-[#F6762E] to-[#FF843E] mx-auto rounded-full"></div>
+                    </div>
                     
-                    <p class="text-2xl text-orange-50 mb-12 leading-relaxed font-medium max-w-3xl">
+                    <!-- Description -->
+                    <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in-up animation-delay-400">
                         Відкривайте нові книги, діліться думками та знаходьте однодумців у світі літератури. 
-                        Приєднуйтесь до найбільшої спільноти книголюбів України.
+                        <span class="text-[#F78F54] font-medium">Приєднуйтесь до найбільшої спільноти книголюбів України.</span>
                     </p>
                     
                     <!-- CTA Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-6 mb-12">
-                        <a href="{{ route('books.index') }}" class="group relative bg-white/20 backdrop-blur-md text-white px-10 py-5 rounded-3xl font-bold hover:bg-white/30 transition-all duration-500 border border-white/30 hover:border-white/50 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-2 overflow-hidden">
-                            <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/15 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                            <span class="relative flex items-center gap-4 text-lg">
-                                <div class="p-3 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors shadow-lg">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                    </svg>
-                                </div>
+                    <div class="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up animation-delay-600">
+                        <a href="{{ route('books.index') }}" class="group relative bg-gradient-to-r from-[#F6762E] to-[#FF843E] text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:from-[#FF843E] hover:to-[#F6762E] transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1 overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                            <span class="relative flex items-center gap-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
                                 Переглянути книги
-                                <svg class="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                 </svg>
                             </span>
                         </a>
-                        <a href="{{ route('forum.index') }}" class="group relative bg-white text-[#F6762E] px-10 py-5 rounded-3xl font-bold hover:bg-orange-50 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-2 overflow-hidden">
+                        <a href="{{ route('forum.index') }}" class="group relative bg-white dark:bg-gray-800 text-gray-800 dark:text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-500 border border-gray-200 dark:border-gray-600 hover:border-[#F6762E] shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1 overflow-hidden">
                             <div class="absolute inset-0 bg-gradient-to-r from-[#F6762E]/0 via-[#F6762E]/10 to-[#F6762E]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                            <span class="relative flex items-center gap-4 text-lg">
-                                <div class="p-3 bg-[#F6762E]/10 rounded-xl group-hover:bg-[#F6762E]/20 transition-colors shadow-lg">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                    </svg>
-                                </div>
+                            <span class="relative flex items-center gap-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
                                 Приєднатися до обговорення
-                                <svg class="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                 </svg>
                             </span>
                         </a>
                     </div>
                     
-                    <!-- Stats -->
-                    <div class="flex flex-wrap gap-12 text-orange-100">
-                        <div class="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-2xl border border-white/20">
-                            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
-                            <span class="text-lg font-bold">{{ $stats['users'] ?? 0 }}+ активних користувачів</span>
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto animate-fade-in-up animation-delay-800">
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-center gap-3 mb-2">
+                                <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                                <span class="text-3xl font-bold text-gray-800 dark:text-white">{{ $stats['users'] ?? 0 }}+</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm font-medium">активних користувачів</p>
                         </div>
-                        <div class="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-2xl border border-white/20">
-                            <div class="w-3 h-3 bg-blue-400 rounded-full animate-pulse shadow-lg"></div>
-                            <span class="text-lg font-bold">{{ $stats['books'] ?? 0 }}+ книг у каталозі</span>
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-center gap-3 mb-2">
+                                <div class="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                                <span class="text-3xl font-bold text-gray-800 dark:text-white">{{ $stats['books'] ?? 0 }}+</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm font-medium">книг у каталозі</p>
                         </div>
-                        <div class="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-2xl border border-white/20">
-                            <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse shadow-lg"></div>
-                            <span class="text-lg font-bold">{{ $stats['reviews'] ?? 0 }}+ рецензій</span>
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-600 shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-center gap-3 mb-2">
+                                <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                                <span class="text-3xl font-bold text-gray-800 dark:text-white">{{ $stats['reviews'] ?? 0 }}+</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm font-medium">рецензій</p>
                         </div>
                     </div>
+                </div>
+            </div>
+            
+            <!-- Scroll Indicator -->
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <div class="w-6 h-10 border-2 border-gray-300 dark:border-gray-600 rounded-full flex justify-center">
+                    <div class="w-1 h-3 bg-gray-500 dark:bg-gray-400 rounded-full mt-2 animate-pulse"></div>
                 </div>
             </div>
         </div>
