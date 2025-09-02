@@ -1695,6 +1695,9 @@ select{
 .top-0{
   top: 0px;
 }
+.top-1{
+  top: 0.25rem;
+}
 .top-1\/2{
   top: 50%;
 }
@@ -1808,6 +1811,12 @@ select{
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+.line-clamp-4{
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
 }
 .block{
   display: block;
@@ -1943,6 +1952,12 @@ select{
 }
 .w-80{
   width: 20rem;
+}
+.w-96{
+  width: 24rem;
+}
+.w-\[28rem\]{
+  width: 28rem;
 }
 .w-full{
   width: 100%;
@@ -2338,9 +2353,6 @@ select{
 .bg-orange-500{
   --tw-bg-opacity: 1;
   background-color: rgb(249 115 22 / var(--tw-bg-opacity, 1));
-}
-.bg-orange-500\/20{
-  background-color: rgb(249 115 22 / 0.2);
 }
 .bg-orange-500\/90{
   background-color: rgb(249 115 22 / 0.9);
@@ -4264,14 +4276,23 @@ select{
   .md\:flex{
     display: flex;
   }
+  .md\:h-32{
+    height: 8rem;
+  }
   .md\:h-64{
     height: 16rem;
   }
   .md\:h-96{
     height: 24rem;
   }
+  .md\:w-24{
+    width: 6rem;
+  }
   .md\:w-44{
     width: 11rem;
+  }
+  .md\:w-\[28rem\]{
+    width: 28rem;
   }
   .md\:grid-cols-2{
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4294,6 +4315,11 @@ select{
     --tw-space-x-reverse: 0;
     margin-right: calc(0.75rem * var(--tw-space-x-reverse));
     margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
+  }
+  .md\:space-x-6 > :not([hidden]) ~ :not([hidden]){
+    --tw-space-x-reverse: 0;
+    margin-right: calc(1.5rem * var(--tw-space-x-reverse));
+    margin-left: calc(1.5rem * calc(1 - var(--tw-space-x-reverse)));
   }
   .md\:p-8{
     padding: 2rem;

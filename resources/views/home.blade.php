@@ -468,83 +468,87 @@
 
         <!-- 3. Рецензії -->
         <section class="mb-12">
-            <h2 class="text-3xl font-bold text-white mb-6">Рецензії</h2>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-white">Рецензії</h2>
+                <a href="{{ route('books.index') }}" class="text-orange-400 hover:text-orange-300 text-sm font-medium flex items-center gap-2 transition-colors">
+                    Переглянути всі
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
             <div class="relative">
-                <div class="flex space-x-6 overflow-x-auto pb-4 scrollbar-hide">
-                    <!-- Review Card 1 -->
-                    <div class="flex-shrink-0 w-80">
-                        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors duration-200">
-                            <div class="flex items-start space-x-3">
-                                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face" 
-                                     alt="User" 
-                                     class="w-10 h-10 rounded-full">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-2 mb-2">
-                                        <span class="text-white font-medium text-sm">Анна Коваленко</span>
-                                        <span class="text-gray-400 text-xs">близько 2 годин тому</span>
+                <div class="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide">
+                    @forelse($recentReviews as $review)
+                    <!-- Review Card -->
+                    <div class="flex-shrink-0 w-96 md:w-[28rem]">
+                        <div class="bg-gray-800 rounded-lg p-5 hover:bg-gray-750 transition-colors duration-200 h-full">
+                            <div class="flex items-start space-x-4">
+                                <!-- Left side: Avatar, author, book title and review content -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Author info -->
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <!-- Avatar with first letter -->
+                                        @if($review->user)
+                                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                                                <span class="text-white font-semibold text-sm">{{ strtoupper(substr($review->user->name, 0, 1)) }}</span>
+                                            </div>
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
+                                                <span class="text-gray-300 font-semibold text-sm">Г</span>
+                                            </div>
+                                        @endif
+                                        <div class="flex-1 min-w-0">
+                                            <span class="text-white font-medium text-sm">{{ $review->getAuthorName() }}</span>
+                                        </div>
                                     </div>
-                                    <p class="text-gray-300 text-sm leading-relaxed mb-3">
-                                        "1984" - це справжній шедевр антиутопії. Орвелл створив світ, який змушує задуматися про сучасне суспільство...
+                                    
+                                    <!-- Book title -->
+                                    <h4 class="text-orange-400 font-medium text-sm mb-3 truncate" title="{{ $review->book->title }}">
+                                        {{ $review->book->title }}
+                                    </h4>
+                                    
+                                    <!-- Review content -->
+                                    <p class="text-gray-300 text-sm leading-relaxed line-clamp-4">
+                                        {{ Str::limit($review->content, 200) }}
                                     </p>
-                                    <div class="flex items-center space-x-4 text-xs text-gray-500">
-                                        <span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Аніме</span>
-                                        <span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded">1984</span>
+                                </div>
+                                
+                                <!-- Right side: Book cover with image-in-image effect -->
+                                <div class="flex-shrink-0 relative">
+                                    <div class="relative w-20 h-28 md:w-24 md:h-32 rounded-lg overflow-hidden">
+                                        <!-- Background blurred image -->
+                                        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop" 
+                                             alt="{{ $review->book->title }}" 
+                                             class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
+                                        
+                                        <!-- Foreground clear image -->
+                                        <div class="absolute inset-0 flex items-center justify-center p-2">
+                                            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=160&h=224&fit=crop" 
+                                                 alt="{{ $review->book->title }}" 
+                                                 class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Review Card 2 -->
-                    <div class="flex-shrink-0 w-80">
-                        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors duration-200">
-                            <div class="flex items-start space-x-3">
-                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face" 
-                                     alt="User" 
-                                     class="w-10 h-10 rounded-full">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-2 mb-2">
-                                        <span class="text-white font-medium text-sm">Максим Петренко</span>
-                                        <span class="text-gray-400 text-xs">близько 5 годин тому</span>
-                                    </div>
-                                    <p class="text-gray-300 text-sm leading-relaxed mb-3">
-                                        "Гаррі Поттер" - класика дитячої літератури! Роулінг створила цілий світ, який захоплює як дітей, так і дорослих...
-                                    </p>
-                                    <div class="flex items-center space-x-4 text-xs text-gray-500">
-                                        <span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Фентезі</span>
-                                        <span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Гаррі Поттер</span>
-                                    </div>
-                                </div>
+                    @empty
+                    <!-- No Reviews -->
+                    <div class="flex-shrink-0 w-96 md:w-[28rem]">
+                        <div class="bg-gray-800 rounded-lg p-8 text-center h-full flex items-center justify-center">
+                            <div>
+                                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                <p class="text-gray-400 text-sm">Поки що немає рецензій</p>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Review Card 3 -->
-                    <div class="flex-shrink-0 w-80">
-                        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors duration-200">
-                            <div class="flex items-start space-x-3">
-                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" 
-                                     alt="User" 
-                                     class="w-10 h-10 rounded-full">
-                                <div class="flex-1">
-                                    <div class="flex items-center space-x-2 mb-2">
-                                        <span class="text-white font-medium text-sm">Олексій Іваненко</span>
-                                        <span class="text-gray-400 text-xs">близько 1 дня тому</span>
-                                    </div>
-                                    <p class="text-gray-300 text-sm leading-relaxed mb-3">
-                                        "Війна і мир" - епічний роман, який показує всю складність людської природи та історичних подій...
-                                    </p>
-                                    <div class="flex items-center space-x-4 text-xs text-gray-500">
-                                        <span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Класика</span>
-                                        <span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded">Війна і мир</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
                 <!-- Scroll Arrow -->
-                <button class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full transition-colors duration-200">
+                <button class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700/80 text-white p-3 rounded-full transition-all duration-200 shadow-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
@@ -793,4 +797,26 @@
 }
 </style>
 @endpush
+
+<script>
+// Reviews scroll functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewsContainer = document.querySelector('.flex.space-x-4.md\\:space-x-6.overflow-x-auto');
+    const scrollButton = document.querySelector('.absolute.right-0.top-1\\/2 button');
+    
+    if (reviewsContainer && scrollButton) {
+        scrollButton.addEventListener('click', function() {
+            // Calculate scroll distance based on screen size
+            const isMobile = window.innerWidth < 768;
+            const cardWidth = isMobile ? 384 : 448; // w-96 = 384px, w-[28rem] = 448px
+            const gap = isMobile ? 16 : 24; // space-x-4 = 16px, space-x-6 = 24px
+            
+            reviewsContainer.scrollBy({
+                left: cardWidth + gap,
+                behavior: 'smooth'
+            });
+        });
+    }
+});
+</script>
 @endsection

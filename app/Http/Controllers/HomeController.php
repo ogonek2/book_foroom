@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Category;
 use App\Models\Topic;
 use App\Models\User;
+use App\Models\Review;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -36,6 +37,12 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
-        return view('home', compact('stats', 'featuredBooks', 'recentTopics', 'categories'));
+        $recentReviews = Review::with(['book.category', 'user'])
+            ->whereNull('parent_id') // Только основные рецензии, не ответы
+            ->orderBy('created_at', 'desc')
+            ->limit(8)
+            ->get();
+
+        return view('home', compact('stats', 'featuredBooks', 'recentTopics', 'categories', 'recentReviews'));
     }
 }

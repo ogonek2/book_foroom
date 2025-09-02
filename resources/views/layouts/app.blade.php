@@ -10,7 +10,7 @@
                     <!-- Logo -->
                     <div class="flex-shrink-0">
                         <a href="{{ route('home') }}" class="flex items-center group">
-                            <span class="text-2xl font-bold text-white">BookForum</span>
+                            <span class="text-2xl font-bold text-white">Foxy</span>
                         </a>
                     </div>
 
