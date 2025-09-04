@@ -484,7 +484,7 @@
                     <div class="flex-shrink-0 w-96 md:w-[28rem]">
                         <div class="bg-gray-800 rounded-lg p-5 hover:bg-gray-750 transition-colors duration-200 h-full">
                             <div class="flex items-start space-x-4">
-                                <!-- Left side: Avatar, author, book title and review content -->
+                                <!-- Left side: Avatar + Author name and Review content -->
                                 <div class="flex-1 min-w-0">
                                     <!-- Author info -->
                                     <div class="flex items-center space-x-3 mb-3">
@@ -503,32 +503,31 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- Book title -->
-                                    <h4 class="text-orange-400 font-medium text-sm mb-3 truncate" title="{{ $review->book->title }}">
-                                        {{ $review->book->title }}
-                                    </h4>
-                                    
                                     <!-- Review content -->
                                     <p class="text-gray-300 text-sm leading-relaxed line-clamp-4">
                                         {{ Str::limit($review->content, 200) }}
                                     </p>
                                 </div>
                                 
-                                <!-- Right side: Book cover with image-in-image effect -->
-                                <div class="flex-shrink-0 relative">
-                                    <div class="relative w-20 h-28 md:w-24 md:h-32 rounded-lg overflow-hidden">
-                                        <!-- Background blurred image -->
-                                        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop" 
+                                <!-- Right side: Book cover, title and button -->
+                                <div class="flex-shrink-0 flex flex-col items-center space-y-3">
+                                    <!-- Book cover -->
+                                    <div class="w-20 h-28 md:w-24 md:h-32 rounded-lg overflow-hidden">
+                                        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=160&h=224&fit=crop" 
                                              alt="{{ $review->book->title }}" 
-                                             class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
-                                        
-                                        <!-- Foreground clear image -->
-                                        <div class="absolute inset-0 flex items-center justify-center p-2">
-                                            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=160&h=224&fit=crop" 
-                                                 alt="{{ $review->book->title }}" 
-                                                 class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
-                                        </div>
+                                             class="w-full h-full object-cover">
                                     </div>
+                                    
+                                    <!-- Book title -->
+                                    <h4 class="text-orange-400 font-medium text-sm text-center truncate w-full" title="{{ $review->book->title }}">
+                                        {{ $review->book->title }}
+                                    </h4>
+                                    
+                                    <!-- Read more button -->
+                                    <a href="{{ route('books.show', $review->book->slug) }}#review-{{ $review->id }}" 
+                                       class="inline-block bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium px-4 py-2 rounded transition-colors duration-200">
+                                        Читати далі
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -563,12 +562,12 @@
                 <div class="flex space-x-6 overflow-x-auto pb-4 scrollbar-hide">
                     <!-- Quote Card 1 -->
                     <div class="flex-shrink-0 w-80">
-                        <div class="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors duration-200">
+                        <div class="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors duration-200 h-full flex flex-col">
                             <div class="text-4xl text-orange-500/30 mb-4">"</div>
-                            <p class="text-gray-300 text-lg italic leading-relaxed mb-4">
+                            <p class="text-gray-300 text-lg italic leading-relaxed mb-4 flex-1">
                                 Книги - це кораблі думок, що плавають по хвилях часу і бережно несуть свій дорогоцінний вантаж від покоління до покоління.
                             </p>
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between mt-auto">
                                 <div>
                                     <p class="text-white font-semibold">Френсіс Бекон</p>
                                     <p class="text-gray-400 text-sm">Філософські есеї</p>
@@ -587,12 +586,12 @@
                     
                     <!-- Quote Card 2 -->
                     <div class="flex-shrink-0 w-80">
-                        <div class="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors duration-200">
+                        <div class="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors duration-200 h-full flex flex-col">
                             <div class="text-4xl text-orange-500/30 mb-4">"</div>
-                            <p class="text-gray-300 text-lg italic leading-relaxed mb-4">
+                            <p class="text-gray-300 text-lg italic leading-relaxed mb-4 flex-1">
                                 Читання - це розмова з наймудрішими людьми минулих століть.
                             </p>
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between mt-auto">
                                 <div>
                                     <p class="text-white font-semibold">Рене Декарт</p>
                                     <p class="text-gray-400 text-sm">Роздуми про першу філософію</p>
@@ -611,12 +610,12 @@
                     
                     <!-- Quote Card 3 -->
                     <div class="flex-shrink-0 w-80">
-                        <div class="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors duration-200">
+                        <div class="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition-colors duration-200 h-full flex flex-col">
                             <div class="text-4xl text-orange-500/30 mb-4">"</div>
-                            <p class="text-gray-300 text-lg italic leading-relaxed mb-4">
+                            <p class="text-gray-300 text-lg italic leading-relaxed mb-4 flex-1">
                                 Книга - це мрія, яку ви тримаєте в руках.
                             </p>
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between mt-auto">
                                 <div>
                                     <p class="text-white font-semibold">Ніл Гейман</p>
                                     <p class="text-gray-400 text-sm">Американські боги</p>
