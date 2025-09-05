@@ -1,22 +1,27 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-appearance="{{ $appearance ?? 'system' }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="user-id" content="{{ auth()->id() ?? '' }}">
+        <meta name="theme-color" content="#ffffff">
 
-        {{-- Inline script to detect system dark mode preference and apply it immediately --}}
+        {{-- Inline script to prevent flash of wrong theme --}}
         <script>
             (function() {
-                const appearance = '{{ $appearance ?? "system" }}';
-
-                if (appearance === 'system') {
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                    if (prefersDark) {
-                        document.documentElement.classList.add('dark');
-                    }
+                // Получаем сохраненную тему или системную
+                const savedTheme = localStorage.getItem('bookforum-theme');
+                const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                const theme = savedTheme || systemTheme;
+                
+                // Применяем тему немедленно
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0f172a');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff');
                 }
             })();
         </script>
@@ -186,7 +191,7 @@
             .stagger-item:nth-child(5) { animation-delay: 0.5s; }
         </style>
     </head>
-    <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900">
+    <body class="font-sans antialiased bg-light-bg dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary transition-colors duration-300">
         @yield('content')
         @stack('scripts')
         

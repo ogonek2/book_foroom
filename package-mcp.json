@@ -1,0 +1,21 @@
+{
+  "name": "figma-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Figma API integration",
+  "main": "figma-mcp-server.js",
+  "scripts": {
+    "start": "node figma-mcp-server.js",
+    "dev": "nodemon figma-mcp-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["figma", "mcp", "api", "server"],
+  "author": "ArtemQ",
+  "license": "MIT"
+}

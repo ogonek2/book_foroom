@@ -14,6 +14,7 @@ class Book extends Model
         'slug',
         'description',
         'author',
+        'author_id',
         'isbn',
         'publication_year',
         'publisher',
@@ -48,6 +49,11 @@ class Book extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(Author::class);
     }
 
     public function reviews(): HasMany
