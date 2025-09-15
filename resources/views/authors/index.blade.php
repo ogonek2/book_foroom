@@ -4,68 +4,51 @@
 
 @section('main')
 <div class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300">
-
+    <!-- Header -->
+    <div class="mb-2">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Автори</h1>
+        <p class="text-gray-600 dark:text-gray-400">Знайдіть цікавих авторів</p>
+    </div>
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-8xl mx-auto py-8">
         <div class="flex flex-col lg:flex-row gap-8">
             <!-- Sticky Sidebar -->
             <div class="lg:w-80 flex-shrink-0">
-                <div class="sticky top-24 space-y-6 max-h-screen overflow-y-auto">
-                    <!-- Search -->
-                    <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-xl p-6 shadow-sm">
-                        <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Пошук</h3>
-                        <form method="GET" action="{{ route('authors.index') }}">
-                            <div class="relative">
-                                <input type="text" 
-                                       name="search" 
-                                       value="{{ request('search') }}"
-                                       placeholder="Пошук автора..."
-                                       class="w-full pl-10 pr-4 py-3 border border-light-border dark:border-dark-border rounded-lg bg-light-bg dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-200">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-light-text-tertiary dark:text-dark-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
+                <div class="sticky top-24 max-h-screen overflow-y-auto">
+                    <!-- Unified Sidebar Container -->
+                    <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/30 dark:border-gray-700/30 p-6">
+                        <!-- Main Header -->
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Фільтри</h3>
+                        
+                        <!-- Search Section -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Пошук</label>
+                            <form method="GET" action="{{ route('authors.index') }}">
+                                <div class="relative">
+                                    <input type="text" 
+                                           name="search" 
+                                           value="{{ request('search') }}"
+                                           placeholder="Назва, автор..."
+                                           class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
                                 </div>
-                            </div>
-                        </form>
-                    </div>
+                            </form>
+                        </div>
 
-                    <!-- Alphabet Filter -->
-                    <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-xl p-6 shadow-sm">
-                        <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Алфавіт</h3>
-                        <div class="space-y-2">
-                            <a href="{{ route('authors.index', request()->except('letter')) }}" 
-                               class="block px-3 py-2 text-sm rounded-lg {{ !request('letter') ? 'bg-brand-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-colors duration-200">
-                                Всі
-                            </a>
-                            <div class="grid grid-cols-6 gap-1">
+                        <!-- Alphabet Filter Section -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Фільтр по прізвищу</label>
+                            <div class="grid grid-cols-6 gap-2">
+                                <a href="{{ route('authors.index', request()->except('letter')) }}" 
+                                   class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ !request('letter') ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
+                                    Усі
+                                </a>
                                 @foreach($letters as $letter)
                                     <a href="{{ route('authors.index', array_merge(request()->except('letter'), ['letter' => $letter])) }}" 
-                                       class="px-2 py-1 text-xs text-center rounded {{ request('letter') == $letter ? 'bg-brand-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-colors duration-200">
+                                       class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ request('letter') == $letter ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
                                         {{ $letter }}
                                     </a>
                                 @endforeach
                             </div>
-                        </div>
-                    </div>
-
-
-                    <!-- Sort Options -->
-                    <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-xl p-6 shadow-sm">
-                        <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Сортування</h3>
-                        <div class="space-y-2">
-                            <a href="{{ route('authors.index', array_merge(request()->except(['sort', 'direction']), ['sort' => 'last_name', 'direction' => 'asc'])) }}" 
-                               class="block px-3 py-2 text-sm rounded-lg {{ request('sort') == 'last_name' && request('direction') == 'asc' ? 'bg-brand-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-colors duration-200">
-                                Прізвище А-Я
-                            </a>
-                            <a href="{{ route('authors.index', array_merge(request()->except(['sort', 'direction']), ['sort' => 'last_name', 'direction' => 'desc'])) }}" 
-                               class="block px-3 py-2 text-sm rounded-lg {{ request('sort') == 'last_name' && request('direction') == 'desc' ? 'bg-brand-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-colors duration-200">
-                                Прізвище Я-А
-                            </a>
-                            <a href="{{ route('authors.index', array_merge(request()->except(['sort', 'direction']), ['sort' => 'books_count', 'direction' => 'desc'])) }}" 
-                               class="block px-3 py-2 text-sm rounded-lg {{ request('sort') == 'books_count' && request('direction') == 'desc' ? 'bg-brand-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-colors duration-200">
-                                Кількість книг
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -76,45 +59,62 @@
                 @if($authors->count() > 0)
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         @foreach($authors as $author)
-                            <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 group">
+                            
+                            <div class="group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105">
                                 <a href="{{ route('authors.show', $author) }}" class="block">
-                                    <!-- Author Photo -->
-                                    <div class="aspect-[3/4] overflow-hidden">
-                                        @if($author->photo_url)
-                                            <img src="{{ $author->photo_url }}" 
-                                                 alt="{{ $author->full_name }}"
-                                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                        @else
-                                            <div class="w-full h-full bg-light-bg-secondary dark:bg-dark-bg-secondary flex items-center justify-center group-hover:bg-light-bg-tertiary dark:group-hover:bg-dark-bg-secondary transition-colors duration-300">
-                                                <svg class="w-12 h-12 text-light-text-tertiary dark:text-dark-text-tertiary group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <!-- Card Container -->
+                                    <div class="aspect-[3/4] relative">
+                                    <!-- Author Image -->
+                                    @if($author->photo_url)
+                                        <img src="{{ $author->photo_url }}" 
+                                             alt="{{ $author->full_name ?? 'Автор' }}"
+                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    @endif
+
+                                    <!-- Icon Fallback (only shown when image fails to load) -->
+                                    <div class="w-full h-full {{ $author->photo_url ? 'hidden' : 'flex' }} items-center justify-center bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600 dark:from-gray-600 dark:via-gray-700 dark:to-gray-800">
+                                        <div class="text-center">
+                                            <div class="w-24 h-24 mx-auto bg-white/20 dark:bg-white/10 rounded-full flex items-center justify-center">
+                                                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                                 </svg>
                                             </div>
-                                        @endif
+                                        </div>
                                     </div>
-                                    
-                                    <!-- Author Info -->
-                                    <div class="p-4">
-                                        <h3 class="text-base font-semibold text-light-text-primary dark:text-dark-text-primary mb-2 line-clamp-2">
-                                            {{ $author->full_name }}
-                                        </h3>
                                         
-                                        @if($author->nationality)
-                                            <p class="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mb-3">
-                                                {{ $author->nationality }}
-                                            </p>
-                                        @endif
+                                        <!-- Dark Overlay -->
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent dark:from-black/80 dark:via-black/20"></div>
                                         
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                                                {{ $author->books_count }} {{ Str::plural('книга', $author->books_count) }}
-                                            </span>
-                                            
-                                            @if($author->is_featured)
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-500/10 text-brand-500">
-                                                    Рекомендовано
-                                                </span>
+                                        <!-- Books Count -->
+                                        <div class="absolute top-4 right-4 z-20">
+                                            <div class="flex items-center space-x-1 bg-white/80 dark:bg-black/70 rounded-full px-2 py-1.5">
+                                                <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                                </svg>
+                                                <span class="text-gray-600 dark:text-gray-400 text-sm font-medium">{{ $author->books_count ?? 0 }}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Author Info -->
+                                        <div class="absolute left-4 right-4 z-10" style="bottom: 0.5rem;">
+                                            <h6 class="text-l font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors mb-1 line-clamp-2 drop-shadow-lg">
+                                                {{ $author->full_name ?? $author->name ?? 'Автор #' . ($author->id ?? '?') }}
+                                            </h6>
+                                            @if($author->nationality)
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 font-medium line-clamp-1">
+                                                    {{ $author->nationality }}
+                                                </p>
                                             @endif
+                                        </div>
+                                        
+                                        <!-- Hover Button -->
+                                        <div class="absolute bottom-0 left-0 right-0 z-50 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-white/95 to-white/80 dark:from-black/95 dark:to-black/80 backdrop-blur-sm opacity-0 group-hover:opacity-100">
+                                            <div class="p-4">
+                                                <button class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105">
+                                                    Перейти к автору
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </a>
