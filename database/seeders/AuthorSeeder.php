@@ -14,6 +14,7 @@ class AuthorSeeder extends Seeder
     public function run(): void
     {
         $authors = [
+            // Українські автори
             [
                 'first_name' => 'Тарас',
                 'last_name' => 'Шевченко',
@@ -22,7 +23,7 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1814-03-09',
                 'death_date' => '1861-03-10',
                 'nationality' => 'Україна',
-                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Національний герой України',
                 'is_featured' => true,
             ],
@@ -34,7 +35,7 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1871-02-25',
                 'death_date' => '1913-08-01',
                 'nationality' => 'Україна',
-                'photo' => 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Класик української літератури',
                 'is_featured' => true,
             ],
@@ -46,10 +47,12 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1856-08-27',
                 'death_date' => '1916-05-28',
                 'nationality' => 'Україна',
-                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Нобелівська премія з літератури (1926)',
                 'is_featured' => true,
             ],
+            
+            // Російські автори
             [
                 'first_name' => 'Олександр',
                 'last_name' => 'Пушкін',
@@ -58,7 +61,7 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1799-06-06',
                 'death_date' => '1837-02-10',
                 'nationality' => 'Росія',
-                'photo' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Засновник нової російської літератури',
                 'is_featured' => true,
             ],
@@ -70,10 +73,24 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1828-09-09',
                 'death_date' => '1910-11-20',
                 'nationality' => 'Росія',
-                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Нобелівська премія з літератури (1901)',
                 'is_featured' => true,
             ],
+            [
+                'first_name' => 'Федір',
+                'last_name' => 'Достоєвський',
+                'middle_name' => 'Михайлович',
+                'biography' => 'Великий російський письменник, філософ. Автор романів "Злочин і кара", "Ідіот", "Брати Карамазови", "Підліток" та інших.',
+                'birth_date' => '1821-11-11',
+                'death_date' => '1881-02-09',
+                'nationality' => 'Росія',
+                'photo' => 'https://images.unsplash.com/photo-1566492031773-4f4e44671d66?w=400&h=500&fit=crop&crop=face',
+                'awards' => 'Класик світової літератури',
+                'is_featured' => true,
+            ],
+            
+            // Англійські автори
             [
                 'first_name' => 'Вільям',
                 'last_name' => 'Шекспір',
@@ -82,7 +99,7 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1564-04-26',
                 'death_date' => '1616-04-23',
                 'nationality' => 'Англія',
-                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Найвидатніший драматург світу',
                 'is_featured' => true,
             ],
@@ -94,10 +111,24 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1812-02-07',
                 'death_date' => '1870-06-09',
                 'nationality' => 'Англія',
-                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Класик англійської літератури',
                 'is_featured' => true,
             ],
+            [
+                'first_name' => 'Джейн',
+                'last_name' => 'Остін',
+                'middle_name' => null,
+                'biography' => 'Англійська письменниця, автор романів "Гордість і упередження", "Розум і почуття", "Емма", "Менсфілд-парк" та інших.',
+                'birth_date' => '1775-12-16',
+                'death_date' => '1817-07-18',
+                'nationality' => 'Англія',
+                'photo' => 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=500&fit=crop&crop=face',
+                'awards' => 'Класик англійської літератури',
+                'is_featured' => true,
+            ],
+            
+            // Французькі автори
             [
                 'first_name' => 'Віктор',
                 'last_name' => 'Гюго',
@@ -106,10 +137,24 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1802-02-26',
                 'death_date' => '1885-05-22',
                 'nationality' => 'Франція',
-                'photo' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Класик французької літератури',
                 'is_featured' => true,
             ],
+            [
+                'first_name' => 'Олександр',
+                'last_name' => 'Дюма',
+                'middle_name' => null,
+                'biography' => 'Французький письменник, автор романів "Три мушкетери", "Граф Монте-Крісто", "Королева Марго" та інших.',
+                'birth_date' => '1802-07-24',
+                'death_date' => '1870-12-05',
+                'nationality' => 'Франція',
+                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&crop=face',
+                'awards' => 'Майстер пригодницького роману',
+                'is_featured' => true,
+            ],
+            
+            // Американські автори
             [
                 'first_name' => 'Ернест',
                 'last_name' => 'Хемінгуей',
@@ -118,7 +163,7 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1899-07-21',
                 'death_date' => '1961-07-02',
                 'nationality' => 'США',
-                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=400&fit=crop&crop=face',
+                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Нобелівська премія з літератури (1954)',
                 'is_featured' => true,
             ],
@@ -130,22 +175,12 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1835-11-30',
                 'death_date' => '1910-04-21',
                 'nationality' => 'США',
-                'photo' => null, // Нет фото - покажем фрейм с иконкой
+                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Батько американської літератури',
-                'is_featured' => false,
+                'is_featured' => true,
             ],
-            [
-                'first_name' => 'Джейн',
-                'last_name' => 'Остін',
-                'middle_name' => null,
-                'biography' => 'Англійська письменниця, автор романів "Гордість і упередження", "Розум і почуття", "Емма", "Менсфілд-парк" та інших.',
-                'birth_date' => '1775-12-16',
-                'death_date' => '1817-07-18',
-                'nationality' => 'Англія',
-                'photo' => null, // Нет фото - покажем фрейм с иконкой
-                'awards' => 'Класик англійської літератури',
-                'is_featured' => false,
-            ],
+            
+            // Німецькі автори
             [
                 'first_name' => 'Франц',
                 'last_name' => 'Кафка',
@@ -154,9 +189,47 @@ class AuthorSeeder extends Seeder
                 'birth_date' => '1883-07-03',
                 'death_date' => '1924-06-03',
                 'nationality' => 'Німеччина',
-                'photo' => null, // Нет фото - покажем фрейм с иконкой
+                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&crop=face',
                 'awards' => 'Класик екзистенціалізму',
-                'is_featured' => false,
+                'is_featured' => true,
+            ],
+            [
+                'first_name' => 'Йоганн',
+                'last_name' => 'Гете',
+                'middle_name' => 'Вольфганг',
+                'biography' => 'Німецький поет, драматург, прозаїк. Автор трагедії "Фауст", роману "Страждання молодого Вертера", поеми "Герман і Доротея" та інших.',
+                'birth_date' => '1749-08-28',
+                'death_date' => '1832-03-22',
+                'nationality' => 'Німеччина',
+                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=face',
+                'awards' => 'Великий німецький поет',
+                'is_featured' => true,
+            ],
+            
+            // Сучасні автори
+            [
+                'first_name' => 'Габріель',
+                'last_name' => 'Гарсія Маркес',
+                'middle_name' => 'Хосе',
+                'biography' => 'Колумбійський письменник, журналіст. Автор романів "Сто років самотності", "Любов під час холери", "Хроніка оголошеної смерті" та інших.',
+                'birth_date' => '1927-03-06',
+                'death_date' => '2014-04-17',
+                'nationality' => 'Колумбія',
+                'photo' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&crop=face',
+                'awards' => 'Нобелівська премія з літератури (1982)',
+                'is_featured' => true,
+            ],
+            [
+                'first_name' => 'Мілан',
+                'last_name' => 'Кундера',
+                'middle_name' => null,
+                'biography' => 'Чесько-французький письменник. Автор романів "Невиносима легкість буття", "Жарт", "Вальс на прощання" та інших.',
+                'birth_date' => '1929-04-01',
+                'death_date' => '2023-07-11',
+                'nationality' => 'Чехія',
+                'photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=face',
+                'awards' => 'Класик сучасної літератури',
+                'is_featured' => true,
             ],
         ];
 

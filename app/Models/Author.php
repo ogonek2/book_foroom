@@ -67,6 +67,11 @@ class Author extends Model
     public function getPhotoUrlAttribute(): ?string
     {
         if ($this->photo) {
+            // Если photo уже является полным URL (начинается с http/https), возвращаем как есть
+            if (str_starts_with($this->photo, 'http://') || str_starts_with($this->photo, 'https://')) {
+                return $this->photo;
+            }
+            // Иначе добавляем storage/ для локальных файлов
             return asset('storage/' . $this->photo);
         }
         return null;
