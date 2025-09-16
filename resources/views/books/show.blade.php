@@ -2,9 +2,21 @@
 
 @section('title', $book->title . ' - Книжковий форум')
 
+@push('styles')
+<style>
+.price-card-hover:hover {
+    background: linear-gradient(to right, #F97316, #EC4899) !important;
+}
+.price-card-hover:hover button {
+    background: white !important;
+    color: #1f2937 !important;
+}
+</style>
+@endpush
+
 @section('main')
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="min-h-screen">
+    <div class="mx-auto">
         <!-- Breadcrumb -->
         <nav class="mb-8">
             <ol class="flex items-center space-x-3 text-sm text-slate-500 dark:text-slate-400 font-medium">
@@ -29,76 +41,138 @@
             <!-- Main Content -->
             <div class="lg:col-span-3 space-y-8">
                 <!-- Book Details Card -->
-                <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 overflow-hidden">
-                    <div class="p-8">
+                <div class="overflow-hidden">
+                    <div>
                         <div class="flex flex-col md:flex-row gap-8">
                             <div class="flex-shrink-0">
                                 <div class="relative group">
                                     <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}" 
                                          alt="{{ $book->title }}" 
-                                         class="w-56 h-80 object-cover rounded-2xl shadow-2xl group-hover:shadow-3xl transition-all duration-500 group-hover:scale-105">
+                                         class="object-cover rounded-2xl shadow-2xl group-hover:shadow-3xl transition-all duration-500 group-hover:scale-105" style="width: 224px; height: 360px;">
                                     <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                </div>
+                                <!-- Add Button -->
+                                <div class="mt-4 text-center">
+                                    <button onclick="openReadingStatusModal()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform shadow-lg hover:shadow-xl">
+                                        <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                        </svg>
+                                        Додати
+                                    </button>
                                 </div>
                             </div>
                             <div class="flex-1">
-                                <div class="flex items-start justify-between mb-6">
+                                <div class="flex items-start justify-between mb-2">
                                     <div class="flex-1">
-                                        <h1 class="text-5xl font-black text-slate-900 dark:text-white mb-4 leading-tight">{{ $book->title }}</h1>
-                                        <p class="text-2xl text-slate-600 dark:text-slate-400 font-bold mb-6">{{ $book->author }}</p>
-                                        <div class="flex items-center space-x-6 mb-8">
-                                            <div class="flex items-center">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <svg class="w-8 h-8 {{ $i <= $book->rating ? 'text-yellow-400' : 'text-slate-300 dark:text-slate-600' }}" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                                    </svg>
-                                                @endfor
-                                            </div>
-                                            <span class="text-4xl font-black text-slate-900 dark:text-white">{{ $book->rating }}</span>
-                                            <span class="text-slate-600 dark:text-slate-400 text-xl font-semibold">({{ $book->reviews_count }} відгуків)</span>
+                                        <div class="flex items-center justify-between">
+                                            <h1 class="text-3xl font-black text-slate-900 dark:text-white mb-2 leading-tight">{{ $book->title }}</h1>
+                                            <span class="text-sm py-2 px-4 dark:bg-gray-800/60 rounded-2xl">
+                                                <i class="fas fa-star text-yellow-400"></i>
+                                                <span class="text-slate-400 dark:text-white">8.9</span>
+                                            </span>
                                         </div>
-                                    </div>
-                                    <div class="flex-shrink-0">
-                                        <span class="inline-flex items-center px-6 py-3 rounded-2xl text-lg font-bold shadow-lg" style="background-color: {{ $book->category->color }}20; color: {{ $book->category->color }}; border: 2px solid {{ $book->category->color }}30;">
-                                            {{ $book->category->name }}
-                                        </span>
+                                        <p class="text-lg text-slate-600 dark:text-slate-400 font-bold mb-2">{{ $book->author }}</p>
                                     </div>
                                 </div>
 
                                 @if($book->description)
-                                    <div class="mb-8">
-                                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Опис</h3>
-                                        <p class="text-slate-700 dark:text-slate-300 leading-relaxed text-lg font-medium">{{ $book->description }}</p>
+                                    <div class="mb-8 relative">
+                                        <div id="description-text" class="text-slate-700 dark:text-slate-300 leading-relaxed text-sm font-medium" style="max-height: 280px; overflow: hidden;">
+                                            {{ $book->description }}
+                                        </div>
+                                        <div id="description-gradient" class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent dark:from-slate-900 dark:via-slate-800/80 dark:to-transparent pointer-events-none" style="top: 200px;"></div>
+                                        <div id="description-toggle-container" class="text-left mt-4 hidden">
+                                            <button onclick="toggleDescription()" class=" text-white rounded-lg font-bold  transition-all duration-300 transform hover:scale-105 flex items-center justify-start">
+                                                <span id="description-toggle-text">Розгорнути</span>
+                                                <svg class="w-5 h-5 ml-2 transition-transform duration-300" id="description-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 @endif
-
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    @if($book->isbn)
-                                        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
-                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">ISBN</p>
-                                            <p class="font-bold text-slate-900 dark:text-white text-lg">{{ $book->isbn }}</p>
-                                        </div>
-                                    @endif
-                                    @if($book->publication_year)
-                                        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
-                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Рік видання</p>
-                                            <p class="font-bold text-slate-900 dark:text-white text-lg">{{ $book->publication_year }}</p>
-                                        </div>
-                                    @endif
-                                    @if($book->publisher)
-                                        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
-                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Видавництво</p>
-                                            <p class="font-bold text-slate-900 dark:text-white text-lg">{{ $book->publisher }}</p>
-                                        </div>
-                                    @endif
-                                    @if($book->pages)
-                                        <div class="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-5 border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
-                                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-2 font-medium">Сторінок</p>
-                                            <p class="font-bold text-slate-900 dark:text-white text-lg">{{ $book->pages }}</p>
-                                        </div>
-                                    @endif
-                                </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Price Comparison Section -->
+                <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl p-8">
+                    <h2 class="text-2xl font-bold text-white mb-6">Порівняйте ціни</h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Yakaboo Entry -->
+                        <div class="bg-gray dark:bg-gray-700 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 cursor-pointer hover:shadow-lg price-card-hover">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                    <span class="text-orange-500 font-bold text-xl">Y</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-white font-bold text-lg">Yakaboo</h3>
+                                    <p class="text-gray-300 text-sm">Онлайн книжковий магазин</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-white font-bold text-xl">250 грн</span>
+                                <button class="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors duration-200 flex items-center space-x-2">
+                                    <span>На сайт</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Book E Entry -->
+                        <div class="bg-gray dark:bg-gray-700 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 cursor-pointer hover:shadow-lg price-card-hover">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                    <span class="text-red-500 font-bold text-xl">E</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-white font-bold text-lg">Book E</h3>
+                                    <p class="text-gray-300 text-sm">Електронні книги</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-white font-bold text-xl">245 грн</span>
+                                <button class="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors duration-200 flex items-center space-x-2">
+                                    <span>На сайт</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Буква Entry -->
+                        <div class="bg-gray dark:bg-gray-700 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 cursor-pointer hover:shadow-lg price-card-hover">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                    <span class="text-orange-500 font-bold text-xl">Б</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-white font-bold text-lg">Буква</h3>
+                                    <p class="text-gray-300 text-sm">Книжковий магазин</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-white font-bold text-xl">265 грн</span>
+                                <button class="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors duration-200 flex items-center space-x-2">
+                                    <span>На сайт</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Show More Button -->
+                    <div class="text-center mt-6">
+                        <button class="text-white hover:text-gray-300 transition-colors duration-200 font-medium">
+                            Показати більше пропозицій
+                        </button>
                     </div>
                 </div>
 
@@ -239,57 +313,215 @@
             </div>
 
             <!-- Sidebar -->
-            <div class="lg:col-span-1 space-y-8">
-                <!-- Related Books -->
-                @if($relatedBooks->count() > 0)
-                    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
-                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Схожі книги</h3>
-                        <div class="space-y-5">
-                            @foreach($relatedBooks as $relatedBook)
-                                <a href="{{ route('books.show', $relatedBook->slug) }}" class="group flex space-x-4 p-4 rounded-2xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-all duration-300 hover:scale-105">
-                                    <img src="{{ $relatedBook->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=150&fit=crop&crop=center' }}" 
-                                         alt="{{ $relatedBook->title }}" 
-                                         class="w-16 h-20 object-cover rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300 line-clamp-2">
-                                            {{ $relatedBook->title }}
-                                        </h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-400 font-semibold">{{ $relatedBook->author }}</p>
-                                        <div class="flex items-center mt-2">
-                                            <div class="flex items-center">
+            <div class="lg:col-span-1">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/30 dark:border-gray-700/30 p-6 sticky top-24 max-h-screen overflow-y-auto">
+                    <!-- Star Rating -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Оцінки</h3>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-1">
                                                 @for($i = 1; $i <= 5; $i++)
-                                                    <svg class="w-3 h-3 {{ $i <= $relatedBook->rating ? 'text-yellow-400' : 'text-slate-300 dark:text-slate-600' }}" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-6 h-6 {{ $i <= 4 ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}" fill="currentColor" viewBox="0 0 20 20">
                                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                                     </svg>
                                                 @endfor
                                             </div>
-                                            <span class="ml-2 text-sm font-bold text-slate-900 dark:text-white">{{ $relatedBook->rating }}</span>
+                            <span class="text-2xl font-bold text-gray-900 dark:text-white">8/10</span>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">93 оцінок</p>
+                        
+                        <!-- Rating Breakdown -->
+                        <div class="space-y-3" id="rating-breakdown">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">10</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="23"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">23</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">9</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="45"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">45</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">8</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="34"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">34</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">7</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="12"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">12</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">6</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="16"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">16</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">5</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="15"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">15</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">4</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="7"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">7</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">3</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="4"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">4</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">2</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="8"></div>
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">8</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8">1</span>
+                                <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-orange-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="3"></div>
                                         </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 w-8 text-right">3</span>
                                     </div>
-                                </a>
-                            @endforeach
                         </div>
                     </div>
-                @endif
 
-                <!-- Quick Stats -->
-                <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
-                    <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Статистика</h3>
-                    <div class="space-y-5">
-                        <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Середня оцінка</span>
-                            <span class="font-black text-slate-900 dark:text-white text-xl">{{ $book->rating }}</span>
+                    <!-- Characteristics Section -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Характеристики</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Вид-во</span>
+                                <span class="text-sm text-gray-900 dark:text-white">Альпіна паблішінг</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Сторінок</span>
+                                <span class="text-sm text-gray-900 dark:text-white">208</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Рік видання</span>
+                                <span class="text-sm text-gray-900 dark:text-white">2005</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">ISBN</span>
+                                <span class="text-sm text-gray-900 dark:text-white">978-5-699-93667-0</span>
+                            </div>
                         </div>
-                        <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Всього рецензій</span>
-                            <span class="font-black text-slate-900 dark:text-white text-xl">{{ $book->reviews_count }}</span>
+                    </div>
+
+                    <!-- Statistics Section -->
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Статистика</h3>
+                        <div class="space-y-4" id="reading-stats">
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Прочитано</span>
+                                    <span class="text-sm text-gray-900 dark:text-white">23</span>
+                                </div>
+                                <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-green-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="23"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Читаю</span>
+                                    <span class="text-sm text-gray-900 dark:text-white">45</span>
+                                </div>
+                                <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-green-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="45"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Буду читати</span>
+                                    <span class="text-sm text-gray-900 dark:text-white">34</span>
+                                </div>
+                                <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                                    <div class="bg-green-500 h-3 rounded-full transition-all duration-500 progress-bar" data-value="34"></div>
+                                </div>
                         </div>
-                        <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-                            <span class="text-slate-600 dark:text-slate-400 font-semibold">Категорія</span>
-                            <span class="font-black text-slate-900 dark:text-white text-xl">{{ $book->category->name }}</span>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reading Status Modal -->
+<div id="readingStatusModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gray dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Додати до списку</h3>
+                <button onclick="closeReadingStatusModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="selectReadingStatus('read')" class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-green-200 dark:group-hover:bg-green-800/40 transition-colors">
+                            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Прочитано</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Книга прочитана повністю</p>
+                        </div>
+                    </div>
+                </button>
+                
+                <button onclick="selectReadingStatus('reading')" class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40 transition-colors">
+                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Читаю</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Зараз читаю цю книгу</p>
+                        </div>
+                    </div>
+                </button>
+                
+                <button onclick="selectReadingStatus('want-to-read')" class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40 transition-colors">
+                            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Буду читати</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Планую прочитати цю книгу</p>
+                        </div>
+                    </div>
+                </button>
             </div>
         </div>
     </div>
@@ -306,8 +538,190 @@ function toggleReviewForm() {
     }
 }
 
+// Функция для переключения описания книги
+function toggleDescription() {
+    const descriptionText = document.getElementById('description-text');
+    const gradient = document.getElementById('description-gradient');
+    const toggleContainer = document.getElementById('description-toggle-container');
+    const toggleText = document.getElementById('description-toggle-text');
+    const arrow = document.getElementById('description-arrow');
+    
+    if (descriptionText.style.maxHeight === '280px') {
+        // Разворачиваем
+        descriptionText.style.maxHeight = descriptionText.scrollHeight + 'px';
+        gradient.style.display = 'none';
+        toggleText.textContent = 'Згорнути';
+        arrow.style.transform = 'rotate(180deg)';
+    } else {
+        // Сворачиваем
+        descriptionText.style.maxHeight = '280px';
+        gradient.style.display = 'block';
+        gradient.style.top = '200px';
+        toggleText.textContent = 'Розгорнути';
+        arrow.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Функция для проверки высоты описания
+function checkDescriptionHeight() {
+    const descriptionText = document.getElementById('description-text');
+    const gradient = document.getElementById('description-gradient');
+    const toggleContainer = document.getElementById('description-toggle-container');
+    
+    if (descriptionText && gradient && toggleContainer) {
+        const maxHeight = 280;
+        const actualHeight = descriptionText.scrollHeight;
+        
+        if (actualHeight > maxHeight) {
+            // Текст превышает максимальную высоту - показываем кнопку и градиент
+            toggleContainer.classList.remove('hidden');
+            gradient.style.display = 'block';
+            gradient.style.top = (maxHeight - 80) + 'px';
+        } else {
+            // Текст помещается - скрываем кнопку и градиент
+            toggleContainer.classList.add('hidden');
+            gradient.style.display = 'none';
+            descriptionText.style.maxHeight = 'none';
+        }
+    }
+}
+
+// Функции для модального окна статуса чтения
+function openReadingStatusModal() {
+    const modal = document.getElementById('readingStatusModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Анимация появления
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function closeReadingStatusModal() {
+    const modal = document.getElementById('readingStatusModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Анимация исчезновения
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+function selectReadingStatus(status) {
+    // Здесь можно добавить логику отправки на сервер
+    console.log('Selected reading status:', status);
+    
+    // Показываем уведомление
+    showStatusNotification(status);
+    
+    // Закрываем модальное окно
+    closeReadingStatusModal();
+}
+
+function showStatusNotification(status) {
+    const statusTexts = {
+        'read': 'Прочитано',
+        'reading': 'Читаю',
+        'want-to-read': 'Буду читати'
+    };
+    
+    // Создаем уведомление
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Книга додана до списку "${statusTexts[status]}"
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Анимация появления
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 10);
+    
+    // Удаляем через 3 секунды
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Функция для инициализации прогресс-баров
+function initializeProgressBars() {
+    // Обрабатываем рейтинги
+    const ratingBars = document.querySelectorAll('#rating-breakdown .progress-bar');
+    if (ratingBars.length > 0) {
+        const ratingValues = Array.from(ratingBars).map(bar => parseInt(bar.dataset.value));
+        const maxRating = Math.max(...ratingValues);
+        
+        ratingBars.forEach(bar => {
+            const value = parseInt(bar.dataset.value);
+            const percentage = (value / maxRating) * 100;
+            bar.style.width = percentage + '%';
+        });
+    }
+    
+    // Обрабатываем статистику чтения
+    const readingBars = document.querySelectorAll('#reading-stats .progress-bar');
+    if (readingBars.length > 0) {
+        const readingValues = Array.from(readingBars).map(bar => parseInt(bar.dataset.value));
+        const maxReading = Math.max(...readingValues);
+        
+        readingBars.forEach(bar => {
+            const value = parseInt(bar.dataset.value);
+            const percentage = (value / maxReading) * 100;
+            bar.style.width = percentage + '%';
+        });
+    }
+}
+
+// Функция для обновления прогресс-баров (можно вызывать извне)
+function updateProgressBars(containerId, values) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const bars = container.querySelectorAll('.progress-bar');
+    const maxValue = Math.max(...values);
+    
+    bars.forEach((bar, index) => {
+        if (values[index] !== undefined) {
+            const percentage = (values[index] / maxValue) * 100;
+            bar.style.width = percentage + '%';
+            bar.dataset.value = values[index];
+        }
+    });
+}
+
 // Star rating functionality for all users
 document.addEventListener('DOMContentLoaded', function() {
+    // Проверяем высоту описания при загрузке страницы
+    setTimeout(checkDescriptionHeight, 100);
+    
+    // Инициализируем прогресс-бары
+    initializeProgressBars();
+    
+    // Обработчик для закрытия модального окна по клику на фон
+    document.getElementById('readingStatusModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeReadingStatusModal();
+        }
+    });
+    
     const stars = document.querySelectorAll('.star-rating');
     const ratingInputs = document.querySelectorAll('input[name="rating"]');
     
@@ -371,6 +785,52 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+});
+
+// Review text expand/collapse functionality
+function toggleReviewText(reviewId) {
+    const textElement = document.getElementById(`review-text-${reviewId}`);
+    const gradientElement = document.getElementById(`review-gradient-${reviewId}`);
+    const toggleContainer = document.getElementById(`review-toggle-container-${reviewId}`);
+    const toggleText = document.getElementById(`review-toggle-text-${reviewId}`);
+    const arrow = document.getElementById(`review-arrow-${reviewId}`);
+    
+    if (textElement.style.maxHeight === '120px' || textElement.style.maxHeight === '') {
+        // Expand
+        textElement.style.maxHeight = textElement.scrollHeight + 'px';
+        gradientElement.style.display = 'none';
+        toggleText.textContent = 'Згорнути';
+        arrow.style.transform = 'rotate(180deg)';
+    } else {
+        // Collapse
+        textElement.style.maxHeight = '120px';
+        gradientElement.style.display = 'block';
+        toggleText.textContent = 'Розгорнути';
+        arrow.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Check if review text needs expand button
+function checkReviewTextHeight() {
+    document.querySelectorAll('[id^="review-text-"]').forEach(textElement => {
+        const reviewId = textElement.id.replace('review-text-', '');
+        const gradientElement = document.getElementById(`review-gradient-${reviewId}`);
+        const toggleContainer = document.getElementById(`review-toggle-container-${reviewId}`);
+        
+        if (textElement.scrollHeight > 120) {
+            toggleContainer.classList.remove('hidden');
+            gradientElement.style.display = 'block';
+        } else {
+            toggleContainer.classList.add('hidden');
+            gradientElement.style.display = 'none';
+            textElement.style.maxHeight = 'none';
+        }
+    });
+}
+
+// Initialize review text heights on page load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(checkReviewTextHeight, 100);
 });
 </script>
 @endpush
