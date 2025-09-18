@@ -96,4 +96,19 @@ class Book extends Model
     {
         return $this->hasMany(Review::class)->whereNotNull('parent_id');
     }
+
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    public function userLibraries(): HasMany
+    {
+        return $this->hasMany(UserLibrary::class);
+    }
+
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'user_libraries');
+    }
 }

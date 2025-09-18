@@ -20,8 +20,12 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'avatar',
+        'bio',
+        'rating',
     ];
 
     /**
@@ -44,6 +48,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'rating' => 'decimal:1',
         ];
     }
 
@@ -70,5 +75,30 @@ class User extends Authenticatable
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    public function publications(): HasMany
+    {
+        return $this->hasMany(Publication::class);
+    }
+
+    public function library(): HasMany
+    {
+        return $this->hasMany(UserLibrary::class);
+    }
+
+    public function savedBooks()
+    {
+        return $this->belongsToMany(Book::class, 'user_libraries');
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'username';
     }
 }

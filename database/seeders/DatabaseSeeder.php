@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test User',
+                'username' => 'test_user',
                 'password' => bcrypt('password'),
             ]
         );
@@ -27,6 +28,11 @@ class DatabaseSeeder extends Seeder
             ForumSeeder::class,
             AuthorSeeder::class,
             BookSeeder::class,
+            UserSeeder::class,
+            QuoteSeeder::class,
+            PublicationSeeder::class,
+            ReviewSeeder::class,
+            UserLibrarySeeder::class,
         ]);
     }
 }
