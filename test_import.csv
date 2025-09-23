@@ -1,0 +1,3 @@
+nazvanie,opisanie,avtor_staryy,isbn,god_izdaniya,izdatelstvo,oblozhka,yazyk,stranitsy,reiting,kolichestvo_recenziy,kategoriya,avtor,rekomenduemaya
+"Тестовая книга 1","Описание книги 1","Автор 1","1234567890","2025","Издательство 1","cover1.jpg","русский","300","4.5","10","Художественная литература","Иван Иванов","да"
+"Тестовая книга 2","Описание книги 2","Автор 2","","2024","","","украинский","250","4.0","5","Научная литература","Петр Петров","нет"

@@ -15,11 +15,16 @@ class Review extends Model
         'user_id',
         'parent_id',
         'replies_count',
+        'status',
+        'moderated_at',
+        'moderated_by',
+        'moderation_reason',
     ];
 
     protected $casts = [
         'rating' => 'integer',
         'replies_count' => 'integer',
+        'moderated_at' => 'datetime',
     ];
 
     public function book(): BelongsTo
@@ -55,6 +60,11 @@ class Review extends Model
     public function likes(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(\App\Models\Like::class, 'likeable');
+    }
+
+    public function moderator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderated_by');
     }
 
     /**
@@ -155,5 +165,40 @@ class Review extends Model
                 $review->parent->updateRepliesCount();
             }
         });
+    }
+
+    public function approve($moderatorId, $reason = null)
+    {
+        $this->update([
+            'status' => 'active',
+            'moderated_at' => now(),
+            'moderated_by' => $moderatorId,
+            'moderation_reason' => $reason,
+        ]);
+    }
+
+    public function block($moderatorId, $reason = null)
+    {
+        $this->update([
+            'status' => 'blocked',
+            'moderated_at' => now(),
+            'moderated_by' => $moderatorId,
+            'moderation_reason' => $reason,
+        ]);
+    }
+
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    public function isBlocked()
+    {
+        return $this->status === 'blocked';
     }
 }

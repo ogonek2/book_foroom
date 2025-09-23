@@ -111,4 +111,16 @@ class Book extends Model
     {
         return $this->belongsToMany(User::class, 'user_libraries');
     }
+
+    /**
+     * Получить полное имя автора для экспорта
+     */
+    public function getAuthorFullNameAttribute()
+    {
+        if ($this->author && is_object($this->author)) {
+            return $this->author->first_name . ' ' . $this->author->last_name;
+        }
+        
+        return $this->author ?? 'Не указан';
+    }
 }
