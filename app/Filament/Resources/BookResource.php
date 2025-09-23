@@ -185,13 +185,11 @@ class BookResource extends Resource
                     ->description(fn (Book $record): string => $record->description ? \Str::limit($record->description, 50) : ''),
                 Tables\Columns\TextColumn::make('author_full_name')
                     ->label('Автор')
-                    ->searchable(['author.first_name', 'author.last_name', 'author'])
                     ->sortable()
                     ->badge()
                     ->color('info'),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Категория')
-                    ->searchable()
                     ->sortable()
                     ->badge()
                     ->color(fn (Book $record): string => $record->category?->color ?? 'gray'),
