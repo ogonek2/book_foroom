@@ -21,8 +21,14 @@ Route::prefix('books')->name('books.')->group(function () {
         Route::post('/', [ReviewController::class, 'store'])->name('store')->middleware('auth');
         Route::post('/guest', [ReviewController::class, 'guestStore'])->name('guest-store');
         
+        // Просмотр отдельной рецензии
+        Route::get('/{review}', [ReviewController::class, 'show'])->name('show');
+        
         // Ответы на рецензии
         Route::post('/{review}/replies', [ReviewController::class, 'storeReply'])->name('replies.store');
+        
+        // Лайки рецензий
+        Route::post('/{review}/like', [ReviewController::class, 'toggleLike'])->name('like')->middleware('auth');
         
         // Редактирование и удаление рецензий
         Route::get('/{review}/edit', [ReviewController::class, 'edit'])->name('edit')->middleware('auth');

@@ -11,6 +11,13 @@
     background: white !important;
     color: #1f2937 !important;
 }
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
 </style>
 @endpush
 
@@ -833,151 +840,47 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(checkReviewTextHeight, 100);
 });
 
-// Comments functionality
-function toggleComments(reviewId) {
-    const commentsContainer = document.getElementById(`commentsContainer${reviewId}`);
-    const commentsToggle = document.getElementById(`commentsToggle${reviewId}`);
-    const arrow = commentsToggle.querySelector('svg');
-    
-    if (commentsContainer.classList.contains('hidden')) {
-        commentsContainer.classList.remove('hidden');
-        arrow.style.transform = 'rotate(180deg)';
-    } else {
-        commentsContainer.classList.add('hidden');
-        arrow.style.transform = 'rotate(0deg)';
-    }
-}
-
-function submitComment(event, reviewId) {
-    event.preventDefault();
-    
-    const form = event.target;
-    const formData = new FormData(form);
-    const content = formData.get('content');
-    
-    if (!content.trim()) {
-        alert('Будь ласка, введіть текст коментаря');
-        return;
-    }
-    
-    // Show loading state
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Відправляємо...';
-    submitBtn.disabled = true;
-    
-    // Send AJAX request
-    fetch(`/books/{{ $book->id }}/reviews`, {
+// Like functionality
+function toggleLike(reviewId) {
+    @auth
+    fetch(`/books/{{ $book->id }}/reviews/${reviewId}/like`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Content-Type': 'application/json',
             'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            content: content,
-            parent_id: reviewId,
-            rating: null
-        })
+        }
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Clear the form
-            form.reset();
+            // Update like count
+            const countElement = document.getElementById(`likes-count-${reviewId}`);
+            if (countElement) {
+                countElement.textContent = data.likes_count;
+            }
             
-            // Add the comment immediately to the UI
-            addCommentToUI(reviewId, data.reply);
-            
-            // Update comments count
-            updateCommentsCount(reviewId);
-            
-            // Show success message
-            showNotification('Коментар успішно додано!', 'success');
-        } else {
-            throw new Error(data.message || 'Помилка при додаванні коментаря');
+            // Update button state
+            const button = document.querySelector(`[onclick="toggleLike(${reviewId})"]`);
+            if (data.is_liked) {
+                button.classList.add('text-red-500', 'bg-red-50', 'dark:bg-red-900/20');
+                button.classList.remove('text-slate-600', 'dark:text-slate-400', 'hover:text-red-500', 'hover:bg-slate-100', 'dark:hover:bg-slate-700');
+                const svg = button.querySelector('svg');
+                svg.setAttribute('fill', 'currentColor');
+            } else {
+                button.classList.remove('text-red-500', 'bg-red-50', 'dark:bg-red-900/20');
+                button.classList.add('text-slate-600', 'dark:text-slate-400', 'hover:text-red-500', 'hover:bg-slate-100', 'dark:hover:bg-slate-700');
+                const svg = button.querySelector('svg');
+                svg.setAttribute('fill', 'none');
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Помилка при додаванні коментаря: ' + error.message, 'error');
-    })
-    .finally(() => {
-        // Reset button state
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
     });
-}
-
-function addCommentToUI(reviewId, commentData) {
-    const commentsContent = document.getElementById(`commentsContent${reviewId}`);
-    if (!commentsContent) return;
-    
-    // Create comment HTML
-    const commentHTML = createCommentHTML(commentData);
-    
-    // Add comment to container
-    commentsContent.insertAdjacentHTML('beforeend', commentHTML);
-    
-    // Show comments container if it was hidden
-    const commentsContainer = document.getElementById(`commentsContainer${reviewId}`);
-    if (commentsContainer.classList.contains('hidden')) {
-        commentsContainer.classList.remove('hidden');
-        const arrow = document.querySelector(`#commentsToggle${reviewId} svg`);
-        if (arrow) arrow.style.transform = 'rotate(180deg)';
-    }
-}
-
-function createCommentHTML(commentData) {
-    const isGuest = commentData.is_guest;
-    const authorName = commentData.author_name || 'Анонімний користувач';
-    const createdAt = new Date(commentData.created_at).toLocaleString('uk-UA', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    return `
-        <div class="bg-slate-100 dark:bg-slate-800 rounded-lg p-3">
-            <div class="flex items-start space-x-2">
-                <div class="flex-shrink-0">
-                    ${isGuest ? 
-                        `<div class="w-6 h-6 bg-gray-300 dark:bg-slate-600 rounded-full flex items-center justify-center">
-                            <svg class="w-3 h-3 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                            </svg>
-                        </div>` :
-                        `<div class="w-6 h-6 rounded-full overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face" 
-                                 alt="${authorName}" 
-                                 class="w-full h-full object-cover">
-                        </div>`
-                    }
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center space-x-2 mb-1">
-                        <span class="text-xs font-medium text-gray-900 dark:text-white">${authorName}</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">${createdAt}</span>
-                    </div>
-                    <div class="text-xs text-gray-900 dark:text-white leading-relaxed">${commentData.content}</div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function updateCommentsCount(reviewId) {
-    const commentsContent = document.getElementById(`commentsContent${reviewId}`);
-    if (commentsContent) {
-        const count = commentsContent.children.length;
-        const toggleText = document.getElementById(`commentsToggleText${reviewId}`);
-        if (toggleText) {
-            const word = count == 1 ? 'коментар' : (count < 5 ? 'коментарі' : 'коментарів');
-            toggleText.textContent = `${count} ${word}`;
-        }
-    }
+    @else
+    alert('Будь ласка, увійдіть в систему, щоб ставити лайки');
+    @endauth
 }
 </script>
 @endpush

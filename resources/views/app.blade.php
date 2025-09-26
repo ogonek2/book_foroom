@@ -40,6 +40,88 @@
         @stack('styles')
         
         <style>
+            /* User mini header styles */
+            .user-mini-header {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .user-avatar {
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 1rem;
+                color: white;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .avatar-guest {
+                background: linear-gradient(135deg, #6b7280, #9ca3af);
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .avatar-fallback {
+                background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .avatar-image {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+            }
+
+            .user-info {
+                display: flex;
+                flex-direction: column;
+                gap: 0.125rem;
+            }
+
+            .user-name {
+                font-weight: 600;
+                font-size: 0.875rem;
+                color: hsl(var(--foreground));
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .guest-badge {
+                background: #f97316;
+                color: white;
+                font-size: 0.75rem;
+                padding: 0.125rem 0.5rem;
+                border-radius: 9999px;
+                font-weight: 500;
+            }
+
+            .user-timestamp {
+                font-size: 0.75rem;
+                color: hsl(var(--muted-foreground));
+            }
+
+            /* Dark theme adjustments */
+            @media (prefers-color-scheme: dark) {
+                .guest-badge {
+                    background: #ea580c;
+                }
+            }
+
             /* Custom animations */
             @keyframes fadeInUp {
                 from {
