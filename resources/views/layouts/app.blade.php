@@ -73,13 +73,20 @@
                         <!-- User Menu -->
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary p-2 transition-all duration-200">
-                                                        <div class="w-8 h-8 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center shadow-md">
-                            <span class="text-sm font-medium text-white">{{ substr(auth()->user()->name, 0, 1) }}</span>
-                        </div>
+                                @if(auth()->user()->avatar)
+                                    <img src="{{ Storage::url(auth()->user()->avatar) }}" 
+                                         alt="{{ auth()->user()->name }}" 
+                                         class="w-8 h-8 rounded-lg object-cover shadow-md">
+                                @else
+                                    <div class="w-8 h-8 bg-gradient-to-br from-brand-500 to-brand-600 rounded-lg flex items-center justify-center shadow-md">
+                                        <span class="text-sm font-medium text-white">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                    </div>
+                                @endif
                             </button>
 
                             <div x-show="open" @click.away="open = false" 
                                  class="absolute right-0 mt-2 w-48 bg-light-bg/90 dark:bg-dark-bg/90 backdrop-blur-md rounded-xl shadow-xl py-2 z-50 border border-light-border/20 dark:border-dark-border/20">
+                                <a href="{{ route('profile.show') }}" class="block px-4 py-2 text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors">Мій профіль</a>
                                 <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors">Панель керування</a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf

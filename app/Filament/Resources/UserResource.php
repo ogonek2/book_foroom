@@ -35,8 +35,17 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('username')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('avatar')
-                    ->maxLength(255),
+                Forms\Components\FileUpload::make('avatar')
+                    ->image()
+                    ->directory('avatars')
+                    ->visibility('public')
+                    ->imageEditor()
+                    ->imageEditorAspectRatios([
+                        '1:1',
+                    ])
+                    ->maxSize(2048)
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                    ->helperText('Максимальный размер: 2MB. Поддерживаемые форматы: JPEG, PNG, GIF, WebP'),
                 Forms\Components\Textarea::make('bio')
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('rating')
@@ -63,8 +72,9 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('username')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('avatar')
-                    ->searchable(),
+                Tables\Columns\ImageColumn::make('avatar')
+                    ->circular()
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
                 Tables\Columns\TextColumn::make('rating')
                     ->numeric()
                     ->sortable(),
