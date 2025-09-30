@@ -60,12 +60,30 @@
                                 </div>
                                 <!-- Add Button -->
                                 <div class="mt-4 text-center">
-                                    <button onclick="openReadingStatusModal()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform shadow-lg hover:shadow-xl">
-                                        <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                        </svg>
-                                        Додати
-                                    </button>
+                                    @if($currentReadingStatus)
+                                        @php
+                                            $statusTexts = [
+                                                'read' => 'Прочитано',
+                                                'reading' => 'Читаю',
+                                                'want_to_read' => 'Буду читати'
+                                            ];
+                                            $statusColors = [
+                                                'read' => 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
+                                                'reading' => 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+                                                'want_to_read' => 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
+                                            ];
+                                        @endphp
+                                        <button onclick="openReadingStatusModal()" class="w-full bg-gradient-to-r {{ $statusColors[$currentReadingStatus->status] }} text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 transform shadow-lg hover:shadow-xl flex items-center justify-center">
+                                            {{ $statusTexts[$currentReadingStatus->status] }}
+                                        </button>
+                                    @else
+                                        <button onclick="openReadingStatusModal()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform shadow-lg hover:shadow-xl">
+                                            <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                            </svg>
+                                            Додати
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                             <div class="flex-1">
@@ -622,33 +640,61 @@ function closeReadingStatusModal() {
     }, 300);
 }
 
-function selectReadingStatus(status) {
-    // Здесь можно добавить логику отправки на сервер
-    console.log('Selected reading status:', status);
-    
-    // Показываем уведомление
-    showStatusNotification(status);
+async function selectReadingStatus(status) {
+    try {
+        // Отправляем запрос на сервер
+        const response = await fetch(`/api/reading-status/book/{{ $book->id }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ 
+                status: status === 'want-to-read' ? 'want_to_read' : status 
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            // Показываем уведомление об успехе
+            showStatusNotification(status, 'success');
+            
+            // Обновляем отображение статуса на странице
+            updateStatusDisplay(status);
+        } else {
+            // Показываем уведомление об ошибке
+            showStatusNotification(status, 'error', data.message || 'Ошибка при сохранении статуса');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showStatusNotification(status, 'error', 'Ошибка при сохранении статуса');
+    }
     
     // Закрываем модальное окно
     closeReadingStatusModal();
 }
 
-function showStatusNotification(status) {
+function showStatusNotification(status, type = 'success', message = null) {
     const statusTexts = {
         'read': 'Прочитано',
         'reading': 'Читаю',
         'want-to-read': 'Буду читати'
     };
     
+    const isError = type === 'error';
+    const bgColor = isError ? 'bg-red-500' : 'bg-green-500';
+    const icon = isError ? 'M6 18L18 6M6 6l12 12' : 'M5 13l4 4L19 7';
+    
     // Создаем уведомление
     const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+    notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-xl shadow-lg z-50 transform translate-x-full transition-transform duration-300`;
     notification.innerHTML = `
         <div class="flex items-center">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${icon}"/>
             </svg>
-            Книга додана до списку "${statusTexts[status]}"
+            ${message || `Книга додана до списку "${statusTexts[status]}"`}
         </div>
     `;
     
@@ -663,9 +709,53 @@ function showStatusNotification(status) {
     setTimeout(() => {
         notification.classList.add('translate-x-full');
         setTimeout(() => {
-            document.body.removeChild(notification);
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
         }, 300);
     }, 3000);
+}
+
+function updateStatusDisplay(status) {
+    // Обновляем кнопку добавления в библиотеку
+    const addButton = document.querySelector('[onclick="openReadingStatusModal()"]');
+    if (addButton) {
+        const statusTexts = {
+            'read': 'Прочитано',
+            'reading': 'Читаю',
+            'want-to-read': 'Буду читати',
+            'want_to_read': 'Буду читати'
+        };
+        
+        const statusColors = {
+            'read': 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
+            'reading': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+            'want-to-read': 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
+            'want_to_read': 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
+        };
+        
+        addButton.innerHTML = `
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            ${statusTexts[status]}
+        `;
+        
+        // Удаляем все цветовые классы
+        addButton.classList.remove('from-indigo-500', 'to-purple-600', 'hover:from-indigo-600', 'hover:to-purple-700');
+        addButton.classList.remove('from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
+        addButton.classList.remove('from-blue-500', 'to-blue-600', 'hover:from-blue-600', 'hover:to-blue-700');
+        addButton.classList.remove('from-yellow-500', 'to-yellow-600', 'hover:from-yellow-600', 'hover:to-yellow-700');
+        
+        // Добавляем новые цветовые классы
+        const colorClasses = statusColors[status].split(' ');
+        addButton.classList.add(...colorClasses);
+    }
+}
+
+function initializeReadingStatus(status) {
+    // Инициализируем отображение статуса при загрузке страницы
+    updateStatusDisplay(status);
 }
 
 // Функция для инициализации прогресс-баров
@@ -721,6 +811,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализируем прогресс-бары
     initializeProgressBars();
+    
+    // Инициализируем статус чтения
+    @if($currentReadingStatus)
+        initializeReadingStatus('{{ $currentReadingStatus->status }}');
+    @endif
     
     // Обработчик для закрытия модального окна по клику на фон
     document.getElementById('readingStatusModal').addEventListener('click', function(e) {

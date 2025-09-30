@@ -10,10 +10,40 @@ use Illuminate\Validation\Rules\File;
 
 class ProfileController extends Controller
 {
-    public function show()
+    public function show($username = null)
     {
-        $user = Auth::user();
-        return view('profile.show', compact('user'));
+        $user = $username ? User::where('username', $username)->firstOrFail() : Auth::user();
+        return view('profile.pages.overview', compact('user'));
+    }
+
+    public function library($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        return view('profile.pages.library', compact('user'));
+    }
+
+    public function reviews($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        return view('profile.pages.reviews', compact('user'));
+    }
+
+    public function discussions($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        return view('profile.pages.discussions', compact('user'));
+    }
+
+    public function quotes($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        return view('profile.pages.quotes', compact('user'));
+    }
+
+    public function collections($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        return view('profile.pages.collections', compact('user'));
     }
 
     public function edit()

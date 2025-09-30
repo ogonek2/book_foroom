@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             PublicationSeeder::class,
             ReviewSeeder::class,
             UserLibrarySeeder::class,
+            BookReadingStatusSeeder::class,
         ]);
     }
 }

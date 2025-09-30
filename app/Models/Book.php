@@ -112,6 +112,43 @@ class Book extends Model
         return $this->belongsToMany(User::class, 'user_libraries');
     }
 
+    public function readingStatuses(): HasMany
+    {
+        return $this->hasMany(BookReadingStatus::class);
+    }
+
+    public function readByUsers()
+    {
+        return $this->belongsToMany(User::class, 'book_reading_statuses')
+                    ->wherePivot('status', 'read')
+                    ->withPivot(['rating', 'review', 'started_at', 'finished_at'])
+                    ->withTimestamps();
+    }
+
+    public function readingByUsers()
+    {
+        return $this->belongsToMany(User::class, 'book_reading_statuses')
+                    ->wherePivot('status', 'reading')
+                    ->withPivot(['rating', 'review', 'started_at', 'finished_at'])
+                    ->withTimestamps();
+    }
+
+    public function wantToReadByUsers()
+    {
+        return $this->belongsToMany(User::class, 'book_reading_statuses')
+                    ->wherePivot('status', 'want_to_read')
+                    ->withPivot(['rating', 'review', 'started_at', 'finished_at'])
+                    ->withTimestamps();
+    }
+
+    /**
+     * Получить статус чтения для конкретного пользователя
+     */
+    public function getReadingStatusForUser($userId)
+    {
+        return $this->readingStatuses()->where('user_id', $userId)->first();
+    }
+
     /**
      * Получить полное имя автора для экспорта
      */

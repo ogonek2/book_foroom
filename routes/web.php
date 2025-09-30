@@ -26,6 +26,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+    
+    // Public profile routes (with username)
+    Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.user.show');
+    Route::get('/profile/{username}/library', [ProfileController::class, 'library'])->name('profile.library');
+    Route::get('/profile/{username}/reviews', [ProfileController::class, 'reviews'])->name('profile.reviews');
+    Route::get('/profile/{username}/discussions', [ProfileController::class, 'discussions'])->name('profile.discussions');
+    Route::get('/profile/{username}/quotes', [ProfileController::class, 'quotes'])->name('profile.quotes');
+    Route::get('/profile/{username}/collections', [ProfileController::class, 'collections'])->name('profile.collections');
 });
 
 require __DIR__.'/settings.php';

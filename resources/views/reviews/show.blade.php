@@ -8,7 +8,6 @@
 .forum-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1rem;
     display: grid;
     grid-template-columns: 1fr 300px;
     gap: 2rem;
@@ -42,7 +41,7 @@
 
 .post-header {
     background: hsl(var(--muted) / 0.5);
-    padding: 1rem 1.5rem;
+    padding: 1rem 0;
     border-bottom: 1px solid hsl(var(--border));
     display: flex;
     align-items: center;
@@ -66,13 +65,12 @@
 }
 
 .post-content {
-    padding: 1.5rem;
     line-height: 1.7;
     color: hsl(var(--foreground));
 }
 
 .post-actions {
-    padding: 1rem 1.5rem;
+    padding: 0;
     border-top: 1px solid hsl(var(--border));
     background: hsl(var(--muted) / 0.3);
     display: flex;
@@ -89,7 +87,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0;
     border: none;
     background: transparent;
     border-radius: 0.5rem;
@@ -196,37 +194,73 @@
 }
 
 .reply-form-content {
-    padding: 1.5rem;
     background: hsl(var(--muted) / 0.2);
     border-top: 1px solid hsl(var(--border));
 }
 
-.comments-section {
-    margin-top: 2rem;
-}
-
-.comment {
-    margin-left: 2rem;
+/* Reply Items - Tree Structure */
+.reply-item {
     margin-bottom: 1rem;
-    position: relative;
 }
 
-.comment::before {
-    content: '';
-    position: absolute;
-    left: -1rem;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: hsl(var(--muted));
+/* Nested replies container with indentation */
+.nested-replies-container {
+    margin-left: 2.5rem;
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid hsl(var(--border));
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
-.comment .comment {
-    margin-left: 1.5rem;
+.nested-replies-container.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+    margin-top: 0 !important;
 }
 
-.comment .comment::before {
-    background: hsl(var(--muted-foreground) / 0.3);
+/* Toggle icon animation */
+.reply-toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.reply-toggle-icon.rotated {
+    transform: rotate(-90deg);
+}
+
+.reply-count {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+}
+
+/* Deep nesting (depth 5+) - linear with mention */
+.reply-item[data-depth="5"],
+.reply-item[data-depth="6"],
+.reply-item[data-depth="7"],
+.reply-item[data-depth="8"],
+.reply-item[data-depth="9"] {
+    background: hsl(var(--muted) / 0.2);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+}
+
+.reply-item[data-depth="5"] .forum-post,
+.reply-item[data-depth="6"] .forum-post,
+.reply-item[data-depth="7"] .forum-post,
+.reply-item[data-depth="8"] .forum-post,
+.reply-item[data-depth="9"] .forum-post {
+    border-left: 3px solid hsl(var(--primary));
+}
+
+/* Reset indentation for deep nesting */
+.reply-item[data-depth="5"] .nested-replies-container,
+.reply-item[data-depth="6"] .nested-replies-container,
+.reply-item[data-depth="7"] .nested-replies-container,
+.reply-item[data-depth="8"] .nested-replies-container,
+.reply-item[data-depth="9"] .nested-replies-container {
+    margin-left: 0;
+    border-left: none;
+    padding-left: 0;
 }
 
 .rating-stars {
@@ -404,7 +438,7 @@
 
 @section('main')
 <div class="min-h-screen bg-background">
-    <div class="forum-container py-8">
+    <div class="forum-container">
         <!-- Main Content -->
         <div class="forum-content">
 
@@ -453,12 +487,12 @@
             <!-- Reply Form - Always visible -->
             <div class="reply-form active">
                 <div class="reply-form-content">
-                    <h4 class="text-lg font-semibold mb-3">Ваша відповідь</h4>
+                    <h4 class="text-lg font-semibold mb-2">Ваша відповідь</h4>
                     <form onsubmit="submitReply(event, {{ $review->id }}, null)">
                         @csrf
                         <textarea name="content" 
-                                  rows="4" 
-                                  class="w-full p-3 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground resize-none"
+                                  rows="1" 
+                                  class="w-full p-3 border border-input rounded-lg bg-background text-foreground resize-none"
                                   placeholder="Напишіть вашу відповідь..." 
                                   required></textarea>
                         <div class="flex justify-end gap-2 mt-3">
@@ -474,7 +508,7 @@
 
         <!-- Comments Section -->
         <div class="comments-section">
-            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+            <h2 class="text-md font-bold mb-2 flex items-center gap-2">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
@@ -595,14 +629,65 @@ window.submitReply = function(event, reviewId, parentId) {
 
 // Add new reply to UI reactively
 function addReplyToUI(reply, parentId) {
-    const replyHTML = createReplyHTML(reply);
+    let parentDepth = 0;
+    let parentAuthorName = null;
+    
+    if (parentId) {
+        const parentElement = document.querySelector(`[data-reply-id="${parentId}"]`);
+        if (parentElement) {
+            parentDepth = parseInt(parentElement.getAttribute('data-depth') || 0);
+            
+            // Get parent author name
+            const parentAuthorEl = parentElement.querySelector('.user-name');
+            if (parentAuthorEl) {
+                parentAuthorName = parentAuthorEl.textContent.trim().replace('Гість', '').trim();
+            }
+        }
+    }
+    
+    const replyHTML = createReplyHTML(reply, parentDepth, parentAuthorName);
     
     if (parentId) {
         // Find parent reply and add as nested
         const parentElement = document.querySelector(`[data-reply-id="${parentId}"]`);
         if (parentElement) {
-            const nestedContainer = parentElement.querySelector('.nested-replies') || createNestedContainer(parentElement);
+            let nestedContainer = parentElement.querySelector('.nested-replies');
+            
+            if (!nestedContainer) {
+                nestedContainer = createNestedContainer(parentElement);
+                
+                // Add toggle button if parent doesn't have one
+                const parentHeader = parentElement.querySelector('.post-header');
+                if (parentHeader && !parentHeader.querySelector('.reply-toggle-icon')) {
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.onclick = () => toggleRepliesTree(parentId);
+                    toggleBtn.className = 'action-btn text-xs';
+                    toggleBtn.innerHTML = `
+                        <svg class="w-4 h-4 reply-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                        <span class="reply-count">1</span>
+                    `;
+                    parentHeader.appendChild(toggleBtn);
+                }
+            }
+            
             nestedContainer.insertAdjacentHTML('afterbegin', replyHTML);
+            
+            // Update reply count
+            const countEl = parentElement.querySelector('.reply-count');
+            if (countEl) {
+                const currentCount = parseInt(countEl.textContent || 0);
+                countEl.textContent = currentCount + 1;
+            }
+            
+            // Expand container if collapsed
+            if (nestedContainer.classList.contains('collapsed')) {
+                nestedContainer.classList.remove('collapsed');
+                nestedContainer.style.maxHeight = nestedContainer.scrollHeight + 'px';
+            } else {
+                nestedContainer.style.maxHeight = nestedContainer.scrollHeight + 'px';
+            }
             
             // Add animation to new nested reply
             const newReply = nestedContainer.firstElementChild;
@@ -652,9 +737,11 @@ function createNestedContainer(parentElement) {
 }
 
 // Create HTML for new reply
-function createReplyHTML(reply) {
+function createReplyHTML(reply, parentDepth = 0, parentAuthorName = null) {
     const isGuest = reply.is_guest || false;
     const authorName = reply.author_name || 'Анонімний користувач';
+    const depth = parentDepth >= 5 ? 5 : parentDepth + 1;
+    
     const avatarHTML = isGuest ? 
         `<div class="user-avatar">
             <div class="avatar-guest">
@@ -672,8 +759,15 @@ function createReplyHTML(reply) {
     const guestBadge = isGuest ? 
         '<span class="guest-badge">Гість</span>' : '';
     
+    // Mention для глибоких вкладень (depth >= 5)
+    const mentionHTML = (depth >= 5 && parentAuthorName) ? 
+        `<div class="text-sm text-muted-foreground mb-2">
+            <span class="text-primary">→ відповідь для </span>
+            <span class="font-medium">${parentAuthorName}</span>
+        </div>` : '';
+    
     return `
-        <div class="comment" data-reply-id="${reply.id}">
+        <div class="comment" data-reply-id="${reply.id}" data-depth="${depth}">
             <div class="forum-post">
                 <div class="post-header">
                     <div class="post-author">
@@ -690,6 +784,7 @@ function createReplyHTML(reply) {
                 </div>
                 
                 <div class="post-content">
+                    ${mentionHTML}
                     ${reply.content}
                 </div>
                 
@@ -845,14 +940,48 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// Toggle reply form
+window.toggleReplyForm = function(replyId) {
+    const form = document.getElementById(`reply-form-${replyId}`);
+    if (form) {
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) {
+            setTimeout(() => {
+                const textarea = form.querySelector('textarea');
+                if (textarea) textarea.focus();
+            }, 100);
+        }
+    }
+}
+
+// Toggle replies tree (collapse/expand)
+window.toggleRepliesTree = function(replyId) {
+    const container = document.getElementById(`replies-tree-${replyId}`);
+    const button = event.currentTarget;
+    const icon = button.querySelector('.reply-toggle-icon');
+    
+    if (container) {
+        if (container.classList.contains('collapsed')) {
+            // Expand
+            container.classList.remove('collapsed');
+            container.style.maxHeight = container.scrollHeight + 'px';
+            icon.classList.remove('rotated');
+        } else {
+            // Collapse
+            container.style.maxHeight = '0';
+            container.classList.add('collapsed');
+            icon.classList.add('rotated');
+        }
+    }
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
-    // Add event listeners to all reply buttons
-    document.querySelectorAll('.reply-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const reviewId = this.getAttribute('data-review-id');
-            toggleReplyForm(reviewId);
-        });
+    // Set initial max-height for all nested replies containers
+    document.querySelectorAll('.nested-replies-container').forEach(container => {
+        if (!container.classList.contains('collapsed')) {
+            container.style.maxHeight = container.scrollHeight + 'px';
+        }
     });
 });
 </script>

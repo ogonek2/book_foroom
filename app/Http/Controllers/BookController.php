@@ -64,6 +64,12 @@ class BookController extends Controller
     {
         $book->load('category');
         
+        // Get current user's reading status for this book
+        $currentReadingStatus = null;
+        if (auth()->check()) {
+            $currentReadingStatus = $book->getReadingStatusForUser(auth()->id());
+        }
+        
         // Get main reviews (not replies) with nested replies
         $reviews = $book->reviews()
             ->whereNull('parent_id')
@@ -84,6 +90,6 @@ class BookController extends Controller
             ->limit(4)
             ->get();
 
-        return view('books.show', compact('book', 'reviews', 'relatedBooks'));
+        return view('books.show', compact('book', 'reviews', 'relatedBooks', 'currentReadingStatus'));
     }
 }

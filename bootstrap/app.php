@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleAppearance::class,
         ]);
+
+        // Исключаем API маршруты из CSRF проверки
+        $middleware->validateCsrfTokens(except: [
+            'api/reading-status/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

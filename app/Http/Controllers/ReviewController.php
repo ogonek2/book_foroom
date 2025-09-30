@@ -81,7 +81,7 @@ class ReviewController extends Controller
      */
     public function show(Book $book, Review $review)
     {
-        // Загружаем рецензию с автором и всеми ответами
+        // Загружаем рецензию с автором и всеми ответами (рекурсивно до 6 уровней)
         $review->load([
             'user',
             'book',
@@ -92,11 +92,26 @@ class ReviewController extends Controller
                         $query->with([
                             'user',
                             'replies' => function ($query) {
-                                $query->with('user');
+                                $query->with([
+                                    'user',
+                                    'replies' => function ($query) {
+                                        $query->with([
+                                            'user',
+                                            'replies' => function ($query) {
+                                                $query->with([
+                                                    'user',
+                                                    'replies' => function ($query) {
+                                                        $query->with('user')->orderBy('created_at', 'asc');
+                                                    }
+                                                ])->orderBy('created_at', 'asc');
+                                            }
+                                        ])->orderBy('created_at', 'asc');
+                                    }
+                                ])->orderBy('created_at', 'asc');
                             }
-                        ]);
+                        ])->orderBy('created_at', 'asc');
                     }
-                ])->orderBy('created_at', 'desc');
+                ])->orderBy('created_at', 'asc');
             }
         ]);
 
@@ -124,7 +139,11 @@ class ReviewController extends Controller
         $userId = Auth::check() ? Auth::id() : null;
         
         // Определяем родительский отзыв (для вложенных ответов)
-        $parentId = $request->input('parent_id') ?: $review->getKey();
+        // Если parent_id передан, используем его, иначе это ответ на главную рецензию
+        $parentId = $request->input('parent_id');
+        if (!$parentId) {
+            $parentId = $review->getKey();
+        }
 
         $reply = Review::create([
             'content' => $request->input('content'),
