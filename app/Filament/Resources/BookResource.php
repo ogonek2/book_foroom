@@ -6,6 +6,7 @@ use App\Exports\BooksExport;
 use App\Exports\BooksTemplateExport;
 use App\Exports\SelectedBooksExport;
 use App\Helpers\FileHelper;
+use App\Helpers\CDNUploader;
 use App\Imports\SimpleBooksImport;
 use App\Filament\Resources\BookResource\Pages;
 use App\Filament\Resources\BookResource\RelationManagers;
@@ -157,16 +158,27 @@ class BookResource extends Resource
                     ->schema([
                         Forms\Components\FileUpload::make('cover_image')
                             ->image()
-                            ->directory('book-covers')
                             ->imageEditor()
                             ->imageEditorAspectRatios([
                                 '16:9',
                                 '4:3',
                                 '1:1',
                             ])
-                            ->helperText('Загрузите обложку книги'),
+                            ->helperText('Загрузите обложку книги (будет сохранена на CDN)')
+                            ->disk('public')
+                            ->directory('book-covers-temp')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                            ->maxSize(2048) // 2MB
+                            ->afterStateUpdated(function ($state, $record, Forms\Set $set) {
+                                \Log::info('Book FileUpload afterStateUpdated called', [
+                                    'state' => $state,
+                                    'record_id' => $record?->id
+                                ]);
+                            }),
                     ])
-                    ->collapsible(),
+                    ->collapsible()
+                    ->collapsed(false),
             ]);
     }
 

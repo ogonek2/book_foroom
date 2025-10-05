@@ -60,6 +60,20 @@ return [
             'report' => false,
         ],
 
+        'bunnycdn' => [
+            'driver' => 'ftp',
+            'host' => env('BUNNYCDN_HOST', 'storage.bunnycdn.com'),
+            'username' => env('BUNNYCDN_USERNAME'),
+            'password' => env('BUNNYCDN_PASSWORD'),
+            'port' => env('BUNNYCDN_PORT', 21),
+            'root' => env('BUNNYCDN_ROOT', ''),
+            'passive' => true,
+            'ssl' => false,
+            'timeout' => 30,
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

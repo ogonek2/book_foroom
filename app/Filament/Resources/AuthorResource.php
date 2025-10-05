@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AuthorResource\Pages;
 use App\Filament\Resources\AuthorResource\RelationManagers;
 use App\Models\Author;
+use App\Helpers\CDNUploader;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -46,8 +47,26 @@ class AuthorResource extends Resource
                 Forms\Components\DatePicker::make('death_date'),
                 Forms\Components\TextInput::make('nationality')
                     ->maxLength(255),
-                Forms\Components\TextInput::make('photo')
-                    ->maxLength(255),
+                Forms\Components\FileUpload::make('photo')
+                    ->image()
+                    ->imageEditor()
+                    ->imageEditorAspectRatios([
+                        '1:1',
+                        '4:3',
+                        '16:9',
+                    ])
+                    ->helperText('Загрузите фотографию автора (будет сохранена на CDN)')
+                    ->disk('public')
+                    ->directory('authors-temp')
+                    ->visibility('public')
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                    ->maxSize(2048) // 2MB
+                    ->afterStateUpdated(function ($state, $record, Forms\Set $set) {
+                        \Log::info('FileUpload afterStateUpdated called', [
+                            'state' => $state,
+                            'record_id' => $record?->id
+                        ]);
+                    }),
                 Forms\Components\TextInput::make('website')
                     ->maxLength(255),
                 Forms\Components\Textarea::make('awards')
@@ -61,6 +80,10 @@ class AuthorResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('photo')
+                    ->circular()
+                    ->size(50)
+                    ->defaultImageUrl(url('/images/no-author.png')),
                 Tables\Columns\TextColumn::make('first_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('last_name')

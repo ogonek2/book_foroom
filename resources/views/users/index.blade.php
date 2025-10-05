@@ -111,7 +111,7 @@
                 <!-- User Avatar - Always Visible -->
                 <div class="flex justify-center mb-4">
                     <div class="relative">
-                        <img src="{{ $user->avatar ?: 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=random&size=80' }}" 
+                        <img src="{{ $user->avatar_display }}" 
                              alt="{{ $user->name }}" 
                              class="w-16 h-16 rounded-full object-cover border-3 border-white dark:border-gray-700 shadow-lg group-hover:scale-110 transition-transform duration-300">
                         <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">

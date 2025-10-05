@@ -10,7 +10,7 @@
         <div class="relative bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 overflow-hidden" style="height: 200px;">
             @if($user->avatar)
                 <div class="absolute inset-0">
-                    <img src="{{ Storage::url($user->avatar) }}" 
+                    <img src="{{ $user->avatar_url }}" 
                          alt="{{ $user->name }}" 
                          class="w-full h-full object-cover filter" style="filter: blur(4px); scale: 1.1;">
                     <div class="absolute inset-0 bg-black bg-opacity-40"></div>
@@ -72,7 +72,7 @@
                     <div class="relative mb-4">
                         
                         @if($user->avatar)
-                            <img src="{{ Storage::url($user->avatar) }}" 
+                            <img src="{{ $user->avatar_url }}" 
                                 alt="{{ $user->name }}" 
                                 class="w-full rounded-lg object-cover border-4 border-white shadow-2xl" 
                                 style="aspect-ratio: 1/1;">

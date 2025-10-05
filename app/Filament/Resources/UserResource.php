@@ -61,6 +61,23 @@ class UserResource extends Resource
                     ->password()
                     ->required()
                     ->maxLength(255),
+                
+                Forms\Components\Section::make('Роли')
+                    ->schema([
+                        Forms\Components\CheckboxList::make('roles')
+                            ->label('Роли пользователя')
+                            ->relationship('roles', 'name')
+                            ->options(
+                                \App\Models\Role::active()
+                                    ->orderBy('name')
+                                    ->get()
+                                    ->pluck('name', 'id')
+                            )
+                            ->columns(2)
+                            ->gridDirection('row')
+                            ->bulkToggleable()
+                    ])
+                    ->collapsible(),
             ]);
     }
 
@@ -80,6 +97,14 @@ class UserResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
+                
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->label('Роли')
+                    ->badge()
+                    ->color('primary')
+                    ->separator(', ')
+                    ->limit(50),
+                
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable(),

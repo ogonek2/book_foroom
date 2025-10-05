@@ -12,7 +12,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-6 mb-6 lg:mb-0">
                         <!-- Avatar -->
                         <div class="relative mb-4 sm:mb-0">
-                            <img src="{{ $user->avatar ?: 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=random&size=120' }}" 
+                            <img src="{{ $user->avatar_display }}" 
                                 alt="{{ $user->name }}" 
                                 class="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-lg">
                             <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center">

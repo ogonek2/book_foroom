@@ -14,7 +14,7 @@
                 <div class="relative bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 overflow-hidden" style="height: 200px;">
                     @if($user->avatar)
                         <div class="absolute inset-0">
-                            <img src="{{ Storage::url($user->avatar) }}" 
+                            <img src="{{ $user->avatar_url }}" 
                                  alt="{{ $user->name }}" 
                                  class="w-full h-full object-cover filter" style="filter: blur(10px); scale: 1.1;">
                             <div class="absolute inset-0 bg-black bg-opacity-40"></div>
@@ -35,7 +35,7 @@
                                 <!-- Profile Avatar -->
                                 <div class="relative mb-4">
                                     @if($user->avatar)
-                                        <img src="{{ Storage::url($user->avatar) }}" 
+                                        <img src="{{ $user->avatar_url }}" 
                                             alt="{{ $user->name }}" 
                                             class="rounded-lg object-cover shadow-2xl" 
                                             style="min-width: 200px; height: auto; aspect-ratio: 1/1;">
@@ -95,7 +95,7 @@
                                         </svg>
                                         <span>Цитати</span>
                                     </a>
-                                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
+                                    <a href="{{ route('profile.collections', $user->username) }}" class="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
                                         </svg>

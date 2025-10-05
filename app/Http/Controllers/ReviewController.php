@@ -22,6 +22,24 @@ class ReviewController extends Controller
             'rating' => 'required|integer|min:1|max:5',
         ]);
 
+        // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
+        $existingReview = Review::where('book_id', $book->getKey())
+            ->where('user_id', Auth::id())
+            ->whereNull('parent_id') // Только основные рецензии, не комментарии
+            ->first();
+
+        if ($existingReview) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.',
+                    'existing_review' => $existingReview
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
+        }
+
         $review = Review::create([
             'content' => $request->input('content'),
             'rating' => $request->input('rating'),
@@ -30,7 +48,7 @@ class ReviewController extends Controller
             'parent_id' => null,
         ]);
 
-        // Оновлюємо рейтинг книги
+        // Обновляем средний рейтинг книги
         $book->updateRating();
 
         if ($request->expectsJson()) {
@@ -81,7 +99,7 @@ class ReviewController extends Controller
      */
     public function show(Book $book, Review $review)
     {
-        // Загружаем рецензию с автором и всеми ответами (рекурсивно до 6 уровней)
+        // Загружаем рецензию с автором и первыми ответами (только 2 уровня)
         $review->load([
             'user',
             'book',
@@ -89,29 +107,9 @@ class ReviewController extends Controller
                 $query->with([
                     'user',
                     'replies' => function ($query) {
-                        $query->with([
-                            'user',
-                            'replies' => function ($query) {
-                                $query->with([
-                                    'user',
-                                    'replies' => function ($query) {
-                                        $query->with([
-                                            'user',
-                                            'replies' => function ($query) {
-                                                $query->with([
-                                                    'user',
-                                                    'replies' => function ($query) {
-                                                        $query->with('user')->orderBy('created_at', 'asc');
-                                                    }
-                                                ])->orderBy('created_at', 'asc');
-                                            }
-                                        ])->orderBy('created_at', 'asc');
-                                    }
-                                ])->orderBy('created_at', 'asc');
-                            }
-                        ])->orderBy('created_at', 'asc');
+                        $query->with('user')->orderBy('created_at', 'desc');
                     }
-                ])->orderBy('created_at', 'asc');
+                ])->orderBy('created_at', 'desc');
             }
         ]);
 
@@ -130,6 +128,22 @@ class ReviewController extends Controller
      */
     public function storeReply(Request $request, Book $book, Review $review)
     {
+        // Логируем для отладки
+        Log::info('storeReply called', [
+            'book_id' => $book->id ?? 'null',
+            'review_id' => $review->id ?? 'null',
+            'request_data' => $request->all()
+        ]);
+
+        // Проверяем существование книги
+        if (!$book) {
+            Log::error('Book not found', ['book_id' => $book->id ?? 'null']);
+            return response()->json([
+                'success' => false,
+                'message' => 'Книга не найдена'
+            ], 404);
+        }
+
         $request->validate([
             'content' => 'required|string|max:5000',
             'parent_id' => 'nullable|exists:reviews,id'
@@ -214,17 +228,17 @@ class ReviewController extends Controller
     /**
      * Show the form for editing a review
      */
-    public function edit(Review $review)
+    public function edit(Book $book, Review $review)
     {
         $this->authorize('update', $review);
         
-        return view('reviews.edit', compact('review'));
+        return view('reviews.edit', compact('book', 'review'));
     }
 
     /**
      * Update the specified review
      */
-    public function update(Request $request, Review $review)
+    public function update(Request $request, Book $book, Review $review)
     {
         $this->authorize('update', $review);
         
@@ -239,7 +253,7 @@ class ReviewController extends Controller
         ]);
 
         // Оновлюємо рейтинг книги
-        $review->book->updateRating();
+        $book->updateRating();
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -255,11 +269,10 @@ class ReviewController extends Controller
     /**
      * Remove the specified review
      */
-    public function destroy(Review $review)
+    public function destroy(Book $book, Review $review)
     {
         $this->authorize('delete', $review);
         
-        $book = $review->book;
         $review->delete();
 
         // Оновлюємо рейтинг книги
@@ -273,5 +286,94 @@ class ReviewController extends Controller
         }
 
         return redirect()->back()->with('success', 'Рецензію видалено!');
+    }
+
+    /**
+     * Update a reply/comment
+     */
+    public function updateReply(Request $request, Book $book, Review $review)
+    {
+        // Проверяем, что это ответ (не основная рецензия)
+        if (!$review->parent_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Це не відповідь, а основна рецензія'
+            ], 400);
+        }
+
+        // Проверяем права доступа
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Потрібна авторизація'
+            ], 401);
+        }
+
+        // Проверяем, что пользователь может редактировать этот ответ
+        if ($review->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Немає прав для редагування цього коментаря'
+            ], 403);
+        }
+
+        $request->validate([
+            'content' => 'required|string|max:5000'
+        ]);
+
+        $review->update([
+            'content' => $request->input('content')
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Коментар оновлено!',
+            'content' => $review->content
+        ]);
+    }
+
+    /**
+     * Delete a reply/comment
+     */
+    public function deleteReply(Request $request, Book $book, Review $review)
+    {
+        // Проверяем, что это ответ (не основная рецензия)
+        if (!$review->parent_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Це не відповідь, а основна рецензія'
+            ], 400);
+        }
+
+        // Проверяем права доступа
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Потрібна авторизація'
+            ], 401);
+        }
+
+        // Проверяем, что пользователь может удалить этот ответ
+        if ($review->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Немає прав для видалення цього коментаря'
+            ], 403);
+        }
+
+        // Получаем основную рецензию для обновления счетчика
+        $parentReview = Review::find($review->parent_id);
+        
+        $review->delete();
+
+        // Обновляем счетчик ответов
+        if ($parentReview) {
+            $parentReview->updateRepliesCount();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Коментар видалено!'
+        ]);
     }
 }

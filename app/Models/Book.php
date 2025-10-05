@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -66,20 +67,6 @@ class Book extends Model
         return 'slug';
     }
 
-    public function updateRating()
-    {
-        // Получаем только основные рецензии (не ответы)
-        $mainReviews = $this->reviews()->whereNull('parent_id');
-        
-        $avgRating = $mainReviews
-            ->whereNotNull('rating')
-            ->avg('rating');
-        
-        $this->update([
-            'rating' => round($avgRating, 2),
-            'reviews_count' => $mainReviews->count(),
-        ]);
-    }
 
     /**
      * Получить все основные рецензии (без ответов)
@@ -102,6 +89,41 @@ class Book extends Model
         return $this->hasMany(Quote::class);
     }
 
+    /**
+     * Get cover image URL with CDN support
+     */
+    public function getCoverImageUrlAttribute(): ?string
+    {
+        if (!$this->cover_image) {
+            return null;
+        }
+
+        // Если изображение уже полный URL (CDN), возвращаем как есть
+        if (str_starts_with($this->cover_image, 'http')) {
+            return $this->cover_image;
+        }
+
+        // Если это локальный путь, добавляем базовый URL приложения
+        if (str_starts_with($this->cover_image, 'storage/')) {
+            return asset($this->cover_image);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get cover image for display with fallback
+     */
+    public function getCoverImageDisplayAttribute(): string
+    {
+        if ($this->cover_image_url) {
+            return $this->cover_image_url;
+        }
+
+        // Fallback на изображение по умолчанию
+        return asset('images/no-cover.png');
+    }
+
     public function userLibraries(): HasMany
     {
         return $this->hasMany(UserLibrary::class);
@@ -112,10 +134,21 @@ class Book extends Model
         return $this->belongsToMany(User::class, 'user_libraries');
     }
 
+    /**
+     * Библиотеки, в которых находится книга
+     */
+    public function libraries(): BelongsToMany
+    {
+        return $this->belongsToMany(Library::class, 'library_book')
+                    ->withTimestamps()
+                    ->orderBy('library_book.created_at', 'desc');
+    }
+
     public function readingStatuses(): HasMany
     {
         return $this->hasMany(BookReadingStatus::class);
     }
+
 
     public function readByUsers()
     {
@@ -160,4 +193,90 @@ class Book extends Model
         
         return $this->author ?? 'Не указан';
     }
+
+    /**
+     * Обновить средний рейтинг книги
+     */
+    public function updateRating()
+    {
+        // Получаем только основные рецензии (не ответы)
+        $mainReviews = $this->reviews()->whereNull('parent_id');
+        
+        $avgRating = $mainReviews
+            ->whereNotNull('rating')
+            ->avg('rating');
+        
+        $this->update([
+            'rating' => $avgRating ? round($avgRating * 2, 2) : 0, // Конвертируем в 10-балльную систему
+            'reviews_count' => $mainReviews->count(),
+        ]);
+    }
+
+    /**
+     * Получить распределение рейтингов
+     */
+    public function getRatingDistribution()
+    {
+        $reviews = $this->reviews()
+            ->whereNull('parent_id')
+            ->whereNotNull('rating')
+            ->selectRaw('rating, COUNT(*) as count')
+            ->groupBy('rating')
+            ->get();
+
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $distribution[$i] = $reviews->where('rating', $i)->first()->count ?? 0;
+        }
+
+        return $distribution;
+    }
+
+    /**
+     * Получить статистику чтения
+     */
+    public function getReadingStats()
+    {
+        $stats = $this->readingStatuses()
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
+        return [
+            'read' => $stats->get('read')->count ?? 0,
+            'reading' => $stats->get('reading')->count ?? 0,
+            'want_to_read' => $stats->get('want_to_read')->count ?? 0,
+        ];
+    }
+
+    /**
+     * Получить рейтинг пользователя для этой книги
+     */
+    public function getUserRating($userId)
+    {
+        $review = $this->reviews()
+            ->where('user_id', $userId)
+            ->whereNull('parent_id')
+            ->first();
+
+        return $review ? $review->rating : null;
+    }
+
+    /**
+     * Получить отображаемый рейтинг (0-10)
+     */
+    public function getDisplayRatingAttribute()
+    {
+        return $this->rating ? round((float)$this->rating, 1) : 0;
+    }
+
+    /**
+     * Получить звездный рейтинг (0-5)
+     */
+    public function getStarRatingAttribute()
+    {
+        return $this->rating ? round($this->rating / 2, 1) : 0;
+    }
+
 }

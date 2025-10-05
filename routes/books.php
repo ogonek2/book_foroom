@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('books')->name('books.')->group(function () {
     // Основные маршруты для книг
     Route::get('/', [BookController::class, 'index'])->name('index');
+    
+    
     Route::get('/{book}', [BookController::class, 'show'])->name('show');
     
     // Маршруты для рецензий
@@ -26,6 +28,10 @@ Route::prefix('books')->name('books.')->group(function () {
         
         // Ответы на рецензии
         Route::post('/{review}/replies', [ReviewController::class, 'storeReply'])->name('replies.store');
+        
+        // Редактирование и удаление ответов
+        Route::post('/{review}/update', [ReviewController::class, 'updateReply'])->name('reply.update')->middleware('auth');
+        Route::delete('/{review}/delete', [ReviewController::class, 'deleteReply'])->name('reply.delete')->middleware('auth');
         
         // Лайки рецензий
         Route::post('/{review}/like', [ReviewController::class, 'toggleLike'])->name('like')->middleware('auth');

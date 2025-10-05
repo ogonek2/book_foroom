@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AuthorController;
+use App\Http\Controllers\BookController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +13,12 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// Book rating routes (должны быть ПЕРЕД другими маршрутами)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/books/{book}/rating', [BookController::class, 'updateRating'])->name('books.rating.update');
+    Route::get('/books/{book}/rating', [BookController::class, 'getUserRating'])->name('books.rating.get');
+});
 
 // Authors routes
 Route::get('/authors', [AuthorController::class, 'index'])->name('authors.index');
@@ -34,7 +42,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/{username}/discussions', [ProfileController::class, 'discussions'])->name('profile.discussions');
     Route::get('/profile/{username}/quotes', [ProfileController::class, 'quotes'])->name('profile.quotes');
     Route::get('/profile/{username}/collections', [ProfileController::class, 'collections'])->name('profile.collections');
+    Route::get('/profile/{username}/collections/{libraryId}/books', [ProfileController::class, 'getLibraryBooks'])->name('profile.collections.books');
 });
+
+// Library routes
+Route::middleware(['auth'])->group(function () {
+    Route::resource('libraries', LibraryController::class);
+    Route::post('/libraries/{library}/add-book', [LibraryController::class, 'addBook'])->name('libraries.addBook');
+    Route::delete('/libraries/{library}/books/{book}', [LibraryController::class, 'removeBook'])->name('libraries.removeBook');
+});
+
+// Public library routes
+Route::get('/users/{username}/libraries', [LibraryController::class, 'publicLibraries'])->name('libraries.public');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

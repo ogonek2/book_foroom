@@ -44,7 +44,7 @@ class Review extends Model
 
     public function replies(): HasMany
     {
-        return $this->hasMany(Review::class, 'parent_id')->orderBy('created_at', 'asc');
+        return $this->hasMany(Review::class, 'parent_id')->orderBy('created_at', 'desc');
     }
 
     /**
@@ -54,7 +54,7 @@ class Review extends Model
     {
         return $this->hasMany(Review::class, 'parent_id')
             ->with(['user', 'repliesWithNested'])
-            ->orderBy('created_at', 'asc');
+            ->orderBy('created_at', 'desc');
     }
 
     public function likes(): \Illuminate\Database\Eloquent\Relations\MorphMany
@@ -163,6 +163,20 @@ class Review extends Model
         static::deleted(function ($review) {
             if ($review->parent_id) {
                 $review->parent->updateRepliesCount();
+            }
+        });
+
+        // Валидация: один пользователь может оставить только одну основную рецензию на книгу
+        static::creating(function ($review) {
+            if ($review->user_id && is_null($review->parent_id)) {
+                $existingReview = static::where('book_id', $review->book_id)
+                    ->where('user_id', $review->user_id)
+                    ->whereNull('parent_id')
+                    ->first();
+                
+                if ($existingReview) {
+                    throw new \Exception('Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
+                }
             }
         });
     }

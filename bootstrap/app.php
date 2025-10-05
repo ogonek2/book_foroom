@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\CheckAdmin;
+use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\HandleAppearance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             HandleAppearance::class,
+        ]);
+
+        // Регистрируем middleware для ролей и разрешений
+        $middleware->alias([
+            'role' => CheckRole::class,
+            'permission' => CheckPermission::class,
+            'admin' => CheckAdmin::class,
         ]);
 
         // Исключаем API маршруты из CSRF проверки

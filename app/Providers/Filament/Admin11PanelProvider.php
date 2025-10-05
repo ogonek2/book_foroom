@@ -56,6 +56,7 @@ class Admin11PanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                \App\Http\Middleware\CheckAdmin::class,
             ]);
     }
 }

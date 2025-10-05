@@ -66,15 +66,34 @@ class Author extends Model
 
     public function getPhotoUrlAttribute(): ?string
     {
-        if ($this->photo) {
-            // Если photo уже является полным URL (начинается с http/https), возвращаем как есть
-            if (str_starts_with($this->photo, 'http://') || str_starts_with($this->photo, 'https://')) {
-                return $this->photo;
-            }
-            // Иначе добавляем storage/ для локальных файлов
-            return asset('storage/' . $this->photo);
+        if (!$this->photo) {
+            return null;
         }
+
+        // Если изображение уже полный URL (CDN), возвращаем как есть
+        if (str_starts_with($this->photo, 'http')) {
+            return $this->photo;
+        }
+
+        // Если это локальный путь, добавляем базовый URL приложения
+        if (str_starts_with($this->photo, 'storage/')) {
+            return asset($this->photo);
+        }
+
         return null;
+    }
+
+    /**
+     * Get photo for display with fallback
+     */
+    public function getPhotoDisplayAttribute(): string
+    {
+        if ($this->photo_url) {
+            return $this->photo_url;
+        }
+
+        // Fallback на изображение по умолчанию
+        return asset('images/no-author.png');
     }
 
     public function getAgeAttribute(): ?int

@@ -70,7 +70,7 @@
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary p-2 transition-all duration-200">
                                 @if(auth()->user()->avatar)
-                                    <img src="{{ Storage::url(auth()->user()->avatar) }}" 
+                                    <img src="{{ auth()->user()->avatar }}" 
                                          alt="{{ auth()->user()->name }}" 
                                          class="w-8 h-8 rounded-lg object-cover shadow-md">
                                 @else

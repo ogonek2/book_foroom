@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CDNUploader;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\File;
 
 class ProfileController extends Controller
@@ -43,7 +43,55 @@ class ProfileController extends Controller
     public function collections($username)
     {
         $user = User::where('username', $username)->firstOrFail();
-        return view('profile.pages.collections', compact('user'));
+        
+        // Проверяем, что у пользователя есть библиотеки
+        try {
+            $libraries = $user->libraries()->withCount('books')->orderBy('created_at', 'desc')->get();
+            $selectedLibrary = $libraries->first(); // Выбираем первую библиотеку по умолчанию
+            
+            if ($selectedLibrary) {
+                $books = $selectedLibrary->books()->with(['author', 'category'])->paginate(12);
+            } else {
+                $books = collect();
+            }
+        } catch (\Exception $e) {
+            // Если таблица libraries не существует, возвращаем пустые коллекции
+            $libraries = collect();
+            $books = collect();
+            $selectedLibrary = null;
+        }
+        
+        return view('profile.pages.collections', compact('user', 'libraries', 'books', 'selectedLibrary'));
+    }
+
+    public function getLibraryBooks($username, $libraryId)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        $library = $user->libraries()->findOrFail($libraryId);
+        
+        // Проверяем права доступа
+        if (!$library->canBeViewedBy(auth()->user())) {
+            return response()->json(['error' => 'У вас нет доступа к этой библиотеке'], 403);
+        }
+        
+        $books = $library->books()->with(['author', 'category'])->paginate(12);
+        
+        return response()->json([
+            'library' => [
+                'id' => $library->id,
+                'name' => $library->name,
+                'description' => $library->description,
+                'is_private' => $library->is_private,
+                'books_count' => $library->books_count
+            ],
+            'books' => $books->items(),
+            'pagination' => [
+                'current_page' => $books->currentPage(),
+                'last_page' => $books->lastPage(),
+                'per_page' => $books->perPage(),
+                'total' => $books->total()
+            ]
+        ]);
     }
 
     public function edit()
@@ -73,14 +121,28 @@ class ProfileController extends Controller
 
         // Обработка загрузки аватарки
         if ($request->hasFile('avatar')) {
-            // Удаляем старую аватарку, если она есть
-            if ($user->avatar) {
-                Storage::disk('public')->delete($user->avatar);
-            }
+            try {
+                // Удаляем старую аватарку, если она есть
+                if ($user->avatar) {
+                    CDNUploader::deleteFromBunnyCDN($user->avatar);
+                }
 
-            // Сохраняем новую аватарку
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
-            $data['avatar'] = $avatarPath;
+                // Загружаем новую аватарку (сначала CDN, потом локально)
+                $avatarUrl = CDNUploader::uploadFile($request->file('avatar'), 'avatars');
+                
+                if (!$avatarUrl) {
+                    return redirect()->back()
+                        ->withErrors(['avatar' => 'Ошибка загрузки аватарки'])
+                        ->withInput();
+                }
+                
+                $data['avatar'] = $avatarUrl;
+                
+            } catch (\Exception $e) {
+                return redirect()->back()
+                    ->withErrors(['avatar' => 'Ошибка загрузки аватарки: ' . $e->getMessage()])
+                    ->withInput();
+            }
         }
 
         $user->update($data);
@@ -94,7 +156,14 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         if ($user->avatar) {
-            Storage::disk('public')->delete($user->avatar);
+            try {
+                // Удаляем аватар с CDN
+                CDNUploader::deleteFromBunnyCDN($user->avatar);
+            } catch (\Exception $e) {
+                // Логируем ошибку, но не прерываем процесс
+                \Log::warning('Failed to delete avatar from CDN: ' . $e->getMessage());
+            }
+            
             $user->update(['avatar' => null]);
         }
 

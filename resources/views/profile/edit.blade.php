@@ -71,7 +71,7 @@
                     <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
                         <div class="relative">
                             @if($user->avatar)
-                                <img src="{{ Storage::url($user->avatar) }}" 
+                                <img src="{{ $user->avatar_url }}" 
                                      alt="{{ $user->name }}" 
                                      class="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-600 shadow-lg">
                             @else

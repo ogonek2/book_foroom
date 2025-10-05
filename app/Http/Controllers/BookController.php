@@ -66,8 +66,32 @@ class BookController extends Controller
         
         // Get current user's reading status for this book
         $currentReadingStatus = null;
+        $userLibraries = collect();
+        $bookLibraries = collect();
+        $userReview = null;
+        
         if (auth()->check()) {
             $currentReadingStatus = $book->getReadingStatusForUser(auth()->id());
+            
+            // Get user's existing review for this book
+            $userReview = $book->reviews()
+                ->where('user_id', auth()->id())
+                ->whereNull('parent_id') // Only main reviews, not comments
+                ->first();
+            
+            // Get user's libraries
+            try {
+                $userLibraries = auth()->user()->libraries()->orderBy('name')->get();
+                
+                // Get libraries that contain this book
+                $bookLibraries = $book->libraries()
+                    ->where('user_id', auth()->id())
+                    ->get();
+            } catch (\Exception $e) {
+                // If libraries table doesn't exist, use empty collections
+                $userLibraries = collect();
+                $bookLibraries = collect();
+            }
         }
         
         // Get main reviews (not replies) with nested replies
@@ -90,6 +114,97 @@ class BookController extends Controller
             ->limit(4)
             ->get();
 
-        return view('books.show', compact('book', 'reviews', 'relatedBooks', 'currentReadingStatus'));
+        // Get real statistics
+        $ratingDistribution = $book->getRatingDistribution();
+        $readingStats = $book->getReadingStats();
+        $userRating = auth()->check() ? $book->getUserRating(auth()->id()) : null;
+
+        return view('books.show', compact(
+            'book', 
+            'reviews', 
+            'relatedBooks', 
+            'currentReadingStatus', 
+            'userLibraries', 
+            'bookLibraries', 
+            'userReview',
+            'ratingDistribution',
+            'readingStats',
+            'userRating'
+        ));
+    }
+
+    /**
+     * Обновить рейтинг книги
+     */
+    public function updateRating(Request $request, Book $book)
+    {
+        \Log::info('Rating update request', [
+            'book_id' => $book->id,
+            'user_id' => auth()->id(),
+            'request_data' => $request->all(),
+            'url' => $request->url()
+        ]);
+
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Потрібна авторизація для оцінки книги'
+            ], 401);
+        }
+
+        $userId = auth()->id();
+        $rating = $request->input('rating');
+
+        try {
+            $existingReview = \App\Models\Review::where('book_id', $book->id)
+                ->where('user_id', $userId)
+                ->whereNull('parent_id')
+                ->first();
+
+            if ($existingReview) {
+                $existingReview->update(['rating' => $rating]);
+            } else {
+                \App\Models\Review::create([
+                    'book_id' => $book->id,
+                    'user_id' => $userId,
+                    'rating' => $rating,
+                    'content' => 'Оцінка без коментаря',
+                    'parent_id' => null,
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Помилка при оновленні оцінки: ' . $e->getMessage()
+            ], 500);
+        }
+
+        $book->updateRating();
+
+        return redirect()->back()->with('success', 'Оцінку оновлено!');
+    }
+
+    /**
+     * Получить рейтинг пользователя для книги
+     */
+    public function getUserRating(Book $book)
+    {
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Потрібна авторизація'
+            ], 401);
+        }
+
+        $userRating = $book->getUserRating(auth()->id());
+
+        return response()->json([
+            'success' => true,
+            'rating' => $userRating,
+        ]);
     }
 }

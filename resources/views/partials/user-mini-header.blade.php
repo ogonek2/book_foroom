@@ -12,7 +12,7 @@
         @else
             <!-- User avatar -->
             @if($user->avatar)
-                <img src="{{ Storage::url($user->avatar) }}" 
+                <img src="{{ $user->avatar }}" 
                      alt="{{ $user->name }}" 
                      class="avatar-image"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
