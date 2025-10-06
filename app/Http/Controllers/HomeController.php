@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Topic;
 use App\Models\User;
 use App\Models\Review;
+use App\Models\Quote;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -43,6 +44,19 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
-        return view('home', compact('stats', 'featuredBooks', 'recentTopics', 'categories', 'recentReviews'));
+        // Получаем рекомендуемые книги для слайдера
+        $recommendedBooks = Book::with('category')
+            ->orderBy('rating', 'desc')
+            ->limit(3)
+            ->get();
+
+        // Получаем публичные цитаты
+        $featuredQuotes = Quote::where('is_public', true)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
+
+        return view('home', compact('stats', 'featuredBooks', 'recentTopics', 'categories', 'recentReviews', 'recommendedBooks', 'featuredQuotes'));
     }
 }

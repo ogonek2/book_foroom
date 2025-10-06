@@ -53,8 +53,14 @@ class BookController extends Controller
 
         $books = $query->paginate(12);
         $categories = Category::where('is_active', true)->orderBy('name')->get();
+        
+        // Get user's libraries for the add to library modal
+        $userLibraries = collect();
+        if (auth()->check()) {
+            $userLibraries = auth()->user()->libraries()->orderBy('name')->get();
+        }
 
-        return view('books.index', compact('books', 'categories'));
+        return view('books.index', compact('books', 'categories', 'userLibraries'));
     }
 
     /**
@@ -146,7 +152,7 @@ class BookController extends Controller
         ]);
 
         $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
+            'rating' => 'required|integer|min:1|max:10',
         ]);
 
         if (!auth()->check()) {
@@ -160,22 +166,31 @@ class BookController extends Controller
         $rating = $request->input('rating');
 
         try {
+            // Находим или создаем запись о статусе чтения книги
+            $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
+                [
+                    'book_id' => $book->id,
+                    'user_id' => $userId,
+                ],
+                [
+                    'status' => 'read', // По умолчанию ставим статус "прочитано"
+                    'finished_at' => now(),
+                ]
+            );
+
+            // Обновляем рейтинг
+            $readingStatus->update(['rating' => $rating]);
+            
+            // Синхронизируем с рецензией, если она существует
             $existingReview = \App\Models\Review::where('book_id', $book->id)
                 ->where('user_id', $userId)
                 ->whereNull('parent_id')
                 ->first();
-
+                
             if ($existingReview) {
                 $existingReview->update(['rating' => $rating]);
-            } else {
-                \App\Models\Review::create([
-                    'book_id' => $book->id,
-                    'user_id' => $userId,
-                    'rating' => $rating,
-                    'content' => 'Оцінка без коментаря',
-                    'parent_id' => null,
-                ]);
             }
+            
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -185,7 +200,12 @@ class BookController extends Controller
 
         $book->updateRating();
 
-        return redirect()->back()->with('success', 'Оцінку оновлено!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Оцінку оновлено!',
+            'rating' => $rating,
+            'average_rating' => $book->fresh()->rating
+        ]);
     }
 
     /**

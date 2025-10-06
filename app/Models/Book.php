@@ -183,6 +183,15 @@ class Book extends Model
     }
 
     /**
+     * Получить рейтинг пользователя для книги
+     */
+    public function getUserRating($userId)
+    {
+        $readingStatus = $this->readingStatuses()->where('user_id', $userId)->first();
+        return $readingStatus ? $readingStatus->rating : null;
+    }
+
+    /**
      * Получить полное имя автора для экспорта
      */
     public function getAuthorFullNameAttribute()
@@ -199,15 +208,16 @@ class Book extends Model
      */
     public function updateRating()
     {
-        // Получаем только основные рецензии (не ответы)
-        $mainReviews = $this->reviews()->whereNull('parent_id');
-        
-        $avgRating = $mainReviews
+        // Получаем рейтинги из BookReadingStatus (основной источник рейтингов)
+        $avgRating = $this->readingStatuses()
             ->whereNotNull('rating')
             ->avg('rating');
         
+        // Получаем количество рецензий (не ответов)
+        $mainReviews = $this->reviews()->whereNull('parent_id');
+        
         $this->update([
-            'rating' => $avgRating ? round($avgRating * 2, 2) : 0, // Конвертируем в 10-балльную систему
+            'rating' => $avgRating ? round($avgRating, 2) : 0, // Рейтинги уже в 10-балльной системе
             'reviews_count' => $mainReviews->count(),
         ]);
     }
@@ -217,16 +227,16 @@ class Book extends Model
      */
     public function getRatingDistribution()
     {
-        $reviews = $this->reviews()
-            ->whereNull('parent_id')
+        // Получаем рейтинги из BookReadingStatus (основной источник)
+        $readingStatuses = $this->readingStatuses()
             ->whereNotNull('rating')
             ->selectRaw('rating, COUNT(*) as count')
             ->groupBy('rating')
             ->get();
 
         $distribution = [];
-        for ($i = 1; $i <= 5; $i++) {
-            $distribution[$i] = $reviews->where('rating', $i)->first()->count ?? 0;
+        for ($i = 1; $i <= 10; $i++) {
+            $distribution[$i] = $readingStatuses->where('rating', $i)->first()->count ?? 0;
         }
 
         return $distribution;
@@ -250,18 +260,6 @@ class Book extends Model
         ];
     }
 
-    /**
-     * Получить рейтинг пользователя для этой книги
-     */
-    public function getUserRating($userId)
-    {
-        $review = $this->reviews()
-            ->where('user_id', $userId)
-            ->whereNull('parent_id')
-            ->first();
-
-        return $review ? $review->rating : null;
-    }
 
     /**
      * Получить отображаемый рейтинг (0-10)

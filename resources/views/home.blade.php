@@ -62,15 +62,15 @@
                     <!-- Stats -->
                     <div class="grid grid-cols-3 gap-4">
                         <div class="bg-light-bg dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
-                            <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">1,200+</div>
+                            <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">{{ number_format($stats['users']) }}</div>
                             <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Активних читачів</div>
                         </div>
                         <div class="bg-light-bg dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
-                            <div class="text-xl font-bold text-accent-500 dark:text-accent-400 mb-1">5,000+</div>
+                            <div class="text-xl font-bold text-accent-500 dark:text-accent-400 mb-1">{{ number_format($stats['books']) }}</div>
                             <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Книг у каталозі</div>
                         </div>
                         <div class="bg-light-bg dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
-                            <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">15,000+</div>
+                            <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">{{ number_format($stats['reviews']) }}</div>
                             <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Рецензій та відгуків</div>
                         </div>
                     </div>
@@ -88,113 +88,27 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </a>
-        </div>
+            </div>
 
             <div class="relative">
                 <div class="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-                    <!-- Book Card 1 -->
-                    <div class="flex-shrink-0 w-40">
-                        <a href="#" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
-                            <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=160&h=224&fit=crop&crop=center" 
-                                 alt="1984" 
-                                 class="w-full h-56 object-cover">
-                            <div class="p-3 text-left">
-                                <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">1984</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">1949 • Антиутопія</p>
-                            </div>
-                        </a>
-                    </div>
-                    
-                    <!-- Book Card 2 -->
-                    <div class="flex-shrink-0 w-40">
-                        <a href="#" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
-                            <img src="https://images.unsplash.com/photo-1589998059171-988d887df646?w=160&h=224&fit=crop&crop=center" 
-                                 alt="Harry Potter" 
-                                 class="w-full h-56 object-cover">
-                            <div class="p-3 text-left">
-                                <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">Гаррі Поттер і філософський камінь</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">1997 • Фентезі</p>
-                            </div>
-                        </a>
-                    </div>
-                    
-                    <!-- Book Card 3 -->
-                    <div class="flex-shrink-0 w-40">
-                        <a href="#" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
-                            <img src="https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=160&h=224&fit=crop&crop=center" 
-                                 alt="Війна і мир" 
-                                 class="w-full h-56 object-cover">
-                            <div class="p-3 text-left">
-                                <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">Війна і мир</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">1869 • Класика</p>
+                    @forelse($featuredBooks as $book)
+                        <div class="flex-shrink-0 w-40">
+                            <a href="{{ route('books.show', $book->slug) }}" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
+                                <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=160&h=224&fit=crop&crop=center' }}" 
+                                     alt="{{ $book->title }}" 
+                                     class="w-full h-56 object-cover">
+                                <div class="p-3 text-left">
+                                    <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">{{ $book->title }}</h3>
+                                    <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">{{ $book->publication_year }} • {{ $book->category->name ?? 'Без категорії' }}</p>
+                                </div>
+                            </a>
                         </div>
-                        </a>
-                    </div>
-
-                    <!-- Book Card 4 -->
-                    <div class="flex-shrink-0 w-40">
-                        <a href="#" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
-                            <img src="https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=160&h=224&fit=crop&crop=center" 
-                                 alt="Маленький принц" 
-                                 class="w-full h-56 object-cover">
-                            <div class="p-3 text-left">
-                                <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">Маленький принц</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">1943 • Філософія</p>
-                            </div>
-                        </a>
-                    </div>
-                    
-                    <!-- Book Card 5 -->
-                    <div class="flex-shrink-0 w-40">
-                        <a href="#" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
-                            <img src="https://images.unsplash.com/photo-1532012195217-55677cfbb917?w=160&h=224&fit=crop&crop=center" 
-                                 alt="Алхімік" 
-                                 class="w-full h-56 object-cover">
-                            <div class="p-3 text-left">
-                                <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">Алхімік</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">1988 • Роман</p>
-                            </div>
-                        </a>
-                    </div>
-                    
-                    <!-- Book Card 6 -->
-                    <div class="flex-shrink-0 w-40">
-                        <a href="#" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
-                            <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=160&h=224&fit=crop&crop=center" 
-                                 alt="Майстер і Маргарита" 
-                                 class="w-full h-56 object-cover">
-                            <div class="p-3 text-left">
-                                <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">Майстер і Маргарита</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">1967 • Сатира</p>
+                    @empty
+                        <div class="flex-shrink-0 w-full text-center py-8">
+                            <p class="text-light-text-tertiary dark:text-dark-text-tertiary">Поки що немає рекомендуваних книг</p>
                         </div>
-                        </a>
-                    </div>
-
-                    <!-- Book Card 7 -->
-                    <div class="flex-shrink-0 w-40">
-                        <a href="#" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
-                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=224&fit=crop&crop=center" 
-                                 alt="Володар перснів" 
-                                 class="w-full h-56 object-cover">
-                            <div class="p-3 text-left">
-                                <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">Володар перснів</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">1954 • Фентезі</p>
-                            </div>
-                        </a>
-                    </div>
-                    
-                    <!-- Book Card 8 -->
-                    <div class="flex-shrink-0 w-40">
-                        <a href="#" class="block bg-light-bg dark:bg-dark-bg-secondary rounded-lg overflow-hidden hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 group shadow-sm hover:shadow-md">
-                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=160&h=224&fit=crop&crop=center" 
-                                 alt="Дюна" 
-                                 class="w-full h-56 object-cover">
-                            <div class="p-3 text-left">
-                                <h3 class="text-light-text-primary dark:text-dark-text-primary font-semibold text-sm line-clamp-1 mb-1">Дюна</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">1965 • Наукова фантастика</p>
-                            </div>
-                        </a>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </section>
@@ -250,155 +164,61 @@
                         <!-- Slider Container -->
                         <div class="overflow-hidden rounded-2xl">
                             <div class="flex transition-transform duration-500 ease-in-out" id="bookSlider">
-                                <!-- Slide 1 -->
-                                <div class="w-full flex-shrink-0">
-                                    <div class="bg-light-bg dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-                                            <div class="relative">
-                                                <div class="relative h-80 md:h-96 bg-light-bg-secondary/20 dark:bg-gray-900/20">
-                                                    <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=1200&fit=crop&crop=center" 
-                                                         alt="Собаче серце (background)" 
-                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
-                                                                                                       <div class="absolute inset-0 flex items-center justify-center p-4">
-                                                       <div class="relative w-36 h-52 md:w-44 md:h-64">
-                                                           <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=176&h=256&fit=crop&crop=center" 
-                                                                alt="Собаче серце" 
-                                                                class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
-                            </div>
-                        </div>
-                    </div>
-                                                <div class="absolute top-4 left-4 bg-brand-500 rounded-full px-3 py-1">
-                                                    <span class="text-xs font-medium text-white">Рекомендовано</span>
-                                                </div>
-                                            </div>
-                                            <div class="p-8 flex flex-col justify-center">
-                                                <div class="mb-4">
-                                                    <span class="text-brand-400 dark:text-brand-400 text-sm font-medium">Класична література</span>
-                                                    <h3 class="text-3xl font-bold text-light-text-primary dark:text-white mt-2 mb-3">Собаче серце</h3>
-                                                    <p class="text-light-text-secondary dark:text-gray-300 text-lg mb-4">Михайло Булгаков</p>
-                                                </div>
-                                                <p class="text-light-text-tertiary dark:text-gray-400 mb-6 leading-relaxed">
-                                                    Сатирична повість про експеримент з перетворення собаки на людину. 
-                                                    Булгаков створює гостру сатиру на радянську дійсність 1920-х років.
-                                                </p>
-                                                <div class="flex items-center justify-between">
-                                                    <div class="flex items-center space-x-4">
-                                                    <div class="flex items-center">
-                                                            <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                                            </svg>
-                                                            <span class="text-light-text-primary dark:text-white font-semibold">4.8</span>
+                                @forelse($recommendedBooks as $index => $book)
+                                    <div class="w-full flex-shrink-0">
+                                        <div class="bg-light-bg dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                                                <div class="relative">
+                                                    <div class="relative h-80 md:h-96 bg-light-bg-secondary/20 dark:bg-gray-900/20">
+                                                        <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=1200&fit=crop&crop=center' }}" 
+                                                             alt="{{ $book->title }} (background)" 
+                                                             class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
+                                                        <div class="absolute inset-0 flex items-center justify-center p-4">
+                                                            <div class="relative w-36 h-52 md:w-44 md:h-64">
+                                                                <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=176&h=256&fit=crop&crop=center' }}" 
+                                                                     alt="{{ $book->title }}" 
+                                                                     class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
+                                                            </div>
                                                         </div>
-                                                        <span class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">1925</span>
                                                     </div>
-                                                    <a href="#" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                                        Читати далі
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Slide 2 -->
-                                <div class="w-full flex-shrink-0">
-                                    <div class="bg-light-bg dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-                                            <div class="relative">
-                                                <div class="relative h-80 md:h-96 bg-light-bg-secondary/20 dark:bg-gray-900/20">
-                                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=1200&fit=crop&crop=center" 
-                                                         alt="Гра престолів (background)" 
-                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
-                                                                                                       <div class="absolute inset-0 flex items-center justify-center p-4">
-                                                       <div class="relative w-36 h-52 md:w-44 md:h-64">
-                                                           <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=176&h=256&fit=crop&crop=center" 
-                                                                alt="Гра престолів" 
-                                                                class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
-                                                       </div>
-                                                   </div>
-                            </div>
-                                                <div class="absolute top-4 left-4 bg-brand-500 rounded-full px-3 py-1">
-                                                    <span class="text-xs font-medium text-white">Популярно</span>
-                    </div>
-                </div>
-                                            <div class="p-8 flex flex-col justify-center">
-                                                <div class="mb-4">
-                                                    <span class="text-brand-400 dark:text-brand-400 text-sm font-medium">Фентезі</span>
-                                                    <h3 class="text-3xl font-bold text-light-text-primary dark:text-white mt-2 mb-3">Гра престолів</h3>
-                                                    <p class="text-light-text-secondary dark:text-gray-300 text-lg mb-4">Джордж Р. Р. Мартін</p>
-                                                </div>
-                                                <p class="text-light-text-tertiary dark:text-gray-400 mb-6 leading-relaxed">
-                                                    Епічна сага про боротьбу за Залізний трон Вестеросу. 
-                                                    Інтриги, зради та магія в світі, де зима може тривати роками.
-                                                </p>
-                        <div class="flex items-center justify-between">
-                                                    <div class="flex items-center space-x-4">
-                                                        <div class="flex items-center">
-                                                            <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                                            </svg>
-                                                            <span class="text-light-text-primary dark:text-white font-semibold">4.7</span>
-                                                        </div>
-                                                        <span class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">1996</span>
-                            </div>
-                                                    <a href="#" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                                        Читати далі
-                            </a>
-                        </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Slide 3 -->
-                                <div class="w-full flex-shrink-0">
-                                    <div class="bg-light-bg dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-                                            <div class="relative">
-                                                <div class="relative h-80 md:h-96 bg-light-bg-secondary/20 dark:bg-gray-900/20">
-                                                    <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&h=1200&fit=crop&crop=center" 
-                                                         alt="Дюна (background)" 
-                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
-                                                                                                       <div class="absolute inset-0 flex items-center justify-center p-4">
-                                                       <div class="relative w-36 h-52 md:w-44 md:h-64">
-                                                           <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=176&h=256&fit=crop&crop=center" 
-                                                                alt="Дюна" 
-                                                                class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
-                                                       </div>
-                                                   </div>
-                                                </div>
-                                                <div class="absolute top-4 left-4 bg-brand-500 rounded-full px-3 py-1">
-                                                    <span class="text-xs font-medium text-white">Класика</span>
-                                                </div>
-                                            </div>
-                                            <div class="p-8 flex flex-col justify-center">
-                                                <div class="mb-4">
-                                                    <span class="text-brand-400 dark:text-brand-400 text-sm font-medium">Наукова фантастика</span>
-                                                    <h3 class="text-3xl font-bold text-light-text-primary dark:text-white mt-2 mb-3">Дюна</h3>
-                                                    <p class="text-light-text-secondary dark:text-gray-300 text-lg mb-4">Френк Герберт</p>
-                                                </div>
-                                                <p class="text-light-text-tertiary dark:text-gray-400 mb-6 leading-relaxed">
-                                                    Епічна космічна опера про пустельну планету Арракіс та 
-                                                    боротьбу за контроль над найціннішою речовиною у всесвіті.
-                                                </p>
-                                                <div class="flex items-center justify-between">
-                                                    <div class="flex items-center space-x-4">
-                                                        <div class="flex items-center">
-                                                            <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                                            </svg>
-                                                            <span class="text-light-text-primary dark:text-white font-semibold">4.9</span>
-                                                        </div>
-                                                        <span class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">1965</span>
+                                                    <div class="absolute top-4 left-4 bg-brand-500 rounded-full px-3 py-1">
+                                                        <span class="text-xs font-medium text-white">{{ $index === 0 ? 'Рекомендовано' : ($index === 1 ? 'Популярно' : 'Класика') }}</span>
                                                     </div>
-                                                    <a href="#" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                                        Читати далі
-                                                    </a>
+                                                </div>
+                                                <div class="p-8 flex flex-col justify-center">
+                                                    <div class="mb-4">
+                                                        <span class="text-brand-400 dark:text-brand-400 text-sm font-medium">{{ $book->category->name ?? 'Без категорії' }}</span>
+                                                        <h3 class="text-3xl font-bold text-light-text-primary dark:text-white mt-2 mb-3">{{ $book->title }}</h3>
+                                                        <p class="text-light-text-secondary dark:text-gray-300 text-lg mb-4">{{ $book->author }}</p>
+                                                    </div>
+                                                    <p class="text-light-text-tertiary dark:text-gray-400 mb-6 leading-relaxed">
+                                                        {{ Str::limit($book->description, 150) }}
+                                                    </p>
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex items-center space-x-4">
+                                                            <div class="flex items-center">
+                                                                <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                                </svg>
+                                                                <span class="text-light-text-primary dark:text-white font-semibold">{{ number_format($book->rating, 1) }}</span>
+                                                            </div>
+                                                            <span class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">{{ $book->publication_year }}</span>
+                                                        </div>
+                                                        <a href="{{ route('books.show', $book->slug) }}" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                                            Читати далі
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                @empty
+                                    <div class="w-full flex-shrink-0">
+                                        <div class="bg-light-bg dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700 p-8 text-center">
+                                            <p class="text-light-text-tertiary dark:text-gray-400">Поки що немає рекомендуваних книг</p>
+                                        </div>
+                                    </div>
+                                @endforelse
                             </div>
                         </div>
                         
@@ -416,9 +236,11 @@
                         
                         <!-- Dots Indicator -->
                         <div class="flex justify-center mt-6 space-x-2">
-                            <button onclick="currentSlide(1)" class="w-3 h-3 rounded-full bg-brand-500 dark:bg-brand-500 transition-all duration-200"></button>
-                            <button onclick="currentSlide(2)" class="w-3 h-3 rounded-full bg-light-text-tertiary dark:bg-gray-600 hover:bg-light-text-secondary dark:hover:bg-gray-500 transition-all duration-200"></button>
-                            <button onclick="currentSlide(3)" class="w-3 h-3 rounded-full bg-light-text-tertiary dark:bg-gray-600 hover:bg-light-text-secondary dark:hover:bg-gray-500 transition-all duration-200"></button>
+                            @if(count($recommendedBooks) > 0)
+                                @for($i = 1; $i <= count($recommendedBooks); $i++)
+                                    <button onclick="currentSlide({{ $i }})" class="w-3 h-3 rounded-full {{ $i === 1 ? 'bg-brand-500 dark:bg-brand-500' : 'bg-light-text-tertiary dark:bg-gray-600 hover:bg-light-text-secondary dark:hover:bg-gray-500' }} transition-all duration-200"></button>
+                                @endfor
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -427,7 +249,7 @@
 
         <script>
         let slideIndex = 1;
-        const totalSlides = 3;
+        const totalSlides = {{ count($recommendedBooks) > 0 ? count($recommendedBooks) : 1 }};
 
         function showSlide(n) {
             const slider = document.getElementById('bookSlider');
@@ -560,78 +382,35 @@
             <h2 class="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-6">Цитати</h2>
             <div class="relative">
                 <div class="flex space-x-6 overflow-x-auto pb-4 scrollbar-hide">
-                    <!-- Quote Card 1 -->
-                    <div class="flex-shrink-0 w-80">
-                        <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-6 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full flex flex-col shadow-sm hover:shadow-md">
-                            <div class="text-4xl text-orange-500/30 mb-4">"</div>
-                            <p class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1">
-                                Книги - це кораблі думок, що плавають по хвилях часу і бережно несуть свій дорогоцінний вантаж від покоління до покоління.
-                            </p>
-                            <div class="flex items-center justify-between mt-auto">
-                                <div>
-                                    <p class="text-light-text-primary dark:text-dark-text-primary font-semibold">Френсіс Бекон</p>
-                                    <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Філософські есеї</p>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button class="text-orange-500 hover:text-orange-400 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                            </svg>
-                                    </button>
-                                    <span class="text-gray-600 dark:text-gray-400 text-sm">67</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Quote Card 2 -->
-                    <div class="flex-shrink-0 w-80">
-                        <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-6 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full flex flex-col shadow-sm hover:shadow-md">
-                            <div class="text-4xl text-orange-500/30 mb-4">"</div>
-                            <p class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1">
-                                Читання - це розмова з наймудрішими людьми минулих століть.
-                            </p>
-                            <div class="flex items-center justify-between mt-auto">
-                                <div>
-                                    <p class="text-light-text-primary dark:text-dark-text-primary font-semibold">Рене Декарт</p>
-                                    <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Роздуми про першу філософію</p>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button class="text-orange-500 hover:text-orange-400 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                            </svg>
-                                    </button>
-                                    <span class="text-gray-600 dark:text-gray-400 text-sm">89</span>
+                    @forelse($featuredQuotes as $quote)
+                        <div class="flex-shrink-0 w-80">
+                            <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-6 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full flex flex-col shadow-sm hover:shadow-md">
+                                <div class="text-4xl text-orange-500/30 mb-4">"</div>
+                                <p class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1">
+                                    {{ $quote->content }}
+                                </p>
+                                <div class="flex items-center justify-between mt-auto">
+                                    <div>
+                                        <p class="text-light-text-primary dark:text-dark-text-primary font-semibold">{{ $quote->user ? $quote->user->name : 'Анонімний автор' }}</p>
+                                        <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">{{ $quote->book_title ?? 'Без назви книги' }}</p>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="text-orange-500 hover:text-orange-400 transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                            </svg>
+                                        </button>
+                                        <span class="text-gray-600 dark:text-gray-400 text-sm">{{ $quote->likes_count ?? 0 }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Quote Card 3 -->
-                    <div class="flex-shrink-0 w-80">
-                        <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-6 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full flex flex-col shadow-sm hover:shadow-md">
-                            <div class="text-4xl text-orange-500/30 mb-4">"</div>
-                            <p class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1">
-                                Книга - це мрія, яку ви тримаєте в руках.
-                            </p>
-                            <div class="flex items-center justify-between mt-auto">
-                                <div>
-                                    <p class="text-light-text-primary dark:text-dark-text-primary font-semibold">Ніл Гейман</p>
-                                    <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Американські боги</p>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button class="text-orange-500 hover:text-orange-400 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                                        </svg>
-                                    </button>
-                                    <span class="text-gray-600 dark:text-gray-400 text-sm">124</span>
+                    @empty
+                        <div class="flex-shrink-0 w-full text-center py-8">
+                            <p class="text-light-text-tertiary dark:text-dark-text-tertiary">Поки що немає цитат</p>
+                        </div>
+                    @endforelse
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
                 <!-- Scroll Arrow -->
                 <button class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-light-bg dark:bg-dark-bg-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary text-light-text-secondary dark:text-dark-text-primary p-2 rounded-full transition-colors duration-200 shadow-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -16,8 +16,8 @@ Route::get('dashboard', function () {
 
 // Book rating routes (должны быть ПЕРЕД другими маршрутами)
 Route::middleware(['auth'])->group(function () {
-    Route::post('/books/{book}/rating', [BookController::class, 'updateRating'])->name('books.rating.update');
-    Route::get('/books/{book}/rating', [BookController::class, 'getUserRating'])->name('books.rating.get');
+    Route::post('/books/{book:slug}/rating', [BookController::class, 'updateRating'])->name('books.rating.update');
+    Route::get('/books/{book:slug}/rating', [BookController::class, 'getUserRating'])->name('books.rating.get');
 });
 
 // Authors routes
@@ -26,7 +26,14 @@ Route::get('/authors/{author:slug}', [AuthorController::class, 'show'])->name('a
 
 // Users routes
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
-Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+
+// Public profile routes (new design)
+Route::get('/users/{username}', [UserController::class, 'publicProfile'])->name('users.public.profile');
+Route::get('/users/{username}/library', [UserController::class, 'publicLibrary'])->name('users.public.library');
+Route::get('/users/{username}/reviews', [UserController::class, 'publicReviews'])->name('users.public.reviews');
+Route::get('/users/{username}/discussions', [UserController::class, 'publicDiscussions'])->name('users.public.discussions');
+Route::get('/users/{username}/quotes', [UserController::class, 'publicQuotes'])->name('users.public.quotes');
+Route::get('/users/{username}/collections', [UserController::class, 'publicCollections'])->name('users.public.collections');
 
 // Profile routes
 Route::middleware(['auth'])->group(function () {
@@ -55,7 +62,9 @@ Route::middleware(['auth'])->group(function () {
 // Public library routes
 Route::get('/users/{username}/libraries', [LibraryController::class, 'publicLibraries'])->name('libraries.public');
 
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/forum.php';
 require __DIR__.'/books.php';
+require __DIR__.'/discussions.php';

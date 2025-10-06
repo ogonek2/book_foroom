@@ -15,10 +15,10 @@ Route::prefix('books')->name('books.')->group(function () {
     Route::get('/', [BookController::class, 'index'])->name('index');
     
     
-    Route::get('/{book}', [BookController::class, 'show'])->name('show');
+    Route::get('/{book:slug}', [BookController::class, 'show'])->name('show');
     
     // Маршруты для рецензий
-    Route::prefix('{book}/reviews')->name('reviews.')->group(function () {
+    Route::prefix('{book:slug}/reviews')->name('reviews.')->group(function () {
         // Создание рецензий
         Route::post('/', [ReviewController::class, 'store'])->name('store')->middleware('auth');
         Route::post('/guest', [ReviewController::class, 'guestStore'])->name('guest-store');

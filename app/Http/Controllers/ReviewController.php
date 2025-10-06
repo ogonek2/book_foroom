@@ -19,7 +19,7 @@ class ReviewController extends Controller
     {
         $request->validate([
             'content' => 'required|string|max:5000',
-            'rating' => 'required|integer|min:1|max:5',
+            'rating' => 'nullable|integer|min:1|max:10',
         ]);
 
         // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
@@ -40,13 +40,47 @@ class ReviewController extends Controller
             return redirect()->back()->with('error', 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
         }
 
+        // Получаем рейтинг из BookReadingStatus, если он не передан в запросе
+        $rating = $request->input('rating');
+        if (!$rating) {
+            $userRating = $book->getUserRating(Auth::id());
+            $rating = $userRating;
+        }
+
+        // Если нет рейтинга ни в запросе, ни в BookReadingStatus, возвращаем ошибку
+        if (!$rating) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Спочатку поставте оцінку книзі, а потім напишіть рецензію.',
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', 'Спочатку поставте оцінку книзі, а потім напишіть рецензію.');
+        }
+
         $review = Review::create([
             'content' => $request->input('content'),
-            'rating' => $request->input('rating'),
+            'rating' => $rating,
             'book_id' => $book->getKey(),
             'user_id' => Auth::id(),
             'parent_id' => null,
         ]);
+
+        // Синхронизируем рейтинг с BookReadingStatus
+        $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
+            [
+                'book_id' => $book->getKey(),
+                'user_id' => Auth::id(),
+            ],
+            [
+                'status' => 'read',
+                'finished_at' => now(),
+            ]
+        );
+
+        // Обновляем рейтинг в BookReadingStatus
+        $readingStatus->update(['rating' => $rating]);
 
         // Обновляем средний рейтинг книги
         $book->updateRating();
@@ -69,7 +103,7 @@ class ReviewController extends Controller
     {
         $request->validate([
             'content' => 'required|string|max:5000',
-            'rating' => 'required|integer|min:1|max:5',
+            'rating' => 'required|integer|min:1|max:10',
         ]);
 
         $review = Review::create([
@@ -244,13 +278,28 @@ class ReviewController extends Controller
         
         $request->validate([
             'content' => 'required|string|max:5000',
-            'rating' => 'required|integer|min:1|max:5',
+            'rating' => 'required|integer|min:1|max:10',
         ]);
 
         $review->update([
             'content' => $request->input('content'),
             'rating' => $request->input('rating'),
         ]);
+
+        // Синхронизируем рейтинг с BookReadingStatus
+        $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
+            [
+                'book_id' => $book->getKey(),
+                'user_id' => Auth::id(),
+            ],
+            [
+                'status' => 'read',
+                'finished_at' => now(),
+            ]
+        );
+
+        // Обновляем рейтинг в BookReadingStatus
+        $readingStatus->update(['rating' => $request->input('rating')]);
 
         // Оновлюємо рейтинг книги
         $book->updateRating();

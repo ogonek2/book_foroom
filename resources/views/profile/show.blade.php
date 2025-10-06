@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('content')
+@section('main')
 <div class="min-h-screen bg-gray-900">
     <!-- Main Layout with Sidebar -->
     <div class="flex">

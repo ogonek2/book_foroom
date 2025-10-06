@@ -83,6 +83,16 @@ class User extends Authenticatable
         return $this->hasMany(Quote::class);
     }
 
+    public function discussions(): HasMany
+    {
+        return $this->hasMany(Discussion::class);
+    }
+
+    public function discussionReplies(): HasMany
+    {
+        return $this->hasMany(DiscussionReply::class);
+    }
+
     public function publications(): HasMany
     {
         return $this->hasMany(Publication::class);
@@ -298,5 +308,57 @@ class User extends Authenticatable
 
         // Fallback на UI Avatars
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&size=120';
+    }
+
+    /**
+     * Рассчитывает рейтинг пользователя на основе активности
+     */
+    public function calculateRating(): float
+    {
+        $score = 0;
+
+        // Рецензии (основные, не ответы) - 10 баллов за каждую
+        $score += $this->reviews()->whereNull('parent_id')->count() * 10;
+
+        // Цитаты (публичные) - 5 баллов за каждую
+        $score += $this->quotes()->where('is_public', true)->count() * 5;
+
+        // Публикации (опубликованные) - 15 баллов за каждую
+        $score += $this->publications()->where('status', 'published')->count() * 15;
+
+        // Оценки книг - 2 балла за каждую
+        $score += $this->readingStatuses()->whereNotNull('rating')->count() * 2;
+
+        // Статусы книг (прочитано) - 3 балла за каждую
+        $score += $this->readingStatuses()->where('status', 'read')->count() * 3;
+
+        // Обсуждения (активные) - 8 баллов за каждое
+        $score += $this->discussions()->where('status', 'active')->count() * 8;
+
+        // Комментарии к обсуждениям - 3 балла за каждый
+        $score += $this->discussionReplies()->count() * 3;
+
+        // Комментарии к рецензиям - 2 балла за каждый
+        $score += $this->reviews()->whereNotNull('parent_id')->count() * 2;
+
+        return min($score, 100); // Максимум 100 баллов
+    }
+
+    /**
+     * Получает количество звезд рейтинга (от 1 до 10)
+     */
+    public function getStarsCount(): int
+    {
+        $rating = $this->calculateRating();
+        return max(1, min(10, (int) ceil($rating / 10)));
+    }
+
+    /**
+     * Получает рейтинг в виде десятичной дроби (от 1.0 до 10.0)
+     */
+    public function getRatingScore(): float
+    {
+        $rating = $this->calculateRating();
+        return round($rating / 10, 1);
     }
 }

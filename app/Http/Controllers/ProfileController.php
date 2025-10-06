@@ -31,7 +31,14 @@ class ProfileController extends Controller
     public function discussions($username)
     {
         $user = User::where('username', $username)->firstOrFail();
-        return view('profile.pages.discussions', compact('user'));
+        
+        $discussions = $user->discussions()
+            ->withCount(['replies', 'likes'])
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        
+        return view('profile.pages.discussions', compact('user', 'discussions'));
     }
 
     public function quotes($username)

@@ -2,12 +2,13 @@
 
 @section('profile-content')
 <div>
-    <h2 class="text-2xl font-bold text-white mb-6">Всі рецензії</h2>
+    <h2 class="text-2xl font-bold text-white mb-6">Мої рецензії</h2>
     
     @php
         $allReviews = $user->reviews()
-            ->with(['book'])
+            ->with(['book.category', 'book.author'])
             ->whereNull('parent_id')
+            ->where('status', 'active') // Показываем только активные рецензии
             ->orderBy('created_at', 'desc')
             ->paginate(10);
     @endphp
@@ -22,7 +23,13 @@
                             <a href="{{ route('books.show', $review->book->slug) }}" class="text-xl font-semibold text-white hover:text-orange-400 transition-colors">
                                 {{ $review->book->title }}
                             </a>
-                            <p class="text-gray-400 text-sm mt-1">{{ $review->book->author }}</p>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <p class="text-gray-400 text-sm">{{ $review->book->author }}</p>
+                                @if($review->book->category)
+                                    <span class="text-gray-500 text-xs">•</span>
+                                    <span class="text-gray-500 text-xs">{{ $review->book->category->name }}</span>
+                                @endif
+                            </div>
                         </div>
                         
                         @if($review->rating)
