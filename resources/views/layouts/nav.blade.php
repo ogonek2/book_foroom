@@ -10,7 +10,7 @@
                         </a>
                     </div>
 
-                    <!-- Navigation Links -->
+                    <!-- Desktop Navigation Links -->
                     <div class="hidden md:ml-8 md:flex md:space-x-1">
                         <a href="{{ route('home') }}" class="text-light-text-primary dark:text-dark-text-primary bg-light-bg-secondary dark:bg-dark-bg-secondary px-3 py-2 text-sm font-medium rounded-lg">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +34,7 @@
                 </div>
 
                 <!-- Search Bar -->
-                <div class="flex-1 max-w-lg mx-8 hidden lg:block" style="display: flex; flex-direction: column; justify-content: center;">
+                <div class="flex-1 max-w-lg mx-8 hidden lg:block">
                     <form action="{{ route('search') }}" method="GET" class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-light-text-tertiary dark:text-dark-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,6 +52,13 @@
 
                 <!-- Right side -->
                 <div class="flex items-center space-x-3">
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-button" class="md:hidden p-2 text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary rounded-lg transition-all duration-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+
                     <!-- Theme Toggle -->
                     <button id="theme-toggle" class="p-2.5 text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary rounded-lg transition-all duration-200">
                         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -97,5 +104,49 @@
                     @endauth
                 </div>
             </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="md:hidden hidden bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border">
+                <div class="px-4 py-4 space-y-2">
+                    <!-- Mobile Navigation Links -->
+                    <a href="{{ route('home') }}" class="block text-light-text-primary dark:text-dark-text-primary bg-light-bg-secondary dark:bg-dark-bg-secondary px-4 py-3 text-base font-medium rounded-lg">
+                        Головна
+                    </a>
+                    <a href="{{ route('books.index') }}" class="block text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-3 text-base font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200">
+                        Книги
+                    </a>
+                    <a href="{{ route('discussions.index') }}" class="block text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-3 text-base font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200">
+                        Обговорення
+                    </a>
+                    <a href="{{ route('authors.index') }}" class="block text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-3 text-base font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200">
+                        Автори
+                    </a>
+                    <a href="{{ route('users.index') }}" class="block text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-3 text-base font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200">
+                        Користувачі
+                    </a>
+
+                    @guest
+                        <!-- Mobile Auth Links -->
+                        <div class="pt-4 border-t border-light-border dark:border-dark-border">
+                            <a href="{{ route('login') }}" class="block text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-3 text-base font-medium transition-colors duration-200">Увійти</a>
+                            <a href="{{ route('register') }}" class="block bg-gradient-to-r from-brand-500 to-accent-500 text-white px-4 py-3 rounded-lg text-base font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-200 shadow-sm hover:shadow-md mt-2">Реєстрація</a>
+                        </div>
+                    @endguest
+                </div>
+            </div>
         </div>
     </nav>
+
+    <!-- Mobile Menu Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+        });
+    </script>
