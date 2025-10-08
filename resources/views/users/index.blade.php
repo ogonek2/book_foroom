@@ -155,15 +155,20 @@
                 <div class="space-y-3">
                     @foreach($stats['recent_activity']['reviews']->take(2) as $review)
                         <div class="flex items-start space-x-3">
-                            <img src="{{ $review->user->avatar_display }}" 
-                                 alt="{{ $review->user->name }}" 
+                            <img src="{{ optional($review->user)->avatar_display ?? 'https://ui-avatars.com/api/?name=User' }}" 
+                                 alt="{{ optional($review->user)->name ?? 'Користувач' }}" 
                                  class="w-10 h-10 rounded-full object-cover border border-light-border dark:border-dark-border">
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm text-light-text-primary dark:text-dark-text-primary">
-                                    <a href="{{ route('users.public.profile', $review->user->username) }}" 
-                                       class="font-medium hover:text-brand-500 transition-colors duration-200">
-                                        {{ $review->user->name }}
-                                    </a> написав рецензію
+                                    @if($review->user)
+                                        <a href="{{ route('users.public.profile', $review->user->username) }}" 
+                                           class="font-medium hover:text-brand-500 transition-colors duration-200">
+                                            {{ $review->user->name }}
+                                        </a>
+                                    @else
+                                        <span class="font-medium">Видалений користувач</span>
+                                    @endif
+                                     написав рецензію
                                 </p>
                                 <p class="text-xs text-light-text-tertiary dark:text-dark-text-tertiary truncate">
                                     {{ $review->book->title }}
@@ -174,17 +179,22 @@
                     
                     @foreach($stats['recent_activity']['quotes']->take(1) as $quote)
                         <div class="flex items-start space-x-3">
-                            <img src="{{ $quote->user->avatar_display }}" 
-                                 alt="{{ $quote->user->name }}" 
+                            <img src="{{ optional($quote->user)->avatar_display ?? 'https://ui-avatars.com/api/?name=User' }}" 
+                                 alt="{{ optional($quote->user)->name ?? 'Користувач' }}" 
                                  class="w-10 h-10 rounded-full object-cover border border-light-border dark:border-dark-border">
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm text-light-text-primary dark:text-dark-text-primary">
-                                    <a href="{{ route('users.public.profile', $quote->user->username) }}" 
-                                       class="font-medium hover:text-brand-500 transition-colors duration-200">
-                                        {{ $quote->user->name }}
-                                    </a> додав цитату
+                                    @if($quote->user)
+                                        <a href="{{ route('users.public.profile', $quote->user->username) }}" 
+                                           class="font-medium hover:text-brand-500 transition-colors duration-200">
+                                            {{ $quote->user->name }}
+                                        </a>
+                                    @else
+                                        <span class="font-medium">Видалений користувач</span>
+                                    @endif
+                                     додав цитату
                                 </p>
-                                <p class="text-xs text-light-text-tertiary dark:text-dark-text-tertiary truncate">
+                                <p class="text-xs text-light-text-tertiary dark:text-dark-text-terтіary truncate">
                                     {{ $quote->book_title ?? 'Без назви' }}
                                 </p>
                             </div>
