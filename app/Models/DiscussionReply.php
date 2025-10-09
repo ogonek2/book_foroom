@@ -157,6 +157,11 @@ class DiscussionReply extends Model
             // Обновляем счетчик ответов в обсуждении
             $reply->discussion->updateRepliesCount();
             $reply->discussion->updateLastActivity();
+            
+            // Создаем уведомление о новом ответе
+            if ($reply->user_id) {
+                \App\Services\NotificationService::createDiscussionReplyNotification($reply, $reply->user);
+            }
         });
 
         // При удалении ответа обновляем счетчик родительского ответа

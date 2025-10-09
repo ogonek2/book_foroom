@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', [ProfileController::class, 'show'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Book rating routes (должны быть ПЕРЕД другими маршрутами)
 Route::middleware(['auth'])->group(function () {
@@ -42,14 +40,26 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
     
+    // Profile management routes
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::put('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications.update');
+    Route::put('/profile/privacy', [ProfileController::class, 'updatePrivacy'])->name('profile.privacy.update');
+    Route::get('/profile/export', [ProfileController::class, 'export'])->name('profile.export');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
     // Public profile routes (with username)
     Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.user.show');
-    Route::get('/profile/{username}/library', [ProfileController::class, 'library'])->name('profile.library');
-    Route::get('/profile/{username}/reviews', [ProfileController::class, 'reviews'])->name('profile.reviews');
-    Route::get('/profile/{username}/discussions', [ProfileController::class, 'discussions'])->name('profile.discussions');
-    Route::get('/profile/{username}/quotes', [ProfileController::class, 'quotes'])->name('profile.quotes');
-    Route::get('/profile/{username}/collections', [ProfileController::class, 'collections'])->name('profile.collections');
-    Route::get('/profile/{username}/collections/{libraryId}/books', [ProfileController::class, 'getLibraryBooks'])->name('profile.collections.books');
+});
+
+// Notification routes
+Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\NotificationController::class, 'page'])->name('page');
+    Route::get('/api', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+    Route::get('/unread-count', [\App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('unread-count');
+    Route::post('/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('mark-read');
+    Route::post('/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+    Route::delete('/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('destroy');
+    Route::delete('/read/all', [\App\Http\Controllers\NotificationController::class, 'deleteAllRead'])->name('delete-all-read');
 });
 
 // Public library routes

@@ -35,6 +35,14 @@ class User extends Authenticatable
         'newsletter_subscribed',
         'email_verification_token',
         'rating',
+        // Notification settings
+        'email_notifications',
+        'new_books_notifications',
+        'comments_notifications',
+        // Privacy settings
+        'public_profile',
+        'show_reading_stats',
+        'show_ratings',
     ];
 
     /**
@@ -107,6 +115,16 @@ class User extends Authenticatable
     public function publications(): HasMany
     {
         return $this->hasMany(Publication::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function sentNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class, 'sender_id');
     }
 
     public function library(): HasMany

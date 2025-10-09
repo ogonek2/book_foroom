@@ -11,6 +11,11 @@ import AddToLibraryModal from './components/AddToLibraryModal.vue';
 import AddToLibraryButton from './components/AddToLibraryButton.vue';
 import LibraryCollection from './components/LibraryCollection.vue';
 import UserLibraryBookCard from './components/UserLibraryBookCard.vue';
+import NotificationBell from './components/NotificationBell.vue';
+import NotificationsPage from './components/NotificationsPage.vue';
+import NotificationFilters from './components/NotificationFilters.vue';
+import NotificationCard from './components/NotificationCard.vue';
+import NotificationPagination from './components/NotificationPagination.vue';
 
 // Настройка Axios
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -722,6 +727,11 @@ Vue.component('add-to-library-modal', AddToLibraryModal);
 Vue.component('add-to-library-button', AddToLibraryButton);
 Vue.component('library-collection', LibraryCollection);
 Vue.component('user-library-book-card', UserLibraryBookCard);
+Vue.component('notification-bell', NotificationBell);
+Vue.component('notifications-page', NotificationsPage);
+Vue.component('notification-filters', NotificationFilters);
+Vue.component('notification-card', NotificationCard);
+Vue.component('notification-pagination', NotificationPagination);
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {

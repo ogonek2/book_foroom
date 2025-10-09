@@ -156,6 +156,11 @@ class Review extends Model
         static::created(function ($review) {
             if ($review->parent_id) {
                 $review->parent->updateRepliesCount();
+                
+                // Создаем уведомление о новом ответе
+                if ($review->user_id) {
+                    \App\Services\NotificationService::createReviewReplyNotification($review, $review->user);
+                }
             }
         });
 

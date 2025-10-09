@@ -41,7 +41,7 @@
                             @if ($user->avatar)
                                 <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}"
                                     class="w-full h-full rounded-full object-cover border-2 border-gray-600 shadow-lg"
-                                    style="max-width: 200px; max-height: 200px;">
+                                    style="width: 200px; height: 200px;">
                             @else
                                 <div class="w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center border-2 border-gray-600 shadow-lg">
                                     <span class="text-2xl font-bold text-white">{{ substr($user->name, 0, 1) }}</span>

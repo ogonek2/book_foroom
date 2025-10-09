@@ -235,37 +235,62 @@ class UserController extends Controller
     {
         $user = User::where('username', $username)->firstOrFail();
         
-        // Загружаем данные для статистики
+        // Проверяем, является ли просматривающий владельцем профиля
+        $isOwner = auth()->check() && auth()->id() === $user->id;
+        
+        // Проверяем публичность профиля
+        if (!$isOwner && !$user->public_profile) {
+            return view('users.public.private-profile', compact('user'));
+        }
+        
+        // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
             'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
-            'read_count' => $user->readingStatuses()->where('status', 'read')->count(),
-            'reading_count' => $user->readingStatuses()->where('status', 'reading')->count(),
-            'want_to_read_count' => $user->readingStatuses()->where('status', 'want_to_read')->count(),
-            'average_rating' => $user->readingStatuses()->whereNotNull('rating')->avg('rating'), // Все рейтинги, не только 'read'
         ];
-
-        // Статистика рейтингов (1-10) - получаем ВСЕ рейтинги, не только со статусом 'read'
-        $ratingStats = [];
-        for ($i = 1; $i <= 10; $i++) {
-            $ratingStats[$i] = $user->readingStatuses()
-                ->whereNotNull('rating') // Важно: только те, где есть рейтинг
-                ->where('rating', $i)
-                ->count();
-        }
         
-        // Дополнительная статистика для отображения
-        $totalRatedBooks = array_sum($ratingStats);
-        $stats['total_rated_books'] = $totalRatedBooks;
+        // Добавляем статистику читания только если разрешено или это владелец
+        if ($isOwner || $user->show_reading_stats) {
+            $stats['read_count'] = $user->readingStatuses()->where('status', 'read')->count();
+            $stats['reading_count'] = $user->readingStatuses()->where('status', 'reading')->count();
+            $stats['want_to_read_count'] = $user->readingStatuses()->where('status', 'want_to_read')->count();
+            $stats['average_rating'] = $user->readingStatuses()->whereNotNull('rating')->avg('rating');
+        } else {
+            $stats['read_count'] = null;
+            $stats['reading_count'] = null;
+            $stats['want_to_read_count'] = null;
+            $stats['average_rating'] = null;
+        }
 
-        // Недавно прочитанные книги
-        $recentReadBooks = $user->readingStatuses()
-            ->where('status', 'read')
-            ->with('book')
-            ->orderBy('finished_at', 'desc')
-            ->limit(4)
-            ->get();
+        // Статистика рейтингов (1-10) только если разрешено показывать рейтинги или это владелец
+        $ratingStats = [];
+        if ($isOwner || $user->show_ratings) {
+            for ($i = 1; $i <= 10; $i++) {
+                $ratingStats[$i] = $user->readingStatuses()
+                    ->whereNotNull('rating')
+                    ->where('rating', $i)
+                    ->count();
+            }
+            $totalRatedBooks = array_sum($ratingStats);
+            $stats['total_rated_books'] = $totalRatedBooks;
+        } else {
+            for ($i = 1; $i <= 10; $i++) {
+                $ratingStats[$i] = 0;
+            }
+            $stats['total_rated_books'] = 0;
+        }
+
+        // Недавно прочитанные книги (только если разрешено или это владелец)
+        $recentReadBooks = collect();
+        if ($isOwner || $user->show_reading_stats) {
+            $recentReadBooks = $user->readingStatuses()
+                ->where('status', 'read')
+                ->with('book')
+                ->orderBy('finished_at', 'desc')
+                ->limit(4)
+                ->get();
+        }
 
         // Недавние рецензии
         $recentReviews = $user->reviews()
@@ -286,7 +311,7 @@ class UserController extends Controller
             })->toArray();
         }
 
-        return view('users.public.profile', compact('user', 'stats', 'ratingStats', 'recentReadBooks', 'recentReviews', 'userLibraries'));
+        return view('users.public.profile', compact('user', 'stats', 'ratingStats', 'recentReadBooks', 'recentReviews', 'userLibraries', 'isOwner'));
     }
 
     /**
@@ -295,6 +320,19 @@ class UserController extends Controller
     public function publicLibrary($username)
     {
         $user = User::where('username', $username)->firstOrFail();
+        
+        // Проверяем, является ли просматривающий владельцем профиля
+        $isOwner = auth()->check() && auth()->id() === $user->id;
+        
+        // Проверяем публичность профиля
+        if (!$isOwner && !$user->public_profile) {
+            return view('users.public.private-profile', compact('user'));
+        }
+        
+        // Проверяем настройки приватности для статистики читания
+        if (!$isOwner && !$user->show_reading_stats) {
+            return view('users.public.private-stats', compact('user'));
+        }
         
         // Загружаем данные для статистики
         $stats = [
@@ -323,16 +361,33 @@ class UserController extends Controller
     {
         $user = User::where('username', $username)->firstOrFail();
         
-        // Загружаем данные для статистики
+        // Проверяем, является ли просматривающий владельцем профиля
+        $isOwner = auth()->check() && auth()->id() === $user->id;
+        
+        // Проверяем публичность профиля
+        if (!$isOwner && !$user->public_profile) {
+            return view('users.public.private-profile', compact('user'));
+        }
+        
+        // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
             'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
-            'read_count' => $user->readingStatuses()->where('status', 'read')->count(),
-            'reading_count' => $user->readingStatuses()->where('status', 'reading')->count(),
-            'want_to_read_count' => $user->readingStatuses()->where('status', 'want_to_read')->count(),
-            'average_rating' => $user->readingStatuses()->whereNotNull('rating')->avg('rating'),
         ];
+        
+        // Добавляем статистику читания только если разрешено или это владелец
+        if ($isOwner || $user->show_reading_stats) {
+            $stats['read_count'] = $user->readingStatuses()->where('status', 'read')->count();
+            $stats['reading_count'] = $user->readingStatuses()->where('status', 'reading')->count();
+            $stats['want_to_read_count'] = $user->readingStatuses()->where('status', 'want_to_read')->count();
+            $stats['average_rating'] = $user->readingStatuses()->whereNotNull('rating')->avg('rating');
+        } else {
+            $stats['read_count'] = null;
+            $stats['reading_count'] = null;
+            $stats['want_to_read_count'] = null;
+            $stats['average_rating'] = null;
+        }
         
         $reviews = $user->reviews()
             ->with(['book'])
@@ -340,11 +395,14 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
         
-        $recentReadBooks = $user->readingStatuses()
-            ->with('book')
-            ->orderBy('updated_at', 'desc')
-            ->limit(3)
-            ->get();
+        $recentReadBooks = collect();
+        if ($isOwner || $user->show_reading_stats) {
+            $recentReadBooks = $user->readingStatuses()
+                ->with('book')
+                ->orderBy('updated_at', 'desc')
+                ->limit(3)
+                ->get();
+        }
         
         return view('users.public.reviews', compact('user', 'stats', 'reviews', 'recentReadBooks'));
     }
@@ -356,16 +414,33 @@ class UserController extends Controller
     {
         $user = User::where('username', $username)->firstOrFail();
         
-        // Загружаем данные для статистики
+        // Проверяем, является ли просматривающий владельцем профиля
+        $isOwner = auth()->check() && auth()->id() === $user->id;
+        
+        // Проверяем публичность профиля
+        if (!$isOwner && !$user->public_profile) {
+            return view('users.public.private-profile', compact('user'));
+        }
+        
+        // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
             'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
-            'read_count' => $user->readingStatuses()->where('status', 'read')->count(),
-            'reading_count' => $user->readingStatuses()->where('status', 'reading')->count(),
-            'want_to_read_count' => $user->readingStatuses()->where('status', 'want_to_read')->count(),
-            'average_rating' => $user->readingStatuses()->whereNotNull('rating')->avg('rating'),
         ];
+        
+        // Добавляем статистику читания только если разрешено или это владелец
+        if ($isOwner || $user->show_reading_stats) {
+            $stats['read_count'] = $user->readingStatuses()->where('status', 'read')->count();
+            $stats['reading_count'] = $user->readingStatuses()->where('status', 'reading')->count();
+            $stats['want_to_read_count'] = $user->readingStatuses()->where('status', 'want_to_read')->count();
+            $stats['average_rating'] = $user->readingStatuses()->whereNotNull('rating')->avg('rating');
+        } else {
+            $stats['read_count'] = null;
+            $stats['reading_count'] = null;
+            $stats['want_to_read_count'] = null;
+            $stats['average_rating'] = null;
+        }
         
         $discussions = $user->discussions()
             ->withCount(['replies', 'likes'])
@@ -373,11 +448,14 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
         
-        $recentReadBooks = $user->readingStatuses()
-            ->with('book')
-            ->orderBy('updated_at', 'desc')
-            ->limit(3)
-            ->get();
+        $recentReadBooks = collect();
+        if ($isOwner || $user->show_reading_stats) {
+            $recentReadBooks = $user->readingStatuses()
+                ->with('book')
+                ->orderBy('updated_at', 'desc')
+                ->limit(3)
+                ->get();
+        }
         
         return view('users.public.discussions', compact('user', 'stats', 'discussions', 'recentReadBooks'));
     }
@@ -389,16 +467,33 @@ class UserController extends Controller
     {
         $user = User::where('username', $username)->firstOrFail();
         
-        // Загружаем данные для статистики
+        // Проверяем, является ли просматривающий владельцем профиля
+        $isOwner = auth()->check() && auth()->id() === $user->id;
+        
+        // Проверяем публичность профиля
+        if (!$isOwner && !$user->public_profile) {
+            return view('users.public.private-profile', compact('user'));
+        }
+        
+        // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
             'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
-            'read_count' => $user->readingStatuses()->where('status', 'read')->count(),
-            'reading_count' => $user->readingStatuses()->where('status', 'reading')->count(),
-            'want_to_read_count' => $user->readingStatuses()->where('status', 'want_to_read')->count(),
-            'average_rating' => $user->readingStatuses()->whereNotNull('rating')->avg('rating'),
         ];
+        
+        // Добавляем статистику читания только если разрешено или это владелец
+        if ($isOwner || $user->show_reading_stats) {
+            $stats['read_count'] = $user->readingStatuses()->where('status', 'read')->count();
+            $stats['reading_count'] = $user->readingStatuses()->where('status', 'reading')->count();
+            $stats['want_to_read_count'] = $user->readingStatuses()->where('status', 'want_to_read')->count();
+            $stats['average_rating'] = $user->readingStatuses()->whereNotNull('rating')->avg('rating');
+        } else {
+            $stats['read_count'] = null;
+            $stats['reading_count'] = null;
+            $stats['want_to_read_count'] = null;
+            $stats['average_rating'] = null;
+        }
         
         $quotes = $user->quotes()
             ->where('is_public', true)
@@ -406,11 +501,14 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(12);
         
-        $recentReadBooks = $user->readingStatuses()
-            ->with('book')
-            ->orderBy('updated_at', 'desc')
-            ->limit(3)
-            ->get();
+        $recentReadBooks = collect();
+        if ($isOwner || $user->show_reading_stats) {
+            $recentReadBooks = $user->readingStatuses()
+                ->with('book')
+                ->orderBy('updated_at', 'desc')
+                ->limit(3)
+                ->get();
+        }
         
         return view('users.public.quotes', compact('user', 'stats', 'quotes', 'recentReadBooks'));
     }
@@ -422,16 +520,33 @@ class UserController extends Controller
     {
         $user = User::where('username', $username)->firstOrFail();
         
-        // Загружаем данные для статистики
+        // Проверяем, является ли просматривающий владельцем профиля
+        $isOwner = auth()->check() && auth()->id() === $user->id;
+        
+        // Проверяем публичность профиля
+        if (!$isOwner && !$user->public_profile) {
+            return view('users.public.private-profile', compact('user'));
+        }
+        
+        // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
             'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
-            'read_count' => $user->readingStatuses()->where('status', 'read')->count(),
-            'reading_count' => $user->readingStatuses()->where('status', 'reading')->count(),
-            'want_to_read_count' => $user->readingStatuses()->where('status', 'want_to_read')->count(),
-            'average_rating' => $user->readingStatuses()->whereNotNull('rating')->avg('rating'),
         ];
+        
+        // Добавляем статистику читания только если разрешено или это владелец
+        if ($isOwner || $user->show_reading_stats) {
+            $stats['read_count'] = $user->readingStatuses()->where('status', 'read')->count();
+            $stats['reading_count'] = $user->readingStatuses()->where('status', 'reading')->count();
+            $stats['want_to_read_count'] = $user->readingStatuses()->where('status', 'want_to_read')->count();
+            $stats['average_rating'] = $user->readingStatuses()->whereNotNull('rating')->avg('rating');
+        } else {
+            $stats['read_count'] = null;
+            $stats['reading_count'] = null;
+            $stats['want_to_read_count'] = null;
+            $stats['average_rating'] = null;
+        }
         
         try {
             // Показываем только публичные коллекции для других пользователей
@@ -454,11 +569,14 @@ class UserController extends Controller
             $selectedLibrary = null;
         }
         
-        $recentReadBooks = $user->readingStatuses()
-            ->with('book')
-            ->orderBy('updated_at', 'desc')
-            ->limit(3)
-            ->get();
+        $recentReadBooks = collect();
+        if ($isOwner || $user->show_reading_stats) {
+            $recentReadBooks = $user->readingStatuses()
+                ->with('book')
+                ->orderBy('updated_at', 'desc')
+                ->limit(3)
+                ->get();
+        }
         
         return view('users.public.collections', compact('user', 'stats', 'libraries', 'books', 'selectedLibrary', 'recentReadBooks'));
     }

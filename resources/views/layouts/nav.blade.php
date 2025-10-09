@@ -57,6 +57,13 @@
                     </button>
 
                     @auth
+                        <!-- Notification Bell (Vue Component) -->
+                        <div id="notification-app">
+                            <notification-bell></notification-bell>
+                        </div>
+                    @endauth
+
+                    @auth
                         <!-- User Menu -->
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary p-2 transition-all duration-200">
@@ -93,3 +100,18 @@
             </div>
         </div>
     </nav>
+
+    @auth
+    @push('scripts')
+    <script>
+        // Инициализация Vue приложения для уведомлений
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById('notification-app')) {
+                new Vue({
+                    el: '#notification-app'
+                });
+            }
+        });
+    </script>
+    @endpush
+    @endauth

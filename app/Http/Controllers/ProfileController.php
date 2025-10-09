@@ -142,92 +142,7 @@ class ProfileController extends Controller
         return $activities;
     }
 
-    public function library($username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
-        return view('profile.pages.library', compact('user'));
-    }
 
-    public function reviews($username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
-        return view('profile.pages.reviews', compact('user'));
-    }
-
-    public function discussions($username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
-        
-        $discussions = $user->discussions()
-            ->withCount(['replies', 'likes'])
-            ->where('status', 'active')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-        
-        return view('profile.pages.discussions', compact('user', 'discussions'));
-    }
-
-    public function quotes($username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
-        return view('profile.pages.quotes', compact('user'));
-    }
-
-    public function collections($username)
-    {
-        $user = User::where('username', $username)->firstOrFail();
-        
-        // Проверяем, что у пользователя есть библиотеки
-        try {
-            $libraries = $user->libraries()->withCount('books')->with(['books' => function($q) {
-                $q->limit(3); // Для предварительного просмотра берем только первые 3 книги
-            }, 'likes'])->orderBy('created_at', 'desc')->get();
-            $selectedLibrary = $libraries->first(); // Выбираем первую библиотеку по умолчанию
-            
-            if ($selectedLibrary) {
-                $books = $selectedLibrary->books()->with(['author', 'category'])->paginate(12);
-            } else {
-                $books = collect();
-            }
-        } catch (\Exception $e) {
-            // Если таблица libraries не существует, возвращаем пустые коллекции
-            $libraries = collect();
-            $books = collect();
-            $selectedLibrary = null;
-        }
-        
-        return view('profile.pages.collections', compact('user', 'libraries', 'books', 'selectedLibrary'));
-    }
-
-    public function getLibraryBooks($username, $libraryId)
-    {
-        $user = User::where('username', $username)->firstOrFail();
-        $library = $user->libraries()->findOrFail($libraryId);
-        
-        // Проверяем права доступа
-        if (!$library->canBeViewedBy(auth()->user())) {
-            return response()->json(['error' => 'У вас нет доступа к этой библиотеке'], 403);
-        }
-        
-        $books = $library->books()->with(['author', 'category'])->paginate(12);
-        
-        return response()->json([
-            'library' => [
-                'id' => $library->id,
-                'name' => $library->name,
-                'description' => $library->description,
-                'is_private' => $library->is_private,
-                'books_count' => $library->books_count
-            ],
-            'books' => $books->items(),
-            'pagination' => [
-                'current_page' => $books->currentPage(),
-                'last_page' => $books->lastPage(),
-                'per_page' => $books->perPage(),
-                'total' => $books->total()
-            ]
-        ]);
-    }
 
     public function edit()
     {
@@ -267,7 +182,7 @@ class ProfileController extends Controller
                 
                 if (!$avatarUrl) {
                     return redirect()->back()
-                        ->withErrors(['avatar' => 'Ошибка загрузки аватарки'])
+                        ->withErrors(['avatar' => 'Помилка завантаження аватарки'])
                         ->withInput();
                 }
                 
@@ -275,7 +190,7 @@ class ProfileController extends Controller
                 
             } catch (\Exception $e) {
                 return redirect()->back()
-                    ->withErrors(['avatar' => 'Ошибка загрузки аватарки: ' . $e->getMessage()])
+                    ->withErrors(['avatar' => 'Помилка завантаження аватарки: ' . $e->getMessage()])
                     ->withInput();
             }
         }
@@ -283,7 +198,7 @@ class ProfileController extends Controller
         $user->update($data);
 
         return redirect()->route('profile.show')
-            ->with('success', 'Профиль успешно обновлен!');
+            ->with('success', 'Профіль успішно оновлений!');
     }
 
     public function destroyAvatar()
@@ -303,6 +218,114 @@ class ProfileController extends Controller
         }
 
         return redirect()->route('profile.edit')
-            ->with('success', 'Аватарка удалена!');
+            ->with('success', 'Аватарка видалена!');
+    }
+
+    /**
+     * Update user password
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        // Check current password
+        if (!password_verify($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Неверный текущий пароль']);
+        }
+
+        // Update password
+        $user->update([
+            'password' => bcrypt($request->password)
+        ]);
+
+        return redirect()->route('profile.edit')
+            ->with('success', 'Пароль успішно змінений!');
+    }
+
+    /**
+     * Update notification settings
+     */
+    public function updateNotifications(Request $request)
+    {
+        $user = Auth::user();
+        
+        $user->update([
+            'email_notifications' => $request->has('email_notifications'),
+            'new_books_notifications' => $request->has('new_books_notifications'),
+            'comments_notifications' => $request->has('comments_notifications'),
+        ]);
+
+        return redirect()->route('profile.edit')
+            ->with('success', 'Налаштування повідомлень оновлені!');
+    }
+
+    /**
+     * Update privacy settings
+     */
+    public function updatePrivacy(Request $request)
+    {
+        $user = Auth::user();
+        
+        $user->update([
+            'public_profile' => $request->has('public_profile'),
+            'show_reading_stats' => $request->has('show_reading_stats'),
+            'show_ratings' => $request->has('show_ratings'),
+        ]);
+
+        return redirect()->route('profile.edit')
+            ->with('success', 'Налаштування приватності оновлені!');
+    }
+
+    /**
+     * Export user data
+     */
+    public function export()
+    {
+        $user = Auth::user();
+        
+        $data = [
+            'user' => $user->toArray(),
+            'reading_statuses' => $user->bookReadingStatuses()->with('book')->get()->toArray(),
+            'reviews' => $user->reviews()->with('book')->get()->toArray(),
+            'libraries' => $user->libraries()->with('books')->get()->toArray(),
+            'discussions' => $user->discussions()->get()->toArray(),
+            'quotes' => $user->quotes()->get()->toArray(),
+            'exported_at' => now()->toISOString(),
+        ];
+
+        $filename = 'user_data_' . $user->username . '_' . now()->format('Y-m-d_H-i-s') . '.json';
+
+        // Конвертируем в JSON с правильной кодировкой для кириллицы
+        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+        return response($json, 200)
+            ->header('Content-Type', 'application/json; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    }
+
+    /**
+     * Delete user account
+     */
+    public function destroy(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Soft delete user and related data
+        $user->delete();
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home')
+            ->with('success', 'Ваш аккаунт був успішно видалений.');
     }
 }

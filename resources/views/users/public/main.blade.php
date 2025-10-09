@@ -46,7 +46,7 @@
                             @if ($user->avatar)
                                 <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}"
                                     class="w-full h-full rounded-full object-cover border-2 border-gray-600 shadow-lg"
-                                    style="max-width: 200px; max-height: 200px;">
+                                    style="width: 200px; height: 200px;">
                             @else
                                 <div
                                     class="w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center border-2 border-gray-600 shadow-lg">
@@ -136,64 +136,77 @@
         </div>
         <!-- Reading Stats Sidebar -->
         <div class="w-full h-full lg:w-80 px-6 bg-white backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl dark:bg-gray-900">
-            <div class="rounded-lg">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-900 dark:text-white font-semibold">Статистика читання</h3>
-                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                    </svg>
-                </div>
-
-                <!-- Progress Circle -->
-                <div class="flex items-center space-x-4 mb-6">
-                    <div class="relative w-28 h-28">
-                        <svg class="w-28 h-28 transform -rotate-90" viewBox="0 0 36 36">
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
-                                fill="none" 
-                                stroke="#374151" 
-                                stroke-width="2"/>
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
-                                fill="none" 
-                                stroke="#10b981" 
-                                stroke-width="2" 
-                                stroke-dasharray="{{ ($stats['read_count'] / max(1, $stats['read_count'] + $stats['reading_count'] + $stats['want_to_read_count'])) * 100 }}, 100"/>
+            @if(isset($stats['read_count']) && $stats['read_count'] !== null)
+                <div class="rounded-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-gray-900 dark:text-white font-semibold">Статистика читання</h3>
+                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                         </svg>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['read_count'] }}</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">Прочитано</div>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Status List -->
-                    <div class="flex-1 space-y-2">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Читає</span>
+                    <!-- Progress Circle -->
+                    <div class="flex items-center space-x-4 mb-6">
+                        <div class="relative w-28 h-28">
+                            <svg class="w-28 h-28 transform -rotate-90" viewBox="0 0 36 36">
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                                    fill="none" 
+                                    stroke="#374151" 
+                                    stroke-width="2"/>
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
+                                    fill="none" 
+                                    stroke="#10b981" 
+                                    stroke-width="2" 
+                                    stroke-dasharray="{{ ($stats['read_count'] / max(1, $stats['read_count'] + $stats['reading_count'] + $stats['want_to_read_count'])) * 100 }}, 100"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['read_count'] }}</div>
+                                    <div class="text-xs text-gray-600 dark:text-gray-400">Прочитано</div>
+                                </div>
                             </div>
-                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $stats['reading_count'] }}</span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Планує</span>
+
+                        <!-- Status List -->
+                        <div class="flex-1 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Читає</span>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $stats['reading_count'] }}</span>
                             </div>
-                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $stats['want_to_read_count'] }}</span>
-                        </div>
-                        @if ($stats['average_rating'])
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Середня оцінка</span>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Планує</span>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $stats['want_to_read_count'] }}</span>
                             </div>
-                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ number_format($stats['average_rating'], 1) }}</span>
+                            @if ($stats['average_rating'])
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Середня оцінка</span>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ number_format($stats['average_rating'], 1) }}</span>
+                            </div>
+                            @endif
                         </div>
-                        @endif
                     </div>
                 </div>
-            </div>
+            @else
+                <!-- Privacy Message -->
+                <div class="text-center py-12">
+                    <div class="text-gray-400 mb-4">
+                        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Статистика прихована</h3>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Користувач приховав свою статистику читання</p>
+                </div>
+            @endif
 
             <!-- History -->
             <div class="mt-6">

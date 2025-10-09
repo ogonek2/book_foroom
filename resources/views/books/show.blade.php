@@ -67,13 +67,11 @@
                                     </div>
                                     <!-- Add Button -->
                                     <div class="mt-4 text-center space-y-3">
-                                        <add-to-library-button
-                                            :book='@json($book)'
+                                        <add-to-library-button :book='@json($book)'
                                             :user-libraries='@json($userLibraries)'
                                             :is-authenticated="{{ auth()->check() ? 'true' : 'false' }}"
                                             :initial-status="{{ $currentReadingStatus ? "'{$currentReadingStatus->status}'" : 'null' }}"
-                                            @notification="handleNotification"
-                                        ></add-to-library-button>
+                                            @notification="handleNotification"></add-to-library-button>
                                     </div>
                                 </div>
                                 <div class="flex-1">
@@ -293,9 +291,9 @@
                                     <div>
                                         <label
                                             class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Оцінка</label>
-                                        <div class="flex items-center space-x-1 mb-2">
+                                        <div class="flex items-center space-x-1 mb-2" id="reviewFormStars">
                                             @for ($i = 1; $i <= 10; $i++)
-                                                <svg class="w-6 h-6 cursor-pointer transition-all duration-200 hover:scale-110 {{ $i <= ($userRating ?? 0) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-300' }}"
+                                                <svg class="w-6 h-6 cursor-pointer transition-all duration-200 hover:scale-110 review-form-star {{ $i <= ($userRating ?? 0) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-300' }}"
                                                     data-rating="{{ $i }}"
                                                     fill="{{ $i <= ($userRating ?? 0) ? 'currentColor' : 'none' }}"
                                                     stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -465,14 +463,6 @@
                                     </h3>
                                     <p class="text-slate-500 dark:text-slate-400 text-xl font-medium">Станьте першим, хто
                                         поділиться своєю думкою про цю книгу</p>
-                                    @guest
-                                        <div class="mt-8">
-                                            <button onclick="toggleReviewForm()"
-                                                class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
-                                                Написати рецензію як гість
-                                            </button>
-                                        </div>
-                                    @endguest
                                 </div>
                             @endif
                         </div>
@@ -538,15 +528,17 @@
                                         $percentage = $maxCount > 0 ? ($count / $maxCount) * 100 : 0;
                                     @endphp
                                     <div class="flex items-center space-x-3">
-                                        <span
-                                            class="text-gray-600 dark:text-gray-400 w-8" style="font-size: 12px;">{{ $rating }}</span>
-                                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full" style="height: 4px;">
+                                        <span class="text-gray-600 dark:text-gray-400 w-8"
+                                            style="font-size: 12px;">{{ $rating }}</span>
+                                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full"
+                                            style="height: 4px;">
                                             <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500 progress-bar"
-                                                data-value="{{ $count }}" style="width: {{ $percentage }}%; height: 4px;">
+                                                data-value="{{ $count }}"
+                                                style="width: {{ $percentage }}%; height: 4px;">
                                             </div>
                                         </div>
-                                        <span
-                                            class="text-gray-600 dark:text-gray-400 w-8 text-right" style="font-size: 12px;">{{ $count }}</span>
+                                        <span class="text-gray-600 dark:text-gray-400 w-8 text-right"
+                                            style="font-size: 12px;">{{ $count }}</span>
                                     </div>
                                 @endfor
                             </div>
@@ -566,7 +558,8 @@
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Рік видання</span>
-                                    <span class="text-sm text-gray-900 dark:text-white">{{ $book->publication_year }}</span>
+                                    <span
+                                        class="text-sm text-gray-900 dark:text-white">{{ $book->publication_year }}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">ISBN</span>
@@ -633,264 +626,18 @@
             </div>
         </div>
     </div>
-
-    <!-- Модальные окна теперь управляются Vue компонентом add-to-library-button -->
-
-    <!-- Старое Reading Status Modal (скрыто, функционал перенесен в Vue компонент) -->
-    <div id="readingStatusModal" style="display: none !important;"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-gray dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0"
-            id="modalContent">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Додати до списку</h3>
-                    <button onclick="closeReadingStatusModal()"
-                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="space-y-3">
-                    <button onclick="selectReadingStatus('read')"
-                        class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
-                        <div class="flex items-center space-x-4">
-                            <div
-                                class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-green-200 dark:group-hover:bg-green-800/40 transition-colors">
-                                <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h4
-                                    class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                    Прочитано</h4>
-                                <p class="text-sm text-slate-600 dark:text-slate-400">Книга прочитана повністю</p>
-                            </div>
-                        </div>
-                    </button>
-
-                    <button onclick="selectReadingStatus('reading')"
-                        class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
-                        <div class="flex items-center space-x-4">
-                            <div
-                                class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/40 transition-colors">
-                                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h4
-                                    class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                    Читаю</h4>
-                                <p class="text-sm text-slate-600 dark:text-slate-400">Зараз читаю цю книгу</p>
-                            </div>
-                        </div>
-                    </button>
-
-                    <button onclick="selectReadingStatus('want-to-read')"
-                        class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 group">
-                        <div class="flex items-center space-x-4">
-                            <div
-                                class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/40 transition-colors">
-                                <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h4
-                                    class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                    Буду читати</h4>
-                                <p class="text-sm text-slate-600 dark:text-slate-400">Планую прочитати цю книгу</p>
-                            </div>
-                        </div>
-                    </button>
-
-                    <!-- Divider -->
-                    <div class="border-t border-slate-200 dark:border-slate-600 my-4"></div>
-
-                    <!-- Add to Library Button -->
-                    <button onclick="openAddToLibraryModal()"
-                        class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-orange-500 dark:hover:border-orange-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 group">
-                        <div class="flex items-center space-x-4">
-                            <div
-                                class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/40 transition-colors">
-                                <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h4
-                                    class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                                    Додати до добірки</h4>
-                                <p class="text-sm text-slate-600 dark:text-slate-400">Створити або додати до існуючої
-                                    добірки</p>
-                            </div>
-                        </div>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add to Library Modal -->
-    @auth
-        <div id="addToLibraryModal"
-            class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-gray dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0"
-                id="addToLibraryModalContent">
-                <div class="p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Додати до добірки</h3>
-                        <button onclick="closeAddToLibraryModal()"
-                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Tabs -->
-                    <div class="flex space-x-1 mb-6 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
-                        <button onclick="switchLibraryTab('existing')" id="existingTab"
-                            class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 bg-white dark:bg-slate-600 text-slate-900 dark:text-white shadow-sm">
-                            Існуючі добірки
-                        </button>
-                        <button onclick="switchLibraryTab('create')" id="createTab"
-                            class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-                            Створити нову
-                        </button>
-                    </div>
-
-                    <!-- Existing Libraries Tab -->
-                    <div id="existingLibrariesTab" class="tab-content">
-                        @php
-                            try {
-                                $user = auth()->user();
-                                $userLibraries = $user ? $user->libraries()->orderBy('name')->get() : collect();
-                            } catch (\Exception $e) {
-                                $userLibraries = collect();
-                            }
-                        @endphp
-
-                        @if ($userLibraries->count() > 0)
-                            <div class="space-y-3 max-h-64 overflow-y-auto">
-                                @foreach ($userLibraries as $library)
-                                    <div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                                        data-library-id="{{ $library->id }}">
-                                        <div class="flex-1">
-                                            <h4 class="font-medium text-slate-900 dark:text-white">{{ $library->name }}</h4>
-                                            @if ($library->description)
-                                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                                    {{ Str::limit($library->description, 50) }}</p>
-                                            @endif
-                                            <div class="flex items-center space-x-2 mt-2">
-                                                <span class="text-xs text-slate-500 dark:text-slate-400 library-count">
-                                                    {{ $library->books_count }}
-                                                    {{ Str::plural('книга', $library->books_count) }}
-                                                </span>
-                                                @if ($library->is_private)
-                                                    <span
-                                                        class="text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-1 rounded-full">
-                                                        <i class="fas fa-lock mr-1"></i>Приватна
-                                                    </span>
-                                                @else
-                                                    <span
-                                                        class="text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1 rounded-full">
-                                                        <i class="fas fa-globe mr-1"></i>Публічна
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <button onclick="addBookToLibrary({{ $library->id }})"
-                                            class="ml-3 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                            Додати
-                                        </button>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="text-center py-8">
-                                <div class="text-slate-400 dark:text-slate-500 text-4xl mb-3">
-                                    <i class="fas fa-folder-open"></i>
-                                </div>
-                                <p class="text-slate-600 dark:text-slate-400 mb-4">У вас поки немає добірок</p>
-                                <button onclick="switchLibraryTab('create')"
-                                    class="text-orange-500 hover:text-orange-600 font-medium">
-                                    Створити першу добірку
-                                </button>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- Create New Library Tab -->
-                    <div id="createLibraryTab" class="tab-content hidden">
-                        <form id="createLibraryForm" action="{{ route('libraries.store') }}" method="POST">
-                            @csrf
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Назва
-                                        добірки</label>
-                                    <input type="text" name="name" required
-                                        class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white transition-all duration-200"
-                                        placeholder="Наприклад: Моя улюблена фантастика">
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Опис
-                                        (необов'язково)</label>
-                                    <textarea name="description" rows="3"
-                                        class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white transition-all duration-200 resize-none"
-                                        placeholder="Короткий опис вашої добірки"></textarea>
-                                </div>
-
-                                <div class="flex items-center">
-                                    <input type="checkbox" name="is_private" value="1" id="isPrivate"
-                                        class="w-4 h-4 text-orange-600 bg-slate-100 border-slate-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600">
-                                    <label for="isPrivate" class="ml-2 text-sm text-slate-700 dark:text-slate-300">Приватна
-                                        добірка</label>
-                                </div>
-
-                                <div class="flex space-x-3 pt-4">
-                                    <button type="button" onclick="closeAddToLibraryModal()"
-                                        class="flex-1 px-4 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition-colors">
-                                        Скасувати
-                                    </button>
-                                    <button type="submit"
-                                        class="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-medium transition-colors">
-                                        Створити та додати
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endauth
-
+    
     @push('scripts')
         <script>
             // Vue приложение для страницы книги
             document.addEventListener('DOMContentLoaded', function() {
                 const bookShowApp = new Vue({
-                    el: '#app',
-                    data: {
-                        @auth
-                        user: {
-                            username: '{{ auth()->user()->username }}'
-                        }
+                        el: '#app',
+                        data: {
+                            @auth
+                            user: {
+                                username: '{{ auth()->user()->username }}'
+                            }
                         @endauth
                     },
                     methods: {
@@ -933,9 +680,49 @@
                 form.classList.toggle('hidden');
 
                 if (!form.classList.contains('hidden')) {
+                    // Инициализируем звезды при открытии формы
+                    setTimeout(() => {
+                        initializeReviewFormStars();
+                    }, 100);
+                    
                     form.scrollIntoView({
                         behavior: 'smooth',
                         block: 'center'
+                    });
+                }
+            }
+
+            // Функция для инициализации звезд в форме рецензии
+            function initializeReviewFormStars() {
+                // Для авторизованных пользователей
+                const reviewStars = document.querySelectorAll('#reviewFormStars .review-form-star');
+                if (reviewStars.length > 0) {
+                    const currentRating = parseInt(document.getElementById('ratingInput').value) || 0;
+                    reviewStars.forEach((s, index) => {
+                        if (index < currentRating) {
+                            s.classList.add('text-yellow-400');
+                            s.classList.remove('text-gray-300', 'dark:text-gray-600');
+                            s.setAttribute('fill', 'currentColor');
+                        } else {
+                            s.classList.remove('text-yellow-400');
+                            s.classList.add('text-gray-300', 'dark:text-gray-600');
+                            s.setAttribute('fill', 'none');
+                        }
+                    });
+                }
+
+                // Для гостей
+                const guestStars = document.querySelectorAll('#ratingStarsGuest .star-rating');
+                if (guestStars.length > 0) {
+                    const currentRating = parseInt(document.getElementById('ratingInputGuest').value) || 0;
+                    guestStars.forEach((s, index) => {
+                        if (index < currentRating) {
+                            s.classList.add('text-yellow-400');
+                            s.classList.remove('text-slate-300', 'dark:text-slate-600');
+                        } else {
+                            s.classList.remove('text-yellow-400');
+                            s.classList.add('text-slate-300', 'dark:text-slate-600');
+                        }
                     });
                 }
             }
@@ -1054,289 +841,6 @@
                 }
             }
 
-            // Функции для модального окна статуса чтения
-            function openReadingStatusModal() {
-                const modal = document.getElementById('readingStatusModal');
-                const modalContent = document.getElementById('modalContent');
-
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-
-                // Анимация появления
-                setTimeout(() => {
-                    modalContent.classList.remove('scale-95', 'opacity-0');
-                    modalContent.classList.add('scale-100', 'opacity-100');
-                }, 10);
-            }
-
-            function closeReadingStatusModal() {
-                const modal = document.getElementById('readingStatusModal');
-                const modalContent = document.getElementById('modalContent');
-
-                // Анимация исчезновения
-                modalContent.classList.remove('scale-100', 'opacity-100');
-                modalContent.classList.add('scale-95', 'opacity-0');
-
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                }, 300);
-            }
-
-            async function selectReadingStatus(status) {
-                try {
-                    // Отправляем запрос на сервер
-                    const response = await fetch(`/api/reading-status/book/{{ $book->id }}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                                'content')
-                        },
-                        body: JSON.stringify({
-                            status: status === 'want-to-read' ? 'want_to_read' : status
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        // Показываем уведомление об успехе
-                        showNotification('Книга додана до списку!', 'success');
-
-                        // Обновляем отображение статуса на странице
-                        updateStatusDisplay(status);
-                    } else {
-                        // Показываем уведомление об ошибке
-                        showNotification(data.message || 'Ошибка при сохранении статуса', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    showNotification('Ошибка при сохранении статуса', 'error');
-                }
-
-                // Закрываем модальное окно
-                closeReadingStatusModal();
-            }
-
-            // Функции для модального окна добавления в доборку
-            function openAddToLibraryModal() {
-                const modal = document.getElementById('addToLibraryModal');
-                const modalContent = document.getElementById('addToLibraryModalContent');
-
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-
-                // Анимация появления
-                setTimeout(() => {
-                    modalContent.classList.remove('scale-95', 'opacity-0');
-                    modalContent.classList.add('scale-100', 'opacity-100');
-                }, 10);
-
-                // Закрываем предыдущий модал
-                closeReadingStatusModal();
-            }
-
-            function closeAddToLibraryModal() {
-                const modal = document.getElementById('addToLibraryModal');
-                const modalContent = document.getElementById('addToLibraryModalContent');
-
-                // Анимация исчезновения
-                modalContent.classList.remove('scale-100', 'opacity-100');
-                modalContent.classList.add('scale-95', 'opacity-0');
-
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                }, 300);
-            }
-
-            function switchLibraryTab(tab) {
-                const existingTab = document.getElementById('existingTab');
-                const createTab = document.getElementById('createTab');
-                const existingContent = document.getElementById('existingLibrariesTab');
-                const createContent = document.getElementById('createLibraryTab');
-
-                if (tab === 'existing') {
-                    existingTab.classList.add('bg-white', 'dark:bg-slate-600', 'text-slate-900', 'dark:text-white',
-                        'shadow-sm');
-                    existingTab.classList.remove('text-slate-600', 'dark:text-slate-400');
-                    createTab.classList.remove('bg-white', 'dark:bg-slate-600', 'text-slate-900', 'dark:text-white',
-                        'shadow-sm');
-                    createTab.classList.add('text-slate-600', 'dark:text-slate-400');
-                    existingContent.classList.remove('hidden');
-                    createContent.classList.add('hidden');
-                } else {
-                    createTab.classList.add('bg-white', 'dark:bg-slate-600', 'text-slate-900', 'dark:text-white', 'shadow-sm');
-                    createTab.classList.remove('text-slate-600', 'dark:text-slate-400');
-                    existingTab.classList.remove('bg-white', 'dark:bg-slate-600', 'text-slate-900', 'dark:text-white',
-                        'shadow-sm');
-                    existingTab.classList.add('text-slate-600', 'dark:text-slate-400');
-                    createContent.classList.remove('hidden');
-                    existingContent.classList.add('hidden');
-                }
-            }
-
-            async function addBookToLibrary(libraryId) {
-                try {
-                    console.log('Adding book to library:', libraryId, 'Book ID:', {{ $book->id }});
-
-                    const response = await fetch(`/libraries/${libraryId}/add-book`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                                'content')
-                        },
-                        body: JSON.stringify({
-                            book_id: {{ $book->id }}
-                        })
-                    });
-
-                    console.log('Response status:', response.status);
-                    console.log('Response headers:', response.headers);
-
-                    // Проверяем, что ответ действительно JSON
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        const text = await response.text();
-                        console.error('Non-JSON response:', text);
-                        showNotification('Сервер повернув некоректну відповідь', 'error');
-                        return;
-                    }
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        showNotification('Книга успішно додана до добірки!', 'success');
-
-                        // Обновляем количество книг в поп-апе
-                        updateLibraryCount(libraryId);
-
-                        // Добавляем индикатор на страницу книги
-                        addLibraryIndicator(libraryId, data.library_name);
-
-                        closeAddToLibraryModal();
-                    } else {
-                        showNotification(data.message || 'Помилка при додаванні книги', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    showNotification('Помилка при додаванні книги', 'error');
-                }
-            }
-
-            function updateLibraryCount(libraryId) {
-                // Находим элемент с количеством книг в поп-апе
-                const libraryElement = document.querySelector(`[data-library-id="${libraryId}"]`);
-                if (libraryElement) {
-                    const countElement = libraryElement.querySelector('.library-count');
-                    if (countElement) {
-                        const currentCount = parseInt(countElement.textContent) || 0;
-                        countElement.textContent = currentCount + 1;
-                    }
-                }
-            }
-
-            function addLibraryIndicator(libraryId, libraryName) {
-                // Проверяем, есть ли уже индикаторы на странице
-                let indicatorsContainer = document.querySelector('.library-indicators');
-
-                if (indicatorsContainer) {
-                    const badgesContainer = indicatorsContainer.querySelector('#library-badges');
-                    if (badgesContainer) {
-                        // Проверяем, нет ли уже такого бейджа
-                        const existingBadge = badgesContainer.querySelector(`[data-library-id="${libraryId}"]`);
-                        if (!existingBadge) {
-                            const badge = document.createElement('span');
-                            badge.className =
-                                'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-700';
-                            badge.setAttribute('data-library-id', libraryId);
-                            badge.innerHTML = `
-                    <i class="fas fa-folder-open mr-1"></i>
-                    ${libraryName}
-                `;
-                            badgesContainer.appendChild(badge);
-                        }
-                    }
-                }
-            }
-
-
-
-            function updateStatusDisplay(status) {
-                // Обновляем кнопку добавления в библиотеку
-                const addButton = document.querySelector('[onclick="openReadingStatusModal()"]');
-                if (addButton) {
-                    const statusTexts = {
-                        'read': 'Прочитано',
-                        'reading': 'Читаю',
-                        'want-to-read': 'Буду читати',
-                        'want_to_read': 'Буду читати'
-                    };
-
-                    const statusColors = {
-                        'read': 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
-                        'reading': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-                        'want-to-read': 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
-                        'want_to_read': 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
-                    };
-
-                    addButton.innerHTML = `
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            ${statusTexts[status]}
-        `;
-
-                    // Удаляем все цветовые классы
-                    addButton.classList.remove('from-indigo-500', 'to-purple-600', 'hover:from-indigo-600',
-                        'hover:to-purple-700');
-                    addButton.classList.remove('from-green-500', 'to-green-600', 'hover:from-green-600', 'hover:to-green-700');
-                    addButton.classList.remove('from-blue-500', 'to-blue-600', 'hover:from-blue-600', 'hover:to-blue-700');
-                    addButton.classList.remove('from-yellow-500', 'to-yellow-600', 'hover:from-yellow-600',
-                        'hover:to-yellow-700');
-
-                    // Добавляем новые цветовые классы
-                    const colorClasses = statusColors[status].split(' ');
-                    addButton.classList.add(...colorClasses);
-                }
-            }
-
-            function initializeReadingStatus(status) {
-                // Инициализируем отображение статуса при загрузке страницы
-                updateStatusDisplay(status);
-            }
-
-            // Функция для инициализации прогресс-баров
-            function initializeProgressBars() {
-                // Обрабатываем рейтинги
-                const ratingBars = document.querySelectorAll('#rating-breakdown .progress-bar');
-                if (ratingBars.length > 0) {
-                    const ratingValues = Array.from(ratingBars).map(bar => parseInt(bar.dataset.value));
-                    const maxRating = Math.max(...ratingValues);
-
-                    ratingBars.forEach(bar => {
-                        const value = parseInt(bar.dataset.value);
-                        const percentage = (value / maxRating) * 100;
-                        bar.style.width = percentage + '%';
-                    });
-                }
-
-                // Обрабатываем статистику чтения
-                const readingBars = document.querySelectorAll('#reading-stats .progress-bar');
-                if (readingBars.length > 0) {
-                    const readingValues = Array.from(readingBars).map(bar => parseInt(bar.dataset.value));
-                    const maxReading = Math.max(...readingValues);
-
-                    readingBars.forEach(bar => {
-                        const value = parseInt(bar.dataset.value);
-                        const percentage = (value / maxReading) * 100;
-                        bar.style.width = percentage + '%';
-                    });
-                }
-            }
-
             // Функция для обновления прогресс-баров (можно вызывать извне)
             function updateProgressBars(containerId, values) {
                 const container = document.getElementById(containerId);
@@ -1361,6 +865,9 @@
 
                 // Инициализируем прогресс-бары
                 initializeProgressBars();
+
+                // Инициализируем звезды формы рецензии
+                initializeReviewFormStars();
 
                 // Инициализируем статус чтения
                 @if ($currentReadingStatus)
@@ -1943,7 +1450,7 @@
                 });
 
                 // Звезды в форме рецензии для авторизованных пользователей
-                const reviewStars = document.querySelectorAll('form[action*="reviews.store"] [data-rating]');
+                const reviewStars = document.querySelectorAll('#reviewFormStars .review-form-star');
                 reviewStars.forEach(star => {
                     star.addEventListener('click', function() {
                         const rating = parseInt(this.getAttribute('data-rating'));
@@ -1970,6 +1477,33 @@
                         const reviewRatingText = document.getElementById('reviewRatingText');
                         if (reviewRatingText) {
                             reviewRatingText.textContent = `${rating}/10`;
+                        }
+                    });
+
+                    // Добавляем hover эффект
+                    star.addEventListener('mouseenter', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        reviewStars.forEach((s, index) => {
+                            if (index < rating) {
+                                s.classList.add('text-yellow-400');
+                                s.classList.remove('text-gray-300', 'dark:text-gray-600');
+                            }
+                        });
+                    });
+                });
+
+                // Сбрасываем hover эффект при уходе мыши
+                document.getElementById('reviewFormStars').addEventListener('mouseleave', function() {
+                    const currentRating = parseInt(document.getElementById('ratingInput').value) || 0;
+                    reviewStars.forEach((s, index) => {
+                        if (index < currentRating) {
+                            s.classList.add('text-yellow-400');
+                            s.classList.remove('text-gray-300', 'dark:text-gray-600');
+                            s.setAttribute('fill', 'currentColor');
+                        } else {
+                            s.classList.remove('text-yellow-400');
+                            s.classList.add('text-gray-300', 'dark:text-gray-600');
+                            s.setAttribute('fill', 'none');
                         }
                     });
                 });
@@ -1999,7 +1533,7 @@
                 }
 
                 // Звезды в форме рецензии для гостей
-                const guestStars = document.querySelectorAll('#ratingStarsGuest [data-rating]');
+                const guestStars = document.querySelectorAll('#ratingStarsGuest .star-rating');
                 guestStars.forEach(star => {
                     star.addEventListener('click', function() {
                         const rating = parseInt(this.getAttribute('data-rating'));
@@ -2022,6 +1556,31 @@
                         const guestRatingText = document.getElementById('guestRatingText');
                         if (guestRatingText) {
                             guestRatingText.textContent = `${rating}/10`;
+                        }
+                    });
+
+                    // Добавляем hover эффект для гостей
+                    star.addEventListener('mouseenter', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        guestStars.forEach((s, index) => {
+                            if (index < rating) {
+                                s.classList.add('text-yellow-400');
+                                s.classList.remove('text-slate-300', 'dark:text-slate-600');
+                            }
+                        });
+                    });
+                });
+
+                // Сбрасываем hover эффект при уходе мыши для гостей
+                document.getElementById('ratingStarsGuest').addEventListener('mouseleave', function() {
+                    const currentRating = parseInt(document.getElementById('ratingInputGuest').value) || 0;
+                    guestStars.forEach((s, index) => {
+                        if (index < currentRating) {
+                            s.classList.add('text-yellow-400');
+                            s.classList.remove('text-slate-300', 'dark:text-slate-600');
+                        } else {
+                            s.classList.remove('text-yellow-400');
+                            s.classList.add('text-slate-300', 'dark:text-slate-600');
                         }
                     });
                 });
@@ -2091,80 +1650,5 @@
             }
         </script>
     @endpush
-
-    <!-- Modal для добавления книги в библиотеку -->
-    @auth
-        <div id="addToLibraryModal"
-            class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0"
-                id="addToLibraryModalContent">
-                <div class="p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Додати до добірки</h3>
-                        <button onclick="closeAddToLibraryModal()"
-                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <form action="" method="POST" id="addToLibraryForm">
-                        @csrf
-                        <input type="hidden" name="book_slug" value="{{ $book->slug }}">
-
-                        <div class="mb-6">
-                            <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-3">Оберіть
-                                добірку</label>
-                            <select name="library_id" id="librarySelect" required
-                                class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-slate-900 dark:text-white">
-                                <option value="">-- Оберіть добірку --</option>
-                                @php
-                                    try {
-                                        $user = auth()->user();
-                                        $userLibraries = $user ? $user->libraries()->orderBy('name')->get() : collect();
-                                    } catch (\Exception $e) {
-                                        $userLibraries = collect();
-                                    }
-                                @endphp
-                                @foreach ($userLibraries as $library)
-                                    <option value="{{ $library->id }}"
-                                        data-url="{{ route('libraries.add-book', $library) }}">{{ $library->name }}
-                                        @if ($library->is_private)
-                                            (Приватна)
-                                        @else
-                                            (Публічна)
-                                        @endif
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="flex space-x-3">
-                            <button type="submit"
-                                class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-6 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
-                                Додати
-                            </button>
-                            <button type="button" onclick="closeAddToLibraryModal()"
-                                class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 py-3 px-6 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-300">
-                                Скасувати
-                            </button>
-                        </div>
-                    </form>
-
-                    @if ($userLibraries->count() === 0)
-                        <div class="mt-4 p-4 bg-slate-100 dark:bg-slate-700 rounded-xl">
-                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">У вас ще немає добірок</p>
-                            <a href="{{ auth()->user() ? route('profile.collections', auth()->user()->username) : '#' }}"
-                                class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-sm font-medium">
-                                Створити першу добірку →
-                            </a>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    @endauth
-    </div>
+    
 @endsection
