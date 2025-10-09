@@ -34,6 +34,30 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+
+    // Email verification routes
+    Route::get('email/verify/{token}', [RegisteredUserController::class, 'verifyEmail'])
+        ->name('email.verify');
+
+    Route::get('verification-notice', function () {
+        return view('auth.verification-notice');
+    })->name('verification.notice');
+
+    Route::post('verification/resend', [RegisteredUserController::class, 'resendVerification'])
+        ->name('verification.resend');
+
+    // OAuth routes
+    Route::get('auth/google', [RegisteredUserController::class, 'redirectToGoogle'])
+        ->name('auth.google');
+
+    Route::get('auth/google/callback', [RegisteredUserController::class, 'handleGoogleCallback'])
+        ->name('auth.google.callback');
+
+    Route::get('auth/facebook', [RegisteredUserController::class, 'redirectToFacebook'])
+        ->name('auth.facebook');
+
+    Route::get('auth/facebook/callback', [RegisteredUserController::class, 'handleFacebookCallback'])
+        ->name('auth.facebook.callback');
 });
 
 Route::middleware('auth')->group(function () {
