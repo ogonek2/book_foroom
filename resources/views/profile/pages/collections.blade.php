@@ -1,15 +1,18 @@
-@extends('profile.layout')
+@extends('profile.private.main')
 
 @section('profile-content')
-<div>
+<div id="app">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-white">Мої добірки</h2>
-            @if (auth()->check() && auth()->user()->id === $user->id)
-                <button onclick="openCreateLibraryModal()"
-                    class="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all">
-                    <i class="fas fa-plus mr-2"></i>Створити добірку
-                </button>
-            @endif
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Мої добірки</h2>
+        @if (auth()->check() && auth()->user()->id === $user->id)
+            <a href="{{ route('libraries.create') }}"
+                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Створити добірку
+            </a>
+        @endif
         </div>
 
         @if (session('success'))
@@ -25,506 +28,233 @@
         @endif
 
         @if ($libraries->count() > 0)
-            <!-- Tabs Navigation -->
-            <div class="mb-8">
-                <div class="flex flex-wrap gap-2">
+            <!-- Libraries Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     @foreach ($libraries as $library)
-                        <button onclick="switchLibrary({{ $library->id }})"
-                            class="library-tab px-6 py-3 text-sm font-medium rounded-md transition-all duration-200 {{ $selectedLibrary && $selectedLibrary->id === $library->id ? 'bg-orange-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white' }}"
-                            data-library-id="{{ $library->id }}">
-                            <div class="flex items-center space-x-2">
-                                <span>{{ $library->name }}</span>
-                                <span class="bg-gray-600 text-gray-300 text-xs px-2 py-1 rounded-full">
-                                    {{ $library->books_count }}
-                                </span>
-                                @if ($library->is_private)
-                                    <i class="fas fa-lock text-xs"></i>
-                                @else
-                                    <i class="fas fa-globe text-xs"></i>
-                                @endif
-                            </div>
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Library Info -->
-            <div id="library-info" class="mb-6">
-                @if ($selectedLibrary)
-                    <div class="bg-gray-800 rounded-lg p-6">
-                        <div class="flex items-start justify-between">
+                    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer group"
+                         onclick="openLibrary({{ $library->id }})">
+                        <!-- Header with library info -->
+                        <div class="flex items-start justify-between mb-4">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-white mb-2">{{ $selectedLibrary->name }}</h3>
-                                @if ($selectedLibrary->description)
-                                    <p class="text-gray-400 mb-4">{{ $selectedLibrary->description }}</p>
-                                @endif
-                                <div class="flex items-center space-x-4 text-sm text-gray-400">
-                                    <span>
-                                        <i class="fas fa-book mr-1"></i>
-                                        {{ $selectedLibrary->books_count }}
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2 line-clamp-2">{{ $library->name }}</h3>
+                                <div class="flex items-center space-x-4 text-sm text-slate-500 dark:text-slate-400">
+                                    <span class="flex items-center space-x-1">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>{{ $library->books_count }} книг</span>
                                     </span>
-                                    <span>
-                                        <i class="fas fa-calendar mr-1"></i>
-                                        {{ $selectedLibrary->created_at->format('d.m.Y') }}
+                                    <span class="flex items-center space-x-1">
+                                        @if ($library->is_private)
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span>Приватна</span>
+                                        @else
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span>Публічна</span>
+                                        @endif
                                     </span>
-                                    @if ($selectedLibrary->is_private)
-                                        <span
-                                            class="bg-red-500/20 text-red-400 text-xs font-medium px-4 py-2 rounded-full border border-red-500/30">
-                                            <i class="fas fa-lock mr-1"></i>Приватна
-                                        </span>
-                                    @else
-                                        <span
-                                            class="bg-green-500/20 text-green-400 text-xs font-medium px-4 py-2 rounded-full border border-green-500/30">
-                                            <i class="fas fa-globe mr-1"></i>Публічна
-                                        </span>
-                                    @endif
                                 </div>
                             </div>
+                            
+                            <!-- Menu button (only for owner) -->
                             @if (auth()->check() && auth()->user()->id === $user->id)
-                                <div class="flex space-x-2">
-                                    <button
-                                        onclick="openEditLibraryModal({{ $selectedLibrary->id }}, '{{ $selectedLibrary->name }}', '{{ $selectedLibrary->description }}', {{ $selectedLibrary->is_private ? 'true' : 'false' }})"
-                                        class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-3 rounded text-sm font-medium transition duration-200">
-                                        <i class="fas fa-edit mr-1"></i>Редагувати
+                                <div class="relative">
+                                    <button @click.stop="toggleLibraryMenu({{ $library->id }})" 
+                                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                        </svg>
                                     </button>
-                                    <form action="{{ route('libraries.destroy', $selectedLibrary) }}" method="POST"
-                                        class="inline"
-                                        onsubmit="return confirm('Ви впевнені, що хочете видалити цю добірку?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="bg-indigo-600 text-white py-2 px-3 rounded text-sm font-medium transition duration-200">
-                                            <i class="fas fa-trash mr-1"></i>Видалити
+                                    
+                                    <!-- Dropdown Menu -->
+                                    <div v-if="activeMenuId === {{ $library->id }}" 
+                                         @click.stop
+                                         class="absolute right-0 top-8 bg-white dark:bg-slate-700 rounded-lg shadow-lg border border-slate-200 dark:border-slate-600 py-2 z-10 min-w-[160px]">
+                                        <button @click="editLibrary({{ $library->id }})"
+                                                class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 flex items-center space-x-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            <span>Редагувати</span>
                                         </button>
-                                    </form>
+                                        <button @click="deleteLibrary({{ $library->id }})"
+                                                class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            <span>Видалити</span>
+                                        </button>
+                                    </div>
                                 </div>
                             @endif
                         </div>
-                    </div>
-                @endif
-            </div>
 
-            <!-- Books Grid -->
-            <div id="books-container">
-                @if ($books->count() > 0)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        @foreach ($books as $book)
-                            <div
-                                class="bg-gray-800 rounded-lg relative overflow-hidden shadow-md hover:shadow-lg transition duration-200">
-                                <div class="flex flex-col h-full">
-                                    <div class="aspect-[3/4]">
-                                        <img src="{{ $book->cover_image }}" alt="{{ $book->title }}"
-                                            class="w-full h-full object-cover">
+                        <!-- Books preview -->
+                        <div class="mb-4">
+                            <div class="flex space-x-2">
+                                @php
+                                    $previewBooks = $library->books()->limit(3)->get();
+                                @endphp
+                                
+                                @for($i = 0; $i < 3; $i++)
+                                    @if($i < $previewBooks->count())
+                                        <div class="flex-shrink-0">
+                                            <img src="{{ $previewBooks[$i]->cover_image ?? 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=300&fit=crop&crop=center' }}"
+                                                 alt="{{ $previewBooks[$i]->title }}"
+                                                 class="w-12 h-16 object-cover rounded-lg shadow-md">
                                     </div>
-
-                                    <div class="p-4 flex flex-col justify-between h-full">
-                                        <div>
-                                            <h3 class="text-lg font-semibold text-white mb-2 line-clamp-2 p-0">
-                                                <a href="{{ route('books.show', $book->slug) }}"
-                                                    class="hover:text-orange-400 transition duration-200">
-                                                    {{ $book->title }}
-                                                </a>
-                                            </h3>
-
-                                            <p class="text-gray-400 text-sm mb-3">
-                                                {{ $book->author->first_name ?? ($book->author ?? 'Не указан') }}</p>
+                                    @elseif($i == 2 && $library->books_count > 3)
+                                        <div class="w-12 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                                            <span class="text-white font-bold text-xs">+{{ $library->books_count - 2 }}</span>
                                         </div>
-
-                                        @if (auth()->check() && auth()->user()->id === $user->id)
-                                            <div>
-                                                <form
-                                                    action="{{ route('libraries.removeBook', [$selectedLibrary, $book]) }}"
-                                                    method="POST" onsubmit="return confirm('Удалить книгу из библиотеки?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                        class="bg-indigo-600 text-white py-2 px-3 rounded text-sm font-medium transition duration-200">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                    @else
+                                        <div class="w-12 h-16 bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+                                            </svg>
                                             </div>
                                         @endif
-                                    </div>
-                                </div>
+                                @endfor
                             </div>
-                        @endforeach
-                    </div>
+                        </div>
 
-                    <!-- Pagination -->
-                    @if ($books->hasPages())
-                        <div class="mt-8">
-                            {{ $books->links() }}
+                        <!-- Footer with stats -->
+                        <div class="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                            <span>{{ $library->created_at->format('d.m.Y') }}</span>
+                            <div class="flex items-center space-x-3">
+                                <span class="flex items-center space-x-1">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>{{ $library->likes()->count() }}</span>
+                                </span>
+                                <span class="text-slate-400">•</span>
+                                <span class="text-slate-400">Переглянути →</span>
+                            </div>
                         </div>
-                    @endif
-                @else
-                    <div class="text-center py-12 bg-gray-800 rounded-lg">
-                        <div class="text-gray-400 text-6xl mb-4">
-                            <i class="fas fa-book-open"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-gray-300 mb-2">Бібліотека порожня</h3>
-                        <p class="text-gray-500 mb-6">В цій добірці поки немає книг</p>
-                        @if (auth()->check() && auth()->user()->id === $user->id)
-                            <a href="{{ route('books.index') }}"
-                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all">
-                                <i class="fas fa-plus mr-2"></i>Додати книги
-                            </a>
-                        @endif
                     </div>
-                @endif
+                @endforeach
             </div>
+
         @else
-    <div class="text-center py-12 bg-gray-800 rounded-lg">
-        <svg class="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                    </path>
+            <!-- Empty State -->
+            <div class="text-center py-12">
+                <div class="text-slate-400 dark:text-slate-500 text-6xl mb-4">
+                    <svg class="w-24 h-24 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
         </svg>
-        <h3 class="text-xl font-semibold text-gray-300 mb-2">Ще немає добірок</h3>
-        <p class="text-gray-500 mb-6">Створюйте добірки книг за темами</p>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Добірки не знайдено</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Створіть першу добірку для збереження улюблених книг</p>
                 @if (auth()->check() && auth()->user()->id === $user->id)
-                    <button onclick="openCreateLibraryModal()"
-                        class="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all">
-                        <i class="fas fa-plus mr-2"></i>Створити добірку
-        </button>
+                    <a href="{{ route('libraries.create') }}"
+                            class="inline-flex items-center bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-bold hover:from-purple-600 hover:to-pink-600 transition-all duration-300">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Створити добірку
+                    </a>
                 @endif
             </div>
         @endif
     </div>
 
-    <!-- Modal для создания библиотеки -->
-    @if (auth()->check() && auth()->user()->id === $user->id)
-        <div id="createLibraryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-            <div class="flex items-center justify-center min-h-screen p-4">
-                <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-white">Створити добірку</h3>
-                        <button onclick="closeCreateLibraryModal()" class="text-gray-400 hover:text-white">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <form action="{{ route('libraries.store') }}" method="POST">
-                        @csrf
-                        <div class="mb-4">
-                            <label class="block text-gray-300 text-sm font-medium mb-2">Назва</label>
-                            <input type="text" name="name" required
-                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-orange-500">
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-300 text-sm font-medium mb-2">Опис (необов'язково)</label>
-                            <textarea name="description" rows="3"
-                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-orange-500"></textarea>
-                        </div>
-
-                        <div class="mb-6">
-                            <label class="flex items-center">
-                                <input type="checkbox" name="is_private" value="1" class="mr-2">
-                                <span class="text-gray-300">Приватна добірка</span>
-                            </label>
-                        </div>
-
-                        <div class="flex space-x-3">
-                            <button type="submit"
-                                class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg font-medium transition duration-200">
-                                Створити
-                            </button>
-                            <button type="button" onclick="closeCreateLibraryModal()"
-                                class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition duration-200">
-                                Скасувати
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal для редактирования библиотеки -->
-        <div id="editLibraryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-            <div class="flex items-center justify-center min-h-screen p-4">
-                <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-semibold text-white">Редагувати добірку</h3>
-                        <button onclick="closeEditLibraryModal()" class="text-gray-400 hover:text-white">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <form id="editLibraryForm" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-4">
-                            <label class="block text-gray-300 text-sm font-medium mb-2">Назва</label>
-                            <input type="text" name="name" id="editName" required
-                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-orange-500">
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-300 text-sm font-medium mb-2">Опис (необов'язково)</label>
-                            <textarea name="description" id="editDescription" rows="3"
-                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-orange-500"></textarea>
-                        </div>
-
-                        <div class="mb-6">
-                            <label class="flex items-center">
-                                <input type="checkbox" name="is_private" id="editIsPrivate" value="1"
-                                    class="mr-2">
-                                <span class="text-gray-300">Приватна добірка</span>
-                            </label>
-                        </div>
-
-                        <div class="flex space-x-3">
-                            <button type="submit"
-                                class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg font-medium transition duration-200">
-                                Зберегти
-                            </button>
-                            <button type="button" onclick="closeEditLibraryModal()"
-                                class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition duration-200">
-                                Скасувати
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
+    @push('scripts')
         <script>
-            function openCreateLibraryModal() {
-                document.getElementById('createLibraryModal').classList.remove('hidden');
-            }
-
-            function closeCreateLibraryModal() {
-                document.getElementById('createLibraryModal').classList.add('hidden');
-            }
-
-            function openEditLibraryModal(id, name, description, isPrivate) {
-                document.getElementById('editLibraryForm').action = `/libraries/${id}`;
-                document.getElementById('editName').value = name;
-                document.getElementById('editDescription').value = description || '';
-                document.getElementById('editIsPrivate').checked = isPrivate;
-                document.getElementById('editLibraryModal').classList.remove('hidden');
-            }
-
-            function closeEditLibraryModal() {
-                document.getElementById('editLibraryModal').classList.add('hidden');
-            }
-
-            // Функция переключения между библиотеками
-            function switchLibrary(libraryId) {
-                // Показываем индикатор загрузки
-                const booksContainer = document.getElementById('books-container');
-                booksContainer.innerHTML = `
-        <div class="flex justify-center items-center py-12">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-            <span class="ml-3 text-gray-400">Завантаження...</span>
-        </div>
-    `;
-
-                // Обновляем активную вкладку
-                document.querySelectorAll('.library-tab').forEach(tab => {
-                    tab.classList.remove('bg-orange-500', 'text-white');
-                    tab.classList.add('bg-gray-700', 'text-gray-300');
-                });
-
-                const activeTab = document.querySelector(`[data-library-id="${libraryId}"]`);
-                if (activeTab) {
-                    activeTab.classList.remove('bg-gray-700', 'text-gray-300');
-                    activeTab.classList.add('bg-orange-500', 'text-white');
-                }
-
-                // Загружаем данные библиотеки
-                fetch(`/profile/{{ $user->username }}/collections/${libraryId}/books`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            booksContainer.innerHTML = `
-                    <div class="text-center py-12 bg-gray-800 rounded-lg">
-                        <div class="text-red-400 text-6xl mb-4">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-gray-300 mb-2">Помилка</h3>
-                        <p class="text-gray-500">${data.error}</p>
-                    </div>
-                `;
-                            return;
+            // Vue приложение для страницы профиля
+            document.addEventListener('DOMContentLoaded', function() {
+                const profileApp = new Vue({
+                    el: '#app',
+                    data: {
+                        activeMenuId: null,
+                        @auth
+                        user: {
+                            username: '{{ auth()->user()->username }}'
                         }
+                        @endauth
+                    },
+                    methods: {
+                        openLibrary(libraryId) {
+                            window.location.href = `/libraries/${libraryId}`;
+                        },
+                        toggleLibraryMenu(libraryId) {
+                            this.activeMenuId = this.activeMenuId === libraryId ? null : libraryId;
+                        },
+                        editLibrary(libraryId) {
+                            window.location.href = `/libraries/${libraryId}/edit`;
+                        },
+                        async deleteLibrary(libraryId) {
+                            if (confirm('Ви впевнені, що хочете видалити цю добірку? Цю дію неможливо скасувати.')) {
+                                try {
+                                    const response = await axios.delete(`/libraries/${libraryId}`);
+                                    if (response.status === 200) {
+                                        this.showNotification('Добірку успішно видалено!', 'success');
+                                        setTimeout(() => {
+                                            location.reload();
+                                        }, 1000);
+                                    }
+                                } catch (error) {
+                                    console.error('Error deleting library:', error);
+                                    this.showNotification('Помилка при видаленні добірки', 'error');
+                                }
+                            }
+                            this.activeMenuId = null;
+                        },
+                        showNotification(message, type = 'success') {
+                            // Удаляем существующие уведомления
+                            const existingNotifications = document.querySelectorAll('.notification');
+                            existingNotifications.forEach(notification => notification.remove());
 
-                        // Обновляем информацию о библиотеке
-                        updateLibraryInfo(data.library);
+                            // Создаем новое уведомление
+                            const notification = document.createElement('div');
+                            notification.className = `notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+                                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                            }`;
+                            notification.textContent = message;
 
-                        // Обновляем список книг
-                        updateBooksGrid(data.books, libraryId);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        booksContainer.innerHTML = `
-                <div class="text-center py-12 bg-gray-800 rounded-lg">
-                    <div class="text-red-400 text-6xl mb-4">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-300 mb-2">Помилка завантаження</h3>
-                    <p class="text-gray-500">Не вдалося завантажити дані</p>
-                </div>
-            `;
-                    });
-            }
+                            document.body.appendChild(notification);
 
-            // Обновление информации о библиотеке
-            function updateLibraryInfo(library) {
-                const libraryInfo = document.getElementById('library-info');
-                const isOwner = {{ auth()->check() && auth()->user()->id === $user->id ? 'true' : 'false' }};
-                const csrfToken = '{{ csrf_token() }}';
-                const privacyIcon = library.is_private ? 'fa-lock' : 'fa-globe';
-                const privacyText = library.is_private ? 'Приватна' : 'Публічна';
-                const privacyClass = library.is_private ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-                    'bg-green-500/20 text-green-400 border-green-500/30';
+                            // Анимация появления
+                            setTimeout(() => {
+                                notification.style.transform = 'translateX(0)';
+                            }, 100);
 
-                const actionButtons = isOwner ? `
-        <div class="flex space-x-2">
-            <button onclick="openEditLibraryModal(${library.id}, '${library.name}', '${library.description || ''}', ${library.is_private})" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-3 rounded text-sm font-medium transition duration-200">
-                <i class="fas fa-edit mr-1"></i>Редагувати
-            </button>
-            <form action="/libraries/${library.id}" method="POST" class="inline" onsubmit="return confirm('Ви впевнені, що хочете видалити цю добірку?')">
-                <input type="hidden" name="_token" value="${csrfToken}">
-                <input type="hidden" name="_method" value="DELETE">
-                <button type="submit" class="bg-indigo-600 text-white py-2 px-3 rounded text-sm font-medium transition duration-200">
-                    <i class="fas fa-trash mr-1"></i>Видалити
-                </button>
-            </form>
-        </div>
-    ` : '';
-
-                libraryInfo.innerHTML = `
-        <div class="bg-gray-800 rounded-lg p-6">
-            <div class="flex items-start justify-between">
-                <div class="flex-1">
-                    <h3 class="text-2xl font-bold text-white mb-2">${library.name}</h3>
-                    ${library.description ? `<p class="text-gray-400 mb-4">${library.description}</p>` : ''}
-                    <div class="flex items-center space-x-4 text-sm text-gray-400">
-                        <span>
-                            <i class="fas fa-book mr-1"></i>
-                            ${library.books_count}
-                        </span>
-                        <span>
-                            <i class="fas fa-calendar mr-1"></i>
-                            ${new Date(library.created_at).toLocaleDateString('uk-UA')}
-                        </span>
-                        <span class="bg-red-500/20 text-red-400 text-xs font-medium px-4 py-2 rounded-full border border-red-500/30">
-                            <i class="fas ${privacyIcon} mr-1"></i>${privacyText}
-                        </span>
-                    </div>
-                </div>
-                ${actionButtons}
-            </div>
-        </div>
-    `;
-            }
-
-            // Обновление сетки книг
-            function updateBooksGrid(books, libraryId) {
-                const booksContainer = document.getElementById('books-container');
-                const isOwner = {{ auth()->check() && auth()->user()->id === $user->id ? 'true' : 'false' }};
-                const booksIndexUrl = '{{ route('books.index') }}';
-                const csrfToken = '{{ csrf_token() }}';
-
-                if (books.length === 0) {
-                    const addBooksButton = isOwner ? `
-            <a href="${booksIndexUrl}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-pink-600 transition-all">
-                <i class="fas fa-plus mr-2"></i>Додати книги
-            </a>
-        ` : '';
-
-                    booksContainer.innerHTML = `
-            <div class="text-center py-12 bg-gray-800 rounded-lg">
-                <div class="text-gray-400 text-6xl mb-4">
-                    <i class="fas fa-book-open"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-300 mb-2">Бібліотека порожня</h3>
-                <p class="text-gray-500 mb-6">В цій добірці поки немає книг</p>
-                ${addBooksButton}
-            </div>
-        `;
-                    return;
-                }
-
-                let booksHTML = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">';
-
-                books.forEach(book => {
-                    const authorName = book.author ? (book.author.first_name || book.author) : 'Не указан';
-                    const rating = book.rating ? `
-            <div class="flex items-center mb-3">
-                <div class="flex space-x-1">
-                    ${Array.from({length: 5}, (_, i) => ` <
-                        svg class = "w-4 h-4 ${i < book.rating/2 ? 'text-yellow-400' : 'text-gray-600'}"
-                    fill = "currentColor"
-                    viewBox = "0 0 20 20" >
-                        <
-                        path d =
-                        "M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" >
-                        <
-                        /path> < /
-                        svg >
-                        `).join('')}
-                </div>
-                <span class="text-gray-400 text-sm ml-2">${parseFloat(book.rating).toFixed(1)}/10</span>
-            </div>
-        `: '';
-
-                    const removeButton = isOwner ? `
-            <div>
-                <form action="/libraries/${libraryId}/books/${book.id}" method="POST" onsubmit="return confirm('Удалить книгу из библиотеки?')">
-                    <input type="hidden" name="_token" value="${csrfToken}">
-                    <input type="hidden" name="_method" value="DELETE">
-                    <button type="submit" class="bg-indigo-600 text-white py-2 px-3 rounded text-sm font-medium transition duration-200">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </form>
-            </div>
-        ` : '';
-
-                    booksHTML += `
-            <div class="bg-gray-800 rounded-lg relative overflow-hidden shadow-md hover:shadow-lg transition duration-200">
-                <div class="flex flex-col h-full">
-                    <div class="aspect-[3/4]">
-                        <img src="${book.cover_image || '/images/no-cover.png'}" 
-                             alt="${book.title}" 
-                             class="w-full h-full object-cover">
-                    </div>
-                    
-                    <div class="p-4 flex flex-col justify-between h-full">
-                        <div>
-                            <h3 class="text-lg font-semibold text-white mb-2 line-clamp-2 p-0">
-                                <a href="/books/${book.slug}" class="hover:text-orange-400 transition duration-200">
-                                    ${book.title}
-                                </a>
-                            </h3>
-                            
-                            <p class="text-gray-400 text-sm mb-3">${authorName}</p>
-                        </div>
-                        
-                        ${removeButton}
-                    </div>
-                </div>
-            </div>
-        `;
+                            // Автоматическое скрытие через 3 секунды
+                            setTimeout(() => {
+                                notification.style.transform = 'translateX(100%)';
+                                setTimeout(() => {
+                                    notification.remove();
+                                }, 300);
+                            }, 3000);
+                        }
+                    }
                 });
 
-                booksHTML += '</div>';
-                booksContainer.innerHTML = booksHTML;
-            }
-
-            // Закрытие модальных окон при клике вне их
-            document.addEventListener('click', function(event) {
-                const createModal = document.getElementById('createLibraryModal');
-                const editModal = document.getElementById('editLibraryModal');
-
-                if (event.target === createModal) {
-                    closeCreateLibraryModal();
-                }
-                if (event.target === editModal) {
-                    closeEditLibraryModal();
-                }
+                // Закрываем меню при клике вне его
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.relative')) {
+                        profileApp.activeMenuId = null;
+                    }
+                });
             });
+
+            // Функция для создания библиотеки (оставляем для совместимости)
+            function openCreateLibraryModal() {
+                window.location.href = '/libraries/create';
+            }
         </script>
-    @endif
+    @endpush
 @endsection
+
+<style scoped>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>

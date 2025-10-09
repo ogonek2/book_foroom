@@ -13,7 +13,133 @@ class ProfileController extends Controller
     public function show($username = null)
     {
         $user = $username ? User::where('username', $username)->firstOrFail() : Auth::user();
-        return view('profile.pages.overview', compact('user'));
+        
+        // Если это публичный профиль другого пользователя
+        if ($username && $user->id !== Auth::id()) {
+            return redirect()->route('users.public.profile', $user->username);
+        }
+        
+        // Для приватного профиля текущего пользователя
+        $tab = request('tab', 'overview');
+        
+        // Получаем статистику
+        $stats = $this->getUserStats($user);
+        $ratingStats = $this->getRatingStats($user);
+        
+        // Получаем последнюю активность
+        $recentActivity = $this->getRecentActivity($user);
+        
+        // Определяем какой шаблон использовать в зависимости от вкладки
+        $viewMap = [
+            'overview' => 'profile.private.overview',
+            'library' => 'profile.private.library',
+            'reviews' => 'profile.private.reviews',
+            'discussions' => 'profile.private.discussions',
+            'quotes' => 'profile.private.quotes',
+            'collections' => 'profile.pages.collections', // Используем существующий шаблон для добірок
+        ];
+        
+        $view = $viewMap[$tab] ?? 'profile.private.overview';
+        
+        // Для вкладки collections нужно передать библиотеки
+        $data = compact('user', 'stats', 'ratingStats', 'recentActivity');
+        
+        if ($tab === 'collections') {
+            $libraries = $user->libraries()->withCount('books')->with(['books' => function($q) {
+                $q->limit(3); // Для предварительного просмотра берем только первые 3 книги
+            }, 'likes'])->orderBy('created_at', 'desc')->get();
+            $data['libraries'] = $libraries;
+        }
+        
+        return view($view, $data);
+    }
+
+    /**
+     * Get user statistics
+     */
+    private function getUserStats($user)
+    {
+        return [
+            'total_rated_books' => $user->ratings()->count(),
+            'total_reviews' => $user->reviews()->count(),
+            'total_discussions' => $user->discussions()->count(),
+            'total_libraries' => $user->libraries()->count(),
+            'average_rating' => $user->ratings()->avg('rating'),
+        ];
+    }
+
+    /**
+     * Get rating statistics for chart
+     */
+    private function getRatingStats($user)
+    {
+        $ratingStats = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $ratingStats[$i] = $user->ratings()->where('rating', $i)->count();
+        }
+        return $ratingStats;
+    }
+
+    /**
+     * Get recent user activity
+     */
+    private function getRecentActivity($user)
+    {
+        $activities = collect();
+        
+        // Recent ratings
+        $recentRatings = $user->ratings()
+            ->with('book')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($rating) {
+                return (object) [
+                    'id' => $rating->id,
+                    'type' => 'rating',
+                    'description' => "Оцінив книгу \"{$rating->book->title}\" на {$rating->rating}/10",
+                    'created_at' => $rating->created_at,
+                ];
+            });
+        
+        // Recent reviews
+        $recentReviews = $user->reviews()
+            ->with('book')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($review) {
+                return (object) [
+                    'id' => $review->id,
+                    'type' => 'review',
+                    'description' => "Написав рецензію на \"{$review->book->title}\"",
+                    'created_at' => $review->created_at,
+                ];
+            });
+        
+        // Recent discussions
+        $recentDiscussions = $user->discussions()
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($discussion) {
+                return (object) [
+                    'id' => $discussion->id,
+                    'type' => 'discussion',
+                    'description' => "Створив обговорення \"{$discussion->title}\"",
+                    'created_at' => $discussion->created_at,
+                ];
+            });
+        
+        // Combine and sort by date
+        $activities = $activities
+            ->merge($recentRatings)
+            ->merge($recentReviews)
+            ->merge($recentDiscussions)
+            ->sortByDesc('created_at')
+            ->take(10);
+        
+        return $activities;
     }
 
     public function library($username)
@@ -53,7 +179,9 @@ class ProfileController extends Controller
         
         // Проверяем, что у пользователя есть библиотеки
         try {
-            $libraries = $user->libraries()->withCount('books')->orderBy('created_at', 'desc')->get();
+            $libraries = $user->libraries()->withCount('books')->with(['books' => function($q) {
+                $q->limit(3); // Для предварительного просмотра берем только первые 3 книги
+            }, 'likes'])->orderBy('created_at', 'desc')->get();
             $selectedLibrary = $libraries->first(); // Выбираем первую библиотеку по умолчанию
             
             if ($selectedLibrary) {

@@ -1,15 +1,10 @@
 @extends('layouts.app')
 
-@section('title', $user->name . ' - Публічний профіль')
+@section('title', 'Мій профіль')
 
 @php
     // Функция для определения активного состояния навигации
-    function isActiveRoute($routeName, $currentRoute)
-    {
-        return $currentRoute === $routeName;
-    }
-
-    $currentRoute = Route::currentRouteName();
+    $currentTab = request('tab', 'overview');
 @endphp
 
 @section('profile-banner')
@@ -42,17 +37,24 @@
                 <div class="container mx-auto">
                     <div class="flex items-start space-x-6 flex-col sm:flex-row space-y-6 lg:space-y-0">
                         <!-- Avatar -->
-                        <div class="flex-shrink-0">
+                        <div class="flex-shrink-0 relative">
                             @if ($user->avatar)
                                 <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}"
                                     class="w-full h-full rounded-full object-cover border-2 border-gray-600 shadow-lg"
                                     style="max-width: 200px; max-height: 200px;">
                             @else
-                                <div
-                                    class="w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center border-2 border-gray-600 shadow-lg">
+                                <div class="w-40 h-40 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center border-2 border-gray-600 shadow-lg">
                                     <span class="text-2xl font-bold text-white">{{ substr($user->name, 0, 1) }}</span>
                                 </div>
                             @endif
+                            
+                            <!-- Edit Avatar Button -->
+                            <button onclick="openAvatarModal()" 
+                                    class="absolute bottom-2 right-2 w-10 h-10 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 transform hover:scale-110">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
                         </div>
 
                         <!-- User Info -->
@@ -63,23 +65,26 @@
                             <!-- Follow Stats -->
                             <div class="flex space-x-6 mb-4">
                                 <div class="text-center">
-                                    <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $stats['discussions_count'] }}</div>
+                                    <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $stats['total_discussions'] ?? 0 }}</div>
                                     <div class="text-sm text-gray-600 dark:text-gray-400">Постів</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $stats['reviews_count'] }}</div>
+                                    <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $stats['total_reviews'] ?? 0 }}</div>
                                     <div class="text-sm text-gray-600 dark:text-gray-400">Рецензій</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $stats['quotes_count'] }}</div>
-                                    <div class="text-sm text-gray-600 dark:text-gray-400">Цитат</div>
+                                    <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $stats['total_libraries'] ?? 0 }}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">Добірок</div>
                                 </div>
                             </div>
 
-                            <!-- Follow Button -->
-                            <button
+                            <!-- Edit Button -->
+                            <button onclick="openEditProfileModal()" 
                                 class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200">
-                                + Відстежувати
+                                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Редагувати профіль
                             </button>
                         </div>
 
@@ -101,28 +106,28 @@
                                 @endif
                             </div>
                             <div class="flex gap-2 mb-6" style="flex-wrap: wrap;">
-                                <a href="{{ route('users.public.profile', $user->username) }}"
-                                    class="px-4 py-2 {{ isActiveRoute('users.public.profile', $currentRoute) ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
+                                <a href="{{ route('profile.show') }}"
+                                    class="px-4 py-2 {{ $currentTab === 'overview' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
                                     Профіль
                                 </a>
-                                <a href="{{ route('users.public.library', $user->username) }}"
-                                    class="px-4 py-2 {{ isActiveRoute('users.public.library', $currentRoute) ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
+                                <a href="{{ route('profile.show') }}?tab=library"
+                                    class="px-4 py-2 {{ $currentTab === 'library' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
                                     Бібліотека
                                 </a>
-                                <a href="{{ route('users.public.reviews', $user->username) }}"
-                                    class="px-4 py-2 {{ isActiveRoute('users.public.reviews', $currentRoute) ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
+                                <a href="{{ route('profile.show') }}?tab=reviews"
+                                    class="px-4 py-2 {{ $currentTab === 'reviews' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
                                     Рецензії
                                 </a>
-                                <a href="{{ route('users.public.discussions', $user->username) }}"
-                                    class="px-4 py-2 {{ isActiveRoute('users.public.discussions', $currentRoute) ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
+                                <a href="{{ route('profile.show') }}?tab=discussions"
+                                    class="px-4 py-2 {{ $currentTab === 'discussions' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
                                     Обговорення
                                 </a>
-                                <a href="{{ route('users.public.quotes', $user->username) }}"
-                                    class="px-4 py-2 {{ isActiveRoute('users.public.quotes', $currentRoute) ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
+                                <a href="{{ route('profile.show') }}?tab=quotes"
+                                    class="px-4 py-2 {{ $currentTab === 'quotes' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
                                     Цитати
                                 </a>
-                                <a href="{{ route('users.public.collections', $user->username) }}"
-                                    class="px-4 py-2 {{ isActiveRoute('users.public.collections', $currentRoute) ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
+                                <a href="{{ route('profile.show') }}?tab=collections"
+                                    class="px-4 py-2 {{ $currentTab === 'collections' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
                                     Добірки
                                 </a>
                             </div>
@@ -145,9 +150,17 @@
                 </div>
 
                 <!-- Progress Circle -->
-                <div class="flex items-center space-x-4 mb-6">
-                    <div class="relative w-28 h-28">
-                        <svg class="w-28 h-28 transform -rotate-90" viewBox="0 0 36 36">
+                <div class="flex items-center space-x-6 mb-6">
+                    @php
+                        $readCount = $user->bookReadingStatuses()->where('status', 'read')->count();
+                        $readingCount = $user->bookReadingStatuses()->where('status', 'reading')->count();
+                        $wantToReadCount = $user->bookReadingStatuses()->where('status', 'want_to_read')->count();
+                        $totalBooks = max(1, $readCount + $readingCount + $wantToReadCount);
+                        $readPercentage = ($readCount / $totalBooks) * 100;
+                    @endphp
+                    
+                    <div class="relative w-32 h-32">
+                        <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
                             <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
                                 fill="none" 
                                 stroke="#374151" 
@@ -156,11 +169,11 @@
                                 fill="none" 
                                 stroke="#10b981" 
                                 stroke-width="2" 
-                                stroke-dasharray="{{ ($stats['read_count'] / max(1, $stats['read_count'] + $stats['reading_count'] + $stats['want_to_read_count'])) * 100 }}, 100"/>
+                                stroke-dasharray="{{ $readPercentage }}, 100"/>
                         </svg>
                         <div class="absolute inset-0 flex items-center justify-center">
                             <div class="text-center">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['read_count'] }}</div>
+                                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $readCount }}</div>
                                 <div class="text-xs text-gray-600 dark:text-gray-400">Прочитано</div>
                             </div>
                         </div>
@@ -173,14 +186,14 @@
                                 <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Читає</span>
                             </div>
-                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $stats['reading_count'] }}</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $readingCount }}</span>
                         </div>
                         <div class="flex justify-between items-center">
                             <div class="flex items-center space-x-2">
                                 <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Планує</span>
                             </div>
-                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $stats['want_to_read_count'] }}</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $wantToReadCount }}</span>
                         </div>
                         @if ($stats['average_rating'])
                         <div class="flex justify-between items-center">
@@ -188,7 +201,7 @@
                                 <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
                                 <span class="text-sm text-gray-600 dark:text-gray-400">Середня оцінка</span>
                             </div>
-                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ number_format($stats['average_rating'], 1) }}</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ number_format($stats['average_rating'], 1) }}/10</span>
                         </div>
                         @endif
                     </div>
@@ -206,8 +219,16 @@
                     <h3 class="text-gray-900 dark:text-white font-semibold">Історія</h3>
                 </div>
                 <div class="space-y-4">
-                    @if (isset($recentReadBooks) && $recentReadBooks->count() > 0)
-                        @foreach ($recentReadBooks->take(3) as $readingStatus)
+                    @php
+                        $recentReadBooks = $user->bookReadingStatuses()
+                            ->with('book')
+                            ->orderBy('updated_at', 'desc')
+                            ->limit(3)
+                            ->get();
+                    @endphp
+                    
+                    @if ($recentReadBooks->count() > 0)
+                        @foreach ($recentReadBooks as $readingStatus)
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-16 bg-gray-300 dark:bg-gray-700 rounded flex items-center justify-center">
                                     <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
@@ -235,4 +256,17 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            function openAvatarModal() {
+                // TODO: Implement avatar editing modal
+                console.log('Open avatar modal');
+            }
+
+            function openEditProfileModal() {
+                window.location.href = '{{ route("profile.edit") }}';
+            }
+        </script>
+    @endpush
 @endsection

@@ -71,52 +71,25 @@
             </div>
 
             @if ($recentReadBooks->count() > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="recent-books-app" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     @foreach ($recentReadBooks as $readingStatus)
-                        <div class="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-all group">
-                            <div class="flex space-x-4">
-                                @if ($readingStatus->book->cover_image)
-                                    <img src="{{ $readingStatus->book->cover_image }}"
-                                        alt="{{ $readingStatus->book->title }}"
-                                        class="w-16 h-24 object-cover rounded-lg shadow-lg">
-                                @else
-                                    <div
-                                        class="w-16 h-24 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z">
-                                            </path>
-                                        </svg>
-                                    </div>
-                                @endif
-
-                                <div class="flex-1">
-                                    <h3 class="text-gray-900 dark:text-white font-semibold mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-200 transition-colors">
-                                        {{ Str::limit($readingStatus->book->title, 40) }}
-                                    </h3>
-                                    <p class="text-gray-600 dark:text-gray-300 text-sm mb-2">{{ $readingStatus->book->author }}</p>
-
-                                    @if ($readingStatus->rating)
-                                        <div class="flex items-center space-x-1 mb-2">
-                                            @for ($i = 1; $i <= 5; $i++)
-                                                <svg class="w-4 h-4 {{ $i <= $readingStatus->rating / 2 ? 'text-yellow-400' : 'text-gray-400 dark:text-gray-600' }}"
-                                                    fill="currentColor" viewBox="0 0 20 20">
-                                                    <path
-                                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-                                                    </path>
-                                                </svg>
-                                            @endfor
-                                            <span class="text-gray-600 dark:text-gray-300 text-sm ml-1">{{ $readingStatus->rating }}/10</span>
-                                        </div>
-                                    @endif
-
-                                    <a href="{{ route('books.show', $readingStatus->book->slug) }}"
-                                        class="inline-flex items-center text-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white py-1.5 px-3 rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all">
-                                        Переглянути
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                        @php
+                            $bookData = [
+                                'id' => $readingStatus->book->id,
+                                'slug' => $readingStatus->book->slug,
+                                'title' => $readingStatus->book->title,
+                                'author' => $readingStatus->book->author->first_name ?? $readingStatus->book->author ?? 'Автор невідомий',
+                                'cover_image' => $readingStatus->book->cover_image,
+                                'rating' => $readingStatus->rating ?? $readingStatus->book->rating ?? 0,
+                                'reviews_count' => $readingStatus->book->reviews_count ?? 0,
+                                'pages' => $readingStatus->book->pages ?? 0
+                            ];
+                        @endphp
+                        <book-card
+                            :book='@json($bookData)'
+                            :user-libraries='@json($userLibraries ?? [])'
+                            :is-authenticated="@json(auth()->check())"
+                        ></book-card>
                     @endforeach
                 </div>
             @else
@@ -222,4 +195,53 @@
             @endif
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Инициализация Vue для карточек книг
+                if (document.getElementById('recent-books-app')) {
+                    new Vue({
+                        el: '#recent-books-app',
+                        data: {
+                            @auth
+                            user: {
+                                username: '{{ auth()->user()->username }}'
+                            }
+                            @endauth
+                        },
+                        methods: {
+                            showNotification(message, type = 'success') {
+                                // Удаляем существующие уведомления
+                                const existingNotifications = document.querySelectorAll('.notification');
+                                existingNotifications.forEach(notification => notification.remove());
+
+                                // Создаем новое уведомление
+                                const notification = document.createElement('div');
+                                notification.className = `notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+                                    type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                }`;
+                                notification.textContent = message;
+
+                                document.body.appendChild(notification);
+
+                                // Анимация появления
+                                setTimeout(() => {
+                                    notification.style.transform = 'translateX(0)';
+                                }, 100);
+
+                                // Автоматическое скрытие через 3 секунды
+                                setTimeout(() => {
+                                    notification.style.transform = 'translateX(100%)';
+                                    setTimeout(() => {
+                                        notification.remove();
+                                    }, 300);
+                                }, 3000);
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+    @endpush
 @endsection

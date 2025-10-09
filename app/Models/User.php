@@ -148,6 +148,22 @@ class User extends Authenticatable
         return $this->hasMany(BookReadingStatus::class);
     }
 
+    /**
+     * Book reading statuses (alias)
+     */
+    public function bookReadingStatuses(): HasMany
+    {
+        return $this->hasMany(BookReadingStatus::class);
+    }
+
+    /**
+     * User ratings (from book_reading_statuses table)
+     */
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(BookReadingStatus::class)->whereNotNull('rating');
+    }
+
     public function readBooks()
     {
         return $this->belongsToMany(Book::class, 'book_reading_statuses')

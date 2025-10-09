@@ -259,22 +259,44 @@ class RegisteredUserController extends Controller
      */
     public function handleGoogleCallback(Request $request): RedirectResponse
     {
+        Log::info('Google OAuth callback started', ['has_error' => $request->has('error')]);
+        
         if ($request->has('error')) {
+            Log::warning('Google OAuth error received', ['error' => $request->get('error')]);
             return redirect()->route('login')->with('error', 'Google OAuth помилка: ' . $request->get('error'));
         }
 
         $state = $request->get('state');
         $expectedState = $request->session()->pull('google_oauth_state');
+        
+        Log::info('Google OAuth state check', [
+            'state_present' => !empty($state),
+            'expected_state_present' => !empty($expectedState),
+            'states_match' => $state && $expectedState && hash_equals($expectedState, $state)
+        ]);
+        
         if (!$state || !$expectedState || !hash_equals($expectedState, $state)) {
+            Log::warning('Google OAuth state validation failed');
             return redirect()->route('login')->with('error', 'Невірний стан OAuth. Спробуйте ще раз.');
         }
 
         $code = $request->get('code');
         if (!$code) {
+            Log::warning('Google OAuth code missing');
             return redirect()->route('login')->with('error', 'Відсутній код авторизації Google.');
         }
+        
+        Log::info('Google OAuth code received, proceeding to token exchange');
 
-        $client = new Client(['timeout' => 10]);
+        // Configure Guzzle client with SSL verification disabled for local development
+        $clientConfig = ['timeout' => 10];
+        
+        // Disable SSL verification in local/development environment
+        if (config('app.env') !== 'production') {
+            $clientConfig['verify'] = false;
+        }
+        
+        $client = new Client($clientConfig);
 
         try {
             // 1) Exchange code for access token
@@ -313,6 +335,8 @@ class RegisteredUserController extends Controller
             // 3) Find or create user
             $user = User::where('email', $googleEmail)->first();
             if (!$user) {
+                // Create new user
+                Log::info('Google OAuth: Creating new user', ['email' => $googleEmail]);
                 $user = User::create([
                     'name' => $googleName ?: explode('@', $googleEmail)[0],
                     'email' => $googleEmail,
@@ -321,10 +345,40 @@ class RegisteredUserController extends Controller
                     'avatar' => $googlePicture ?: $this->createAvatar(),
                     'email_verified_at' => now(),
                 ]);
+            } else {
+                // Update existing user: verify email and optionally update avatar
+                Log::info('Google OAuth: Found existing user', [
+                    'email' => $googleEmail, 
+                    'user_id' => $user->id,
+                    'email_verified_before' => $user->email_verified_at ? 'yes' : 'no'
+                ]);
+                
+                if (!$user->email_verified_at) {
+                    $user->email_verified_at = now();
+                    Log::info('Google OAuth: Email verified for existing user', ['user_id' => $user->id]);
+                }
+                // Update avatar only if user doesn't have one or it's a default avatar
+                if (!$user->avatar || $googlePicture) {
+                    $user->avatar = $googlePicture ?: $user->avatar;
+                }
+                $user->save();
             }
 
             Auth::login($user, true);
-            return redirect()->intended(route('dashboard', absolute: false));
+            
+            // Regenerate session to prevent fixation attacks
+            $request->session()->regenerate();
+            
+            Log::info('Google OAuth: User logged in successfully', [
+                'user_id' => $user->id, 
+                'email' => $user->email,
+                'email_verified' => $user->email_verified_at ? 'yes' : 'no',
+                'auth_check' => Auth::check() ? 'yes' : 'no',
+                'auth_id' => Auth::id()
+            ]);
+            
+            // Direct redirect to home instead of intended
+            return redirect()->route('home')->with('status', 'Ви успішно увійшли через Google!');
         } catch (\Throwable $e) {
             Log::error('Google OAuth callback failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->route('login')->with('error', 'Не вдалося увійти через Google. Спробуйте пізніше.');

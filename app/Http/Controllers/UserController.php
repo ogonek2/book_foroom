@@ -275,7 +275,18 @@ class UserController extends Controller
             ->limit(3)
             ->get();
 
-        return view('users.public.profile', compact('user', 'stats', 'ratingStats', 'recentReadBooks', 'recentReviews'));
+        // Пользовательские библиотеки для авторизованного пользователя
+        $userLibraries = [];
+        if (auth()->check()) {
+            $userLibraries = auth()->user()->libraries()->get()->map(function($library) {
+                return [
+                    'id' => $library->id,
+                    'name' => $library->name,
+                ];
+            })->toArray();
+        }
+
+        return view('users.public.profile', compact('user', 'stats', 'ratingStats', 'recentReadBooks', 'recentReviews', 'userLibraries'));
     }
 
     /**

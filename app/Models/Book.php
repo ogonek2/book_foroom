@@ -200,7 +200,7 @@ class Book extends Model
             return $this->author->first_name . ' ' . $this->author->last_name;
         }
         
-        return $this->author ?? 'Не указан';
+        return $this->author ?? 'Не вказано';
     }
 
     /**

@@ -12,23 +12,17 @@
 
                     <!-- Navigation Links -->
                     <div class="hidden md:ml-8 md:flex md:space-x-1">
-                        <a href="{{ route('home') }}" class="text-light-text-primary dark:text-dark-text-primary bg-light-bg-secondary dark:bg-dark-bg-secondary px-3 py-2 text-sm font-medium rounded-lg">
-                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                            </svg>
-                            Головна
-                        </a>
-                        <a href="{{ route('books.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200">
+                        <a href="{{ route('books.index') }}" class="{{ request()->routeIs('books.*') ? 'text-white px-3 py-2 text-sm font-medium rounded-lg' : 'text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-all duration-200" style="{{ request()->routeIs('books.*') ? 'background-color: #F97316;' : '' }}">
                             Книги
                         </a>
-                        <a href="{{ route('discussions.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200">
+                        <a href="{{ route('libraries.index') }}" class="{{ request()->routeIs('libraries.*') ? 'text-white px-3 py-2 text-sm font-medium rounded-lg' : 'text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-all duration-200" style="{{ request()->routeIs('libraries.*') ? 'background-color: #F97316;' : '' }}">
+                            Добірки
+                        </a>
+                        <a href="{{ route('discussions.index') }}" class="{{ request()->routeIs('discussions.*') ? 'text-white px-3 py-2 text-sm font-medium rounded-lg' : 'text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-all duration-200" style="{{ request()->routeIs('discussions.*') ? 'background-color: #F97316;' : '' }}">
                            Обговорення
                         </a>
-                        <a href="{{ route('authors.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200">
+                        <a href="{{ route('authors.index') }}" class="{{ request()->routeIs('authors.*') ? 'text-white px-3 py-2 text-sm font-medium rounded-lg' : 'text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-all duration-200" style="{{ request()->routeIs('authors.*') ? 'background-color: #F97316;' : '' }}">
                             Автори
-                        </a>
-                        <a href="{{ route('users.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200">
-                            Користувачі
                         </a>
                     </div>
                 </div>

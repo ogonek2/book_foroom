@@ -1,8 +1,16 @@
 // Импортируем стили
 import '../css/app.scss';
 
-// Импортируем Axios
+// Импортируем Vue и Axios
+import Vue from 'vue';
 import axios from 'axios';
+
+// Импортируем компоненты
+import BookCard from './components/BookCard.vue';
+import AddToLibraryModal from './components/AddToLibraryModal.vue';
+import AddToLibraryButton from './components/AddToLibraryButton.vue';
+import LibraryCollection from './components/LibraryCollection.vue';
+import UserLibraryBookCard from './components/UserLibraryBookCard.vue';
 
 // Настройка Axios
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -704,6 +712,16 @@ window.showNotification = function(message, type = 'info') {
         notification.remove();
     }, 3000);
 };
+
+// Инициализация Vue приложения
+window.Vue = Vue;
+
+// Регистрируем компоненты глобально
+Vue.component('book-card', BookCard);
+Vue.component('add-to-library-modal', AddToLibraryModal);
+Vue.component('add-to-library-button', AddToLibraryButton);
+Vue.component('library-collection', LibraryCollection);
+Vue.component('user-library-book-card', UserLibraryBookCard);
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {

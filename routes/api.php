@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('web')->group(function () {
+    // Маршруты для книг
+    Route::prefix('books')->name('books.')->group(function () {
+        // Получение ID книги по slug
+        Route::get('/{slug}/id', [App\Http\Controllers\BookController::class, 'getIdBySlug'])->name('id');
+    });
+
     // Маршруты для рецензий
     Route::prefix('reviews')->name('reviews.')->group(function () {
         // Получение ответов на рецензию

@@ -39,10 +39,6 @@ Route::middleware('guest')->group(function () {
     Route::get('email/verify/{token}', [RegisteredUserController::class, 'verifyEmail'])
         ->name('email.verify');
 
-    Route::get('verification-notice', function () {
-        return view('auth.verification-notice');
-    })->name('verification.notice');
-
     Route::post('verification/resend', [RegisteredUserController::class, 'resendVerification'])
         ->name('verification.resend');
 
@@ -50,15 +46,16 @@ Route::middleware('guest')->group(function () {
     Route::get('auth/google', [RegisteredUserController::class, 'redirectToGoogle'])
         ->name('auth.google');
 
-    Route::get('auth/google/callback', [RegisteredUserController::class, 'handleGoogleCallback'])
-        ->name('auth.google.callback');
-
     Route::get('auth/facebook', [RegisteredUserController::class, 'redirectToFacebook'])
         ->name('auth.facebook');
-
-    Route::get('auth/facebook/callback', [RegisteredUserController::class, 'handleFacebookCallback'])
-        ->name('auth.facebook.callback');
 });
+
+// OAuth callback routes (outside guest middleware to avoid conflicts)
+Route::get('auth/google/callback', [RegisteredUserController::class, 'handleGoogleCallback'])
+    ->name('auth.google.callback');
+
+Route::get('auth/facebook/callback', [RegisteredUserController::class, 'handleFacebookCallback'])
+    ->name('auth.facebook.callback');
 
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)

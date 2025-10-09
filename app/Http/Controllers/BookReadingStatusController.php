@@ -63,9 +63,23 @@ class BookReadingStatusController extends Controller
             'user_id' => $user->id,
             'book_id' => $book->id,
             'status' => $request->status,
-            'rating' => $request->rating,
-            'review' => $request->review,
         ];
+
+        // Обновляем рейтинг только если он передан в запросе
+        if ($request->has('rating')) {
+            $data['rating'] = $request->rating;
+        } elseif ($status && $status->rating) {
+            // Сохраняем существующий рейтинг, если новый не передан
+            $data['rating'] = $status->rating;
+        }
+
+        // Обновляем отзыв только если он передан в запросе
+        if ($request->has('review')) {
+            $data['review'] = $request->review;
+        } elseif ($status && $status->review) {
+            // Сохраняем существующий отзыв, если новый не передан
+            $data['review'] = $status->review;
+        }
 
         // Устанавливаем даты в зависимости от статуса
         if ($request->status === 'reading' && !$status) {

@@ -227,4 +227,18 @@ class BookController extends Controller
             'rating' => $userRating,
         ]);
     }
+
+    /**
+     * Get book ID by slug
+     */
+    public function getIdBySlug($slug)
+    {
+        $book = Book::where('slug', $slug)->first();
+        
+        if (!$book) {
+            return response()->json(['error' => 'Book not found'], 404);
+        }
+        
+        return response()->json(['id' => $book->id]);
+    }
 }

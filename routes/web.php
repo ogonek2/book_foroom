@@ -52,13 +52,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/{username}/collections/{libraryId}/books', [ProfileController::class, 'getLibraryBooks'])->name('profile.collections.books');
 });
 
-// Library routes
-Route::middleware(['auth'])->group(function () {
-    Route::resource('libraries', LibraryController::class);
-    Route::post('/libraries/{library}/add-book', [LibraryController::class, 'addBook'])->name('libraries.addBook');
-    Route::delete('/libraries/{library}/books/{book}', [LibraryController::class, 'removeBook'])->name('libraries.removeBook');
-});
-
 // Public library routes
 Route::get('/users/{username}/libraries', [LibraryController::class, 'publicLibraries'])->name('libraries.public');
 
@@ -68,3 +61,4 @@ require __DIR__.'/auth.php';
 require __DIR__.'/forum.php';
 require __DIR__.'/books.php';
 require __DIR__.'/discussions.php';
+require __DIR__.'/libraries.php';

@@ -74,4 +74,38 @@ class Library extends Model
     {
         return $user && $user->id === $this->user_id;
     }
+
+    /**
+     * Пользователи, которые сохранили эту библиотеку
+     */
+    public function savedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_saved_libraries')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Пользователи, которые лайкнули эту библиотеку
+     */
+    public function likedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_liked_libraries')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Лайки библиотеки
+     */
+    public function likes(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_liked_libraries');
+    }
+
+    /**
+     * Количество лайков
+     */
+    public function getLikesCountAttribute(): int
+    {
+        return $this->likes()->count();
+    }
 }

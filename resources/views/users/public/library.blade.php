@@ -48,61 +48,24 @@
             @endphp
 
             @if ($allBooks->count() > 0)
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <div id="user-library-app" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
                     @foreach ($allBooks as $readingStatus)
-                        <div class="group cursor-pointer">
-                            <div
-                                class="aspect-[3/4] bg-white/5 rounded-xl overflow-hidden mb-3 group-hover:bg-white/10 transition-all">
-                                @if ($readingStatus->book->cover_image)
-                                    <img src="{{ $readingStatus->book->cover_image }}"
-                                        alt="{{ $readingStatus->book->title }}" class="w-full h-full object-cover">
-                                @else
-                                    <div
-                                        class="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                                        <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z">
-                                            </path>
-                                        </svg>
-                                    </div>
-                                @endif
-
-                                <!-- Status Badge -->
-                                <div class="absolute top-2 left-2">
-                                    @if ($readingStatus->status === 'read')
-                                        <span
-                                            class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Прочитано</span>
-                                    @elseif($readingStatus->status === 'reading')
-                                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Читає</span>
-                                    @elseif($readingStatus->status === 'want_to_read')
-                                        <span class="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">Планує</span>
-                                    @endif
-                                </div>
-
-                                <!-- Rating -->
-                                @if ($readingStatus->rating)
-                                    <div
-                                        class="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-                                        <div class="flex items-center space-x-1">
-                                            <svg class="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                                <path
-                                                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-                                                </path>
-                                            </svg>
-                                            <span class="text-gray-900 dark:text-white text-xs font-medium">{{ $readingStatus->rating }}</span>
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-
-                            <h3
-                                class="text-gray-900 dark:text-white font-medium text-sm text-center group-hover:text-purple-600 dark:group-hover:text-purple-200 transition-colors">
-                                {{ Str::limit($readingStatus->book->title, 25) }}
-                            </h3>
-                            <p class="text-gray-600 dark:text-gray-400 text-xs text-center mt-1">
-                                {{ Str::limit($readingStatus->book->author, 20) }}
-                            </p>
-                        </div>
+                        @php
+                            $bookData = [
+                                'id' => $readingStatus->book->id,
+                                'slug' => $readingStatus->book->slug,
+                                'title' => $readingStatus->book->title,
+                                'author' => $readingStatus->book->author->first_name ?? $readingStatus->book->author ?? 'Автор невідомий',
+                                'cover_image' => $readingStatus->book->cover_image,
+                                'rating' => $readingStatus->rating ?? $readingStatus->book->rating ?? 0,
+                                'reviews_count' => $readingStatus->book->reviews_count ?? 0,
+                                'pages' => $readingStatus->book->pages ?? 0
+                            ];
+                        @endphp
+                        <user-library-book-card
+                            :book='@json($bookData)'
+                            reading-status="{{ $readingStatus->status }}"
+                        ></user-library-book-card>
                     @endforeach
                 </div>
 
@@ -125,4 +88,53 @@
             @endif
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Инициализация Vue для библиотеки пользователя
+                if (document.getElementById('user-library-app')) {
+                    new Vue({
+                        el: '#user-library-app',
+                        data: {
+                            @auth
+                            user: {
+                                username: '{{ auth()->user()->username }}'
+                            }
+                            @endauth
+                        },
+                        methods: {
+                            showNotification(message, type = 'success') {
+                                // Удаляем существующие уведомления
+                                const existingNotifications = document.querySelectorAll('.notification');
+                                existingNotifications.forEach(notification => notification.remove());
+
+                                // Создаем новое уведомление
+                                const notification = document.createElement('div');
+                                notification.className = `notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+                                    type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                }`;
+                                notification.textContent = message;
+
+                                document.body.appendChild(notification);
+
+                                // Анимация появления
+                                setTimeout(() => {
+                                    notification.style.transform = 'translateX(0)';
+                                }, 100);
+
+                                // Автоматическое скрытие через 3 секунды
+                                setTimeout(() => {
+                                    notification.style.transform = 'translateX(100%)';
+                                    setTimeout(() => {
+                                        notification.remove();
+                                    }, 300);
+                                }, 3000);
+                            }
+                        }
+                    });
+                }
+            });
+        </script>
+    @endpush
 @endsection

@@ -23,7 +23,7 @@
 @endpush
 
 @section('main')
-    <div class="min-h-screen">
+    <div id="app" class="min-h-screen">
         <div class="mx-auto">
             <!-- Breadcrumb -->
             <nav class="mb-8">
@@ -67,49 +67,13 @@
                                     </div>
                                     <!-- Add Button -->
                                     <div class="mt-4 text-center space-y-3">
-                                        @if ($currentReadingStatus)
-                                            @php
-                                                $statusTexts = [
-                                                    'read' => 'Прочитано',
-                                                    'reading' => 'Читаю',
-                                                    'want_to_read' => 'Буду читати',
-                                                ];
-                                                $statusColors = [
-                                                    'read' =>
-                                                        'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
-                                                    'reading' =>
-                                                        'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-                                                    'want_to_read' =>
-                                                        'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
-                                                ];
-                                            @endphp
-                                            <button onclick="openReadingStatusModal()"
-                                                class="w-full bg-gradient-to-r {{ $statusColors[$currentReadingStatus->status] }} text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 transform shadow-lg hover:shadow-xl flex items-center justify-center">
-                                                {{ $statusTexts[$currentReadingStatus->status] }}
-                                            </button>
-                                        @else
-                                            <button onclick="openReadingStatusModal()"
-                                                class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform shadow-lg hover:shadow-xl">
-                                                <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                                Додати
-                                            </button>
-                                        @endif
-
-                                        @auth
-                                            <button onclick="openAddToLibraryModal()"
-                                                class="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white px-8 py-3 rounded-xl font-bold hover:from-orange-600 hover:to-pink-600 transition-all duration-300 transform shadow-lg hover:shadow-xl">
-                                                <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                                </svg>
-                                                Додати до добірки
-                                            </button>
-                                        @endauth
+                                        <add-to-library-button
+                                            :book='@json($book)'
+                                            :user-libraries='@json($userLibraries)'
+                                            :is-authenticated="{{ auth()->check() ? 'true' : 'false' }}"
+                                            :initial-status="{{ $currentReadingStatus ? "'{$currentReadingStatus->status}'" : 'null' }}"
+                                            @notification="handleNotification"
+                                        ></add-to-library-button>
                                     </div>
                                 </div>
                                 <div class="flex-1">
@@ -670,8 +634,10 @@
         </div>
     </div>
 
-    <!-- Reading Status Modal -->
-    <div id="readingStatusModal"
+    <!-- Модальные окна теперь управляются Vue компонентом add-to-library-button -->
+
+    <!-- Старое Reading Status Modal (скрыто, функционал перенесен в Vue компонент) -->
+    <div id="readingStatusModal" style="display: none !important;"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0"
             id="modalContent">
@@ -916,6 +882,52 @@
 
     @push('scripts')
         <script>
+            // Vue приложение для страницы книги
+            document.addEventListener('DOMContentLoaded', function() {
+                const bookShowApp = new Vue({
+                    el: '#app',
+                    data: {
+                        @auth
+                        user: {
+                            username: '{{ auth()->user()->username }}'
+                        }
+                        @endauth
+                    },
+                    methods: {
+                        handleNotification(notification) {
+                            this.showNotification(notification.message, notification.type);
+                        },
+                        showNotification(message, type = 'success') {
+                            // Удаляем существующие уведомления
+                            const existingNotifications = document.querySelectorAll('.notification');
+                            existingNotifications.forEach(notification => notification.remove());
+
+                            // Создаем новое уведомление
+                            const notification = document.createElement('div');
+                            notification.className = `notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+                                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                            }`;
+                            notification.textContent = message;
+
+                            document.body.appendChild(notification);
+
+                            // Анимация появления
+                            setTimeout(() => {
+                                notification.style.transform = 'translateX(0)';
+                            }, 100);
+
+                            // Автоматическое скрытие через 3 секунды
+                            setTimeout(() => {
+                                notification.style.transform = 'translateX(100%)';
+                                setTimeout(() => {
+                                    notification.remove();
+                                }, 300);
+                            }, 3000);
+                        }
+                    }
+                });
+            });
+
             function toggleReviewForm() {
                 const form = document.getElementById('reviewForm');
                 form.classList.toggle('hidden');
@@ -965,19 +977,30 @@
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
                                         'content'),
                                     'Content-Type': 'application/json',
+                                    'Accept': 'application/json', // Важно! Это указывает серверу, что мы ожидаем JSON
                                 },
                             })
-                            .then(response => response.json())
+                            .then(response => {
+                                // Проверяем, что ответ успешный
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
                             .then(data => {
                                 if (data.success) {
-                                    location.reload();
+                                    showNotification('Рецензію успішно видалено!', 'success');
+                                    // Перезагружаем страницу после небольшой задержки
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 1000);
                                 } else {
-                                    alert('Помилка при видаленні рецензії: ' + data.message);
+                                    showNotification('Помилка при видаленні рецензії: ' + data.message, 'error');
                                 }
                             })
                             .catch(error => {
                                 console.error('Error:', error);
-                                alert('Помилка при видаленні рецензії');
+                                showNotification('Помилка при видаленні рецензії', 'error');
                             });
                     }
                 }
@@ -2089,7 +2112,7 @@
 
                     <form action="" method="POST" id="addToLibraryForm">
                         @csrf
-                        <input type="hidden" name="book_id" value="{{ $book->id }}">
+                        <input type="hidden" name="book_slug" value="{{ $book->slug }}">
 
                         <div class="mb-6">
                             <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-3">Оберіть
@@ -2107,7 +2130,7 @@
                                 @endphp
                                 @foreach ($userLibraries as $library)
                                     <option value="{{ $library->id }}"
-                                        data-url="{{ route('libraries.addBook', $library) }}">{{ $library->name }}
+                                        data-url="{{ route('libraries.add-book', $library) }}">{{ $library->name }}
                                         @if ($library->is_private)
                                             (Приватна)
                                         @else
