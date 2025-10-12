@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', $discussion->title)
 
@@ -19,14 +19,14 @@
                                         <span
                                             class="bg-yellow-500 text-yellow-900 dark:bg-yellow-600 dark:text-yellow-100 px-3 py-1 rounded-full text-sm font-bold">
                                             <i class="fas fa-thumbtack mr-1"></i>
-                                            Закреплено
+                                            Р—Р°РєСЂРµРїР»РµРЅРѕ
                                         </span>
                                     @endif
                                     @if ($discussion->is_closed)
                                         <span
                                             class="bg-red-500 text-red-900 dark:bg-red-600 dark:text-red-100 px-3 py-1 rounded-full text-sm font-bold">
                                             <i class="fas fa-lock mr-1"></i>
-                                            Закрыто
+                                            Р—Р°РєСЂС‹С‚Рѕ
                                         </span>
                                     @endif
                                 </div>
@@ -127,78 +127,15 @@
                         </div>
                     </div>
 
-                    <!-- Replies Section -->
-                    <div>
-                        <!-- Reply Form -->
-                        @auth
-                            @if (!$discussion->is_closed)
-                                <div>
-                                    <form id="replyForm" action="{{ route('discussions.replies.store', $discussion) }}"
-                                        method="POST" class="space-y-4">
-                                        @csrf
-                                        <textarea id="replyContent" name="content" rows="1" placeholder="Що ви думаєте про це?"
-                                            class="w-full px-4 py-4 bg-light-bg-secondary dark:bg-gray-700 border border-light-border dark:border-dark-border rounded-xl text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none transition-colors"
-                                            required></textarea>
-                                        <div class="flex justify-end">
-                                            <button type="submit"
-                                                class="bg-gradient-to-r from-brand-500 to-accent-500 text-white px-6 py-3 rounded-xl font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-300">
-                                                Відправити
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            @else
-                                <div class="mt-8 pt-8 text-center">
-                                    <div
-                                        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-                                        <i class="fas fa-lock text-red-500 dark:text-red-400 text-2xl mb-2"></i>
-                                        <p class="text-red-600 dark:text-red-400">Це обговорення закрито для нових відповідей
-                                        </p>
-                                    </div>
-                                </div>
-                            @endif
-                        @else
-                            <div class="mt-8 pt-8 text-center">
-                                <p class="text-light-text-secondary dark:text-dark-text-secondary mb-4">Увійдіть в систему, щоб
-                                    відповісти на обговорення</p>
-                                <a href="{{ route('login') }}"
-                                    class="bg-gradient-to-r from-brand-500 to-accent-500 text-white px-6 py-3 rounded-xl font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-300">
-                                    Войти
-                                </a>
-                            </div>
-                        @endauth
-                    </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-6">
-                            <span class="text-lg font-bold text-light-text-primary dark:text-dark-text-primary">
-                                Відповіді ({{ $discussion->replies_count }})
-                            </span>
-                        </div>
-
-                        @if ($discussion->replies_count > 0)
-                            <div class="space-y-6">
-                                @foreach ($replies as $reply)
-                                    @include('discussions.partials.reply', [
-                                        'reply' => $reply,
-                                        'level' => 0,
-                                    ])
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="text-center py-12">
-                                <svg class="w-16 h-16 mx-auto mb-4 text-light-text-tertiary dark:text-dark-text-tertiary"
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-                                    </path>
-                                </svg>
-                                <h3
-                                    class="text-xl font-semibold text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                                    Поки що немає відповідей</h3>
-                                <p class="text-light-text-tertiary dark:text-dark-text-tertiary">Ставте першим, хто
-                                    відповість на це обговорення!</p>
-                            </div>
-                        @endif
+                    <!-- Vue.js Replies Component -->
+                    <div id="discussion-replies-app">
+                        <discussion-replies-list 
+                            :replies="{{ json_encode($replies->values()->toArray()) }}"
+                            :discussion-id="{{ $discussion->id }}"
+                            :current-user-id="{{ auth()->id() }}"
+                            :is-discussion-closed="{{ $discussion->is_closed ? 'true' : 'false' }}"
+                            :is-moderator="{{ auth()->check() && auth()->user()->isModerator() ? 'true' : 'false' }}">
+                        </discussion-replies-list>
                     </div>
                 </div>
             </div>
@@ -414,400 +351,23 @@
 
         @push('scripts')
             <script>
-                // Simple and reliable toggle function - define first
-                window.toggleReplies = function(replyId) {
-                    console.log(`toggleReplies called for reply: ${replyId}`);
-
-                    const container = document.getElementById(`repliesContainer${replyId}`);
-                    const icon = document.getElementById(`toggleIcon${replyId}`);
-                    const text = document.getElementById(`toggleText${replyId}`);
-
-                    console.log('Container:', container);
-                    console.log('Icon:', icon);
-                    console.log('Text:', text);
-
-                    if (!container) {
-                        console.error(`Container not found for reply: ${replyId}`);
-                        return;
-                    }
-
-                    if (!icon) {
-                        console.error(`Icon not found for reply: ${replyId}`);
-                        console.log('Looking for icon with ID:', `toggleIcon${replyId}`);
-                        // Try to find the icon element differently
-                        const button = document.getElementById(`toggleBtn${replyId}`);
-                        console.log('Button found:', button);
-                        if (button) {
-                            const iconFromButton = button.querySelector('i');
-                            console.log('Icon from button:', iconFromButton);
-                            if (iconFromButton) {
-                                // Use the icon from button
-                                if (container.style.display === 'none') {
-                                    container.style.display = 'block';
-                                    iconFromButton.className = 'fas fa-chevron-down toggle-icon';
-                                    const textFromButton = button.querySelector('span span');
-                                    if (textFromButton) {
-                                        textFromButton.textContent = 'Згорнути';
-                                    }
-                                } else {
-                                    container.style.display = 'none';
-                                    iconFromButton.className = 'fas fa-chevron-right toggle-icon';
-                                    const textFromButton = button.querySelector('span span');
-                                    if (textFromButton) {
-                                        textFromButton.textContent = 'Відповіді';
-                                    }
-                                }
-                                return;
-                            }
-                        }
-                        return;
-                    }
-
-                    if (!text) {
-                        console.error(`Text not found for reply: ${replyId}`);
-                        return;
-                    }
-
-                    // Simple display toggle
-                    if (container.style.display === 'none') {
-                        // Show replies
-                        container.style.display = 'block';
-                        icon.className = 'fas fa-chevron-down toggle-icon';
-                        text.textContent = 'Згорнути';
-                    } else {
-                        // Hide replies
-                        container.style.display = 'none';
-                        icon.className = 'fas fa-chevron-right toggle-icon';
-                        text.textContent = 'Відповіді';
-                    }
-                };
-
-                // Global reply management
-                function collapseAllReplies() {
-                    const containers = document.querySelectorAll('[id^="repliesContainer"]');
-                    containers.forEach(container => {
-                        const replyId = container.id.replace('repliesContainer', '');
-                        const button = document.getElementById(`toggleBtn${replyId}`);
-
-                        if (button && container.style.display !== 'none') {
-                            const icon = button.querySelector('i');
-                            const textSpan = button.querySelector('span span');
-
-                            if (icon && textSpan) {
-                                container.style.display = 'none';
-                                icon.className = 'fas fa-chevron-right toggle-icon';
-                                textSpan.textContent = 'Відповіді';
-                            }
-                        }
-                    });
-                }
-
-                function expandAllReplies() {
-                    const containers = document.querySelectorAll('[id^="repliesContainer"]');
-                    containers.forEach(container => {
-                        const replyId = container.id.replace('repliesContainer', '');
-                        const button = document.getElementById(`toggleBtn${replyId}`);
-
-                        if (button && container.style.display === 'none') {
-                            const icon = button.querySelector('i');
-                            const textSpan = button.querySelector('span span');
-
-                            if (icon && textSpan) {
-                                container.style.display = 'block';
-                                icon.className = 'fas fa-chevron-down toggle-icon';
-                                textSpan.textContent = 'Згорнути';
-                            }
-                        }
-                    });
-                }
-
-                // toggleReplies function is defined above
-
-                // Initialize after DOM is loaded
+                // Vue приложение для страницы обсуждения
                 document.addEventListener('DOMContentLoaded', function() {
-                    console.log('DOM loaded, toggleReplies function available:', typeof toggleReplies);
-
-                    // Handle main reply form submission
-                    const mainReplyForm = document.getElementById('replyForm');
-                    if (mainReplyForm) {
-                        // Remove any existing listeners to prevent duplicates
-                        mainReplyForm.removeEventListener('submit', mainReplyForm._submitHandler);
-
-                        mainReplyForm._submitHandler = function(e) {
-                            e.preventDefault();
-
-                            const formData = new FormData(this);
-                            const textarea = this.querySelector('textarea');
-                            const submitButton = this.querySelector('button[type="submit"]');
-
-                            // Disable form during submission
-                            submitButton.disabled = true;
-                            submitButton.textContent = 'Відправляємо...';
-
-                            // Check if CSRF token exists
-                            const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                            if (!csrfToken) {
-                                console.error('CSRF token not found');
-                                showNotification('Помилка безпеки. Спробуйте перезавантажити сторінку.', 'error');
-                                submitButton.disabled = false;
-                                submitButton.textContent = 'Відправити';
-                                return;
-                            }
-
-                            // Validate form data
-                            if (!textarea.value.trim()) {
-                                showNotification('Будь ласка, введіть текст відповіді', 'error');
-                                textarea.focus();
-                                submitButton.disabled = false;
-                                submitButton.textContent = 'Відправити';
-                                return;
-                            }
-
-                            fetch(this.action, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
-                                        'Accept': 'application/json',
-                                        'X-Requested-With': 'XMLHttpRequest',
-                                    },
-                                    body: formData
-                                })
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error(`HTTP error! status: ${response.status}`);
-                                    }
-                                    return response.json();
-                                })
-                                .then(data => {
-                                    if (data.success) {
-                                        // Clear form
-                                        textarea.value = '';
-
-                                        // Add new reply to main replies section
-                                        addMainReplyToDOM(data.reply);
-
-                                        // Update discussion replies count
-                                        updateDiscussionRepliesCount();
-
-                                        // Show success message
-                                        showNotification('Відповідь успішно додано!', 'success');
-                                    } else {
-                                        showNotification(data.message || 'Помилка при відправці відповіді',
-                                            'error');
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error:', error);
-                                    showNotification(
-                                        'Помилка при відправці відповіді. Перевірте підключення до інтернету.',
-                                        'error');
-                                })
-                                .finally(() => {
-                                    // Re-enable form
-                                    submitButton.disabled = false;
-                                    submitButton.textContent = 'Відправити';
-                                });
-                        };
-
-                        mainReplyForm.addEventListener('submit', mainReplyForm._submitHandler);
-                    }
-
-                    // Add event delegation for toggle buttons
-                    document.addEventListener('click', function(e) {
-                        if (e.target.closest('.toggle-button')) {
-                            const button = e.target.closest('.toggle-button');
-                            const replyId = button.getAttribute('data-reply-id');
-                            if (replyId) {
-                                console.log('Toggle button clicked via delegation for reply:', replyId);
-                                e.preventDefault();
-                                e.stopPropagation();
-
-                                // Direct toggle without relying on ID searches
-                                const container = document.getElementById(`repliesContainer${replyId}`);
-                                const icon = button.querySelector('i');
-                                const textSpan = button.querySelector('span span');
-
-                                if (container && icon && textSpan) {
-                                    if (container.style.display === 'none') {
-                                        container.style.display = 'block';
-                                        icon.className = 'fas fa-chevron-down toggle-icon';
-                                        textSpan.textContent = 'Згорнути';
-                                    } else {
-                                        container.style.display = 'none';
-                                        icon.className = 'fas fa-chevron-right toggle-icon';
-                                        textSpan.textContent = 'Відповіді';
-                                    }
-                                } else {
-                                    console.error('Elements not found for direct toggle');
-                                    console.log('Container:', container);
-                                    console.log('Icon:', icon);
-                                    console.log('TextSpan:', textSpan);
-                                }
+                    const discussionApp = new Vue({
+                        el: '#discussion-replies-app',
+                        data: {
+                            // Данные передаются через props
+                        },
+                        methods: {
+                            showNotification(message, type = 'success') {
+                                // Простое уведомление
+                                alert(type.toUpperCase() + ': ' + message);
                             }
                         }
                     });
                 });
 
-                // Add main reply to DOM
-                function addMainReplyToDOM(replyData) {
-                    const repliesSection = document.querySelector('#replies-section');
-                    if (!repliesSection) {
-                        console.error('Replies section not found');
-                        return;
-                    }
-
-                    // Create new reply element
-                    const replyElement = createMainReplyElement(replyData);
-
-                    // Add to the beginning of replies section
-                    const existingReplies = repliesSection.querySelector('.space-y-6');
-                    if (existingReplies) {
-                        existingReplies.insertBefore(replyElement, existingReplies.firstChild);
-                    } else {
-                        repliesSection.appendChild(replyElement);
-                    }
-
-                    // Smooth scroll to new reply
-                    replyElement.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'nearest'
-                    });
-                }
-
-                // Create main reply element from data
-                function createMainReplyElement(replyData) {
-                    const currentUserId = {{ auth()->id() ?? 'null' }};
-                    const isDiscussionClosed = {{ $discussion->is_closed ? 'true' : 'false' }};
-
-                    const replyDiv = document.createElement('div');
-                    replyDiv.className = 'discussion-reply';
-                    replyDiv.setAttribute('data-reply-id', replyData.id);
-                    replyDiv.setAttribute('data-depth', '0');
-
-                    let actionsHtml = '';
-
-                    if (currentUserId) {
-                        actionsHtml = `
-            <div class="flex items-center justify-between flex-wrap gap-2">
-                <div class="flex items-center space-x-3 sm:space-x-4">
-                    <!-- Like Button -->
-                    <button onclick="toggleReplyLike(${replyData.id})"
-                        class="flex items-center py-1 rounded-lg transition-colors" id="replyLikeButton${replyData.id}">
-                        <i class="fas fa-heart text-xs sm:text-sm text-light-text-tertiary dark:text-dark-text-tertiary"></i>
-                        <span class="ml-1 text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm"
-                            id="replyLikeCount${replyData.id}">0</span>
-                    </button>
-                </div>
-                
-                <div class="flex items-center space-x-2">
-                    <!-- Reply Button -->
-                    ${!isDiscussionClosed ? `
-                                                <button onclick="showReplyForm(${replyData.id})"
-                                                    class="flex items-center space-x-1 text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xs sm:text-sm">
-                                                    <i class="fas fa-reply text-xs"></i>
-                                                    <span>Відповісти</span>
-                                                </button>
-                                            ` : ''}
-                    
-                    <!-- Edit/Delete menu for owner -->
-                    ${replyData.user_id === currentUserId ? `
-                                                <div class="relative group">
-                                                    <button
-                                                        class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors p-1">
-                                                        <i class="fas fa-ellipsis-h text-xs"></i>
-                                                    </button>
-                                                    <div
-                                                        class="absolute right-0 top-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 min-w-32">
-                                                        <div class="py-2">
-                                                            <button onclick="editReply(${replyData.id})"
-                                                                class="block w-full text-left px-3 py-2 text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-gray-700 hover:text-light-text-primary dark:hover:text-dark-text-primary">
-                                                                Редагувати
-                                                            </button>
-                                                            <button onclick="deleteReply(${replyData.id})"
-                                                                class="block w-full text-left px-3 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                                                Вилучити
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ` : ''}
-                </div>
-            </div>
-        `;
-                    }
-
-                    replyDiv.innerHTML = `
-        <div class="rounded-xl p-0 py-1 sm:py-2 px-1 sm:px-2">
-            <!-- Mobile: Compact header -->
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center space-x-2 sm:space-x-3">
-                    <img src="${replyData.user.avatar_display}" alt="${replyData.user.name}" 
-                         class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0">
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center space-x-2">
-                            <div class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm sm:text-base truncate">
-                                ${replyData.user.name}
-                            </div>
-                            <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm">
-                                щойно
-                            </div>
-                        </div>
-                        <a href="/users/${replyData.user.username}"
-                            class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm truncate block">
-                            @${replyData.user.username}
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Reply Content -->
-            <div class="text-light-text-primary dark:text-dark-text-primary leading-relaxed mb-3 sm:mb-4 whitespace-pre-wrap text-sm sm:text-base">
-                ${replyData.content}
-            </div>
-            
-            ${actionsHtml}
-        </div>
-    `;
-
-                    return replyDiv;
-                }
-
-                // Update discussion replies count
-                function updateDiscussionRepliesCount() {
-                    const repliesCountElement = document.querySelector('.flex.items-center.space-x-2 .fas.fa-comments')
-                        .parentElement;
-                    if (repliesCountElement) {
-                        const countSpan = repliesCountElement.querySelector('span');
-                        if (countSpan) {
-                            const currentCount = parseInt(countSpan.textContent.match(/(\d+)/)?.[1] || '0');
-                            countSpan.textContent = `${currentCount + 1} Відповідей`;
-                        }
-                    }
-                }
-
-                // Show notification
-                function showNotification(message, type = 'info') {
-                    const notification = document.createElement('div');
-                    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
-        type === 'success' ? 'bg-green-500 text-white' : 
-        type === 'error' ? 'bg-red-500 text-white' : 
-        'bg-blue-500 text-white'
-    }`;
-                    notification.textContent = message;
-
-                    document.body.appendChild(notification);
-
-                    // Auto remove after 3 seconds
-                    setTimeout(() => {
-                        notification.style.opacity = '0';
-                        notification.style.transform = 'translateX(100%)';
-                        setTimeout(() => {
-                            document.body.removeChild(notification);
-                        }, 300);
-                    }, 3000);
-                }
-
-                // Like functionality
+                // Like functionality for main discussion
                 function toggleLike(discussionId) {
                     fetch(`/discussions/${discussionId}/like`, {
                             method: 'POST',
@@ -839,37 +399,6 @@
                             console.error('Error:', error);
                         });
                 }
-
-                // Reply form submission
-                document.getElementById('replyForm').addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    const form = this;
-                    const formData = new FormData(form);
-
-                    fetch(form.action, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                                    'content'),
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                            },
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            } else {
-                                alert(data.message || 'Ошибка при отправке ответа');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Ошибка при отправке ответа');
-                        });
-                });
             </script>
         @endpush
     @endsection

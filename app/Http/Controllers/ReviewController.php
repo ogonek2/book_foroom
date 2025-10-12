@@ -205,15 +205,27 @@ class ReviewController extends Controller
         $review->updateRepliesCount();
 
         if ($request->expectsJson()) {
+            // Загружаем связанные данные для фронтенда
+            $reply->load('user');
+            
             // Подготавливаем данные для фронтенда
             $replyData = [
                 'id' => $reply->id,
                 'content' => $reply->content,
-                'created_at' => $reply->created_at,
+                'created_at' => $reply->created_at->toISOString(),
+                'user_id' => $reply->user_id,
+                'parent_id' => $reply->parent_id,
                 'is_guest' => $reply->isGuest(),
-                'author_name' => $reply->getAuthorName(),
+                'user' => $reply->user ? [
+                    'id' => $reply->user->id,
+                    'name' => $reply->user->name,
+                    'username' => $reply->user->username,
+                    'avatar_display' => $reply->user->avatar_display ?? null,
+                ] : null,
+                'is_liked_by_current_user' => false,
                 'likes_count' => 0,
-                'replies_count' => 0
+                'replies_count' => 0,
+                'replies' => []
             ];
 
             return response()->json([

@@ -342,8 +342,8 @@ class RegisteredUserController extends Controller
                     'email' => $googleEmail,
                     'password' => Hash::make(Str::random(32)),
                     'username' => Str::slug($googleName ?: explode('@', $googleEmail)[0]) . '_' . Str::random(10),
-                    'avatar' => $googlePicture ?: $this->createAvatar(),
                     'email_verified_at' => now(),
+                    'avatar' => $googlePicture, // Set Google avatar for new users
                 ]);
             } else {
                 // Update existing user: verify email and optionally update avatar
@@ -357,9 +357,10 @@ class RegisteredUserController extends Controller
                     $user->email_verified_at = now();
                     Log::info('Google OAuth: Email verified for existing user', ['user_id' => $user->id]);
                 }
-                // Update avatar only if user doesn't have one or it's a default avatar
-                if (!$user->avatar || $googlePicture) {
-                    $user->avatar = $googlePicture ?: $user->avatar;
+                // Update avatar only if user doesn't have one
+                if (!$user->avatar && $googlePicture) {
+                    $user->avatar = $googlePicture;
+                    Log::info('Google OAuth: Avatar set from Google for existing user', ['user_id' => $user->id]);
                 }
                 $user->save();
             }

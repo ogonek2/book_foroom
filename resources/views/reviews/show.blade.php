@@ -1407,55 +1407,44 @@
                 </div>
             </div>
             
-            <!-- Reply Form - Always visible -->
-            <div class="reply-form active">
-                <div class="reply-form-content">
-                    <h4 class="text-lg font-semibold mb-3">Ваша відповідь</h4>
-                    <div class="reply-input-wrapper">
-                        <textarea name="content" 
-                                  rows="1" 
-                                  class="reply-textarea"
-                                  placeholder="Напишіть вашу відповідь..." 
-                                  required></textarea>
-                        <div class="reply-buttons">
-                            <button type="button" 
-                                    onclick="submitCompactReply(null)"
-                                    class="submit-btn">
-                                Відправити
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Reply Form теперь обрабатывается Vue компонентом -->
         </div>
 
-        <!-- Comments Section -->
-        <div class="comments-section">
-            <h2 class="text-md font-bold mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-                Обговорення (<span class="replies-count">{{ $review->replies_count ?? 0 }}</span>)
-            </h2>
-            
-            @if($review->replies && $review->replies->count() > 0)
-                <div class="comments-tree" id="comments-container">
-                    @include('reviews.partials.replies', [
-                        'replies' => $review->replies,
-                        'depth' => 0,
-                        'book' => $book,
-                        'parentReview' => $review
-                    ])
-                </div>
-            @else
-                <div class="empty-state">
-                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    <h3 class="text-xl font-semibold mb-2">Поки немає відповідей</h3>
-                    <p class="mb-4">Станьте першим, хто поділиться своєю думкою</p>
-                </div>
-            @endif
+        <!-- Vue.js Replies Component -->
+        @php
+        // Рекурсивная функция для формирования данных ответов
+        $formatReply = function($reply) use (&$formatReply) {
+            return [
+                'id' => $reply->id,
+                'content' => $reply->content,
+                'created_at' => $reply->created_at->toISOString(),
+                'user_id' => $reply->user_id,
+                'parent_id' => $reply->parent_id,
+                'is_guest' => $reply->isGuest(),
+                'user' => $reply->user ? [
+                    'id' => $reply->user->id,
+                    'name' => $reply->user->name,
+                    'username' => $reply->user->username,
+                    'avatar_display' => $reply->user->avatar_display ?? null,
+                ] : null,
+                'is_liked_by_current_user' => auth()->check() ? $reply->isLikedBy(auth()->id()) : false,
+                'likes_count' => $reply->likes_count ?? 0,
+                'replies_count' => $reply->replies_count ?? 0,
+                'replies' => $reply->replies->map($formatReply)->toArray(),
+            ];
+        };
+        
+        $repliesData = $review->replies->map($formatReply)->toArray();
+        @endphp
+        
+        <div id="review-replies-app">
+            <reviews-replies-list 
+                :replies="{{ json_encode($repliesData) }}"
+                book-slug="{{ $book->slug }}"
+                :review-id="{{ $review->id }}"
+                :current-user-id="{{ auth()->id() }}"
+                :is-moderator="{{ auth()->check() && auth()->user()->isModerator() ? 'true' : 'false' }}">
+            </reviews-replies-list>
         </div>
         </div>
 
@@ -1484,289 +1473,34 @@
 
 @push('scripts')
 <script>
-// New compact reply system
-
-// Submit compact reply
-window.submitCompactReply = function(replyId) {
-    let textarea;
-    let submitBtn;
-    
-    if (replyId) {
-        // Reply to specific comment
-        const replyInput = document.getElementById(`reply-input-${replyId}`);
-        textarea = replyInput.querySelector('.reply-textarea');
-        submitBtn = replyInput.querySelector('.submit-btn');
-    } else {
-        // Reply to main review
-        textarea = document.querySelector('.reply-form .reply-textarea');
-        submitBtn = document.querySelector('.reply-form .submit-btn');
-    }
-    
-    const content = textarea.value.trim();
-    
-    if (!content) {
-        showNotification('Будь ласка, введіть текст відповіді', 'error');
-        return;
-    }
-    
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Відправляємо...';
-    submitBtn.disabled = true;
-    
-    fetch(`/books/{{ $book->slug }}/reviews/{{ $review->id }}/replies`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+// Vue приложение для ответов на рецензии
+document.addEventListener('DOMContentLoaded', function() {
+    const reviewRepliesApp = new Vue({
+        el: '#review-replies-app',
+        data: {
+            // Данные передаются через props
         },
-        body: JSON.stringify({
-            content: content,
-            parent_id: replyId
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            textarea.value = '';
-            autoResizeTextarea(textarea);
-            
-            if (replyId) {
-                toggleReplyInput(replyId);
+        methods: {
+            showNotification(message, type = 'success') {
+                // Уведомление обрабатывается в компоненте
             }
-            
-            // Add new reply to UI
-            addCommentToUI(data.reply, replyId);
-            
-            // Update replies count
-            updateRepliesCount();
-            
-            showNotification('Відповідь додано!', 'success');
-        } else {
-            throw new Error(data.message || 'Помилка при додаванні відповіді');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Помилка при додаванні відповіді: ' + error.message, 'error');
-    })
-    .finally(() => {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
     });
-}
+});
 
-// Add new comment to UI
-function addCommentToUI(reply, parentId) {
-    const commentHTML = createCommentHTML(reply);
-    
-    if (parentId) {
-        // Add as nested comment
-        const parentElement = document.querySelector(`[data-reply-id="${parentId}"]`);
-        if (parentElement) {
-            let nestedContainer = parentElement.querySelector('.nested-comments');
-            
-            if (!nestedContainer) {
-                // Create nested container
-                nestedContainer = document.createElement('div');
-                nestedContainer.className = 'nested-comments';
-                nestedContainer.id = `nested-comments-${parentId}`;
-                parentElement.appendChild(nestedContainer);
-                
-                // Add toggle button to parent
-                const parentHeader = parentElement.querySelector('.comment-header');
-                if (parentHeader && !parentHeader.querySelector('.toggle-btn')) {
-                    const toggleBtn = document.createElement('button');
-                    toggleBtn.onclick = () => toggleCommentBranch(parentId);
-                    toggleBtn.className = 'toggle-btn';
-                    toggleBtn.innerHTML = `
-                        <svg class="w-4 h-4 toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                        <span class="reply-count">1</span>
-                    `;
-                    parentHeader.appendChild(toggleBtn);
-                }
-            }
-            
-            nestedContainer.insertAdjacentHTML('afterbegin', commentHTML);
-            
-            // Update reply count
-            const countEl = parentElement.querySelector('.reply-count');
-            if (countEl) {
-                const currentCount = parseInt(countEl.textContent || 0);
-                countEl.textContent = currentCount + 1;
-            }
-            
-            // Expand container
-                nestedContainer.classList.remove('collapsed');
-            
-            // Add animation
-            const newComment = nestedContainer.firstElementChild;
-            newComment.classList.add('new-reply');
-        }
-    } else {
-        // Add to main comments section
-        let commentsSection = document.querySelector('#comments-container');
-        
-        if (!commentsSection) {
-            // Hide empty state and create container
-            const emptyState = document.querySelector('.empty-state');
-            if (emptyState) {
-                emptyState.style.display = 'none';
-            }
-            
-            commentsSection = document.createElement('div');
-            commentsSection.className = 'comments-tree';
-            commentsSection.id = 'comments-container';
-            
-            const commentsDiv = document.querySelector('.comments-section');
-            commentsDiv.appendChild(commentsSection);
-        }
-        
-        commentsSection.insertAdjacentHTML('afterbegin', commentHTML);
-        
-        // Add animation
-        const newComment = commentsSection.firstElementChild;
-        newComment.classList.add('new-reply');
-    }
-    
-    // Scroll to new comment
-    setTimeout(() => {
-        const newComment = document.querySelector(`[data-reply-id="${reply.id}"]`);
-        if (newComment) {
-            newComment.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-    }, 100);
-}
-
-// Create HTML for new comment
-function createCommentHTML(reply) {
-    const isGuest = reply.is_guest || false;
-    const authorName = reply.author_name || 'Анонімний користувач';
-    
-    const avatarHTML = isGuest ? 
-        `<div class="user-avatar">
-            <div class="avatar-guest">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                </svg>
-            </div>
-        </div>` :
-        `<div class="user-avatar">
-            <div class="avatar-fallback">
-                ${authorName.charAt(0).toUpperCase()}
-            </div>
-        </div>`;
-    
-    const guestBadge = isGuest ? 
-        '<span class="guest-badge">Гість</span>' : '';
-    
-    return `
-        <div class="comment-branch" data-reply-id="${reply.id}">
-            <div class="comment-header">
-                <div class="comment-author">
-                        <div class="user-mini-header">
-                            ${avatarHTML}
-                            <div class="user-info">
-                                <div class="user-name">
-                                    ${authorName} ${guestBadge}
-                                </div>
-                                <div class="user-timestamp">щойно</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-            <div class="comment-content">
-                    ${reply.content}
-                </div>
-                
-            <div class="comment-actions">
-                <div class="comment-actions-left">
-                    <button onclick="toggleLike(${reply.id})" class="action-btn">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                        <span id="likes-count-${reply.id}">0</span>
-                    </button>
-                    
-                    <button onclick="toggleReplyInput(${reply.id})" class="action-btn">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        Відповісти
-                    </button>
-                </div>
-                
-                <div class="comment-controls">
-                    <button onclick="editComment(${reply.id})" class="control-btn edit-btn" title="Редагувати">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                    </button>
-                    
-                    <button onclick="deleteComment(${reply.id})" class="control-btn delete-btn" title="Видалити">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-                
-            <div id="reply-input-${reply.id}" class="reply-input hidden">
-                <div class="reply-input-wrapper">
-                    <textarea 
-                        name="content" 
-                        rows="1" 
-                        class="reply-textarea"
-                        placeholder="Напишіть відповідь..." 
-                                      required></textarea>
-                    <div class="reply-buttons">
-                                <button type="button" 
-                                onclick="toggleReplyInput(${reply.id})"
-                                class="cancel-btn">
-                                    Скасувати
-                                </button>
-                        <button type="button" 
-                                onclick="submitCompactReply(${reply.id})"
-                                class="submit-btn">
-                            Відправити
-                                </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Toggle like with reactive UI update
+// Функция для лайка главной рецензии (не обрабатывается Vue)
 window.toggleLike = function(reviewId) {
-    console.log('toggleLike called with reviewId:', reviewId);
     @auth
     const button = document.querySelector(`[onclick="toggleLike(${reviewId})"]`);
     const countElement = document.getElementById(`likes-count-${reviewId}`);
     
-    console.log('Button element:', button);
-    console.log('Count element:', countElement);
+    if (!button || !countElement) return;
     
-    // Add loading state
     const originalContent = button.innerHTML;
-    const originalText = button.textContent;
-    const currentCount = countElement ? countElement.textContent : '0';
-    
     button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
     button.disabled = true;
     
-    // Get CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (!csrfToken) {
-        console.error('CSRF token not found');
-        showNotification('Помилка безпеки: токен не знайдено', 'error');
-        button.innerHTML = originalContent;
-        button.disabled = false;
-        return;
-    }
     
     fetch(`/books/{{ $book->slug }}/reviews/${reviewId}/like`, {
         method: 'POST',
@@ -1776,541 +1510,48 @@ window.toggleLike = function(reviewId) {
             'Accept': 'application/json'
         }
     })
-    .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log('Response data:', data);
         if (data.success) {
-            // Update like count
-            if (countElement) {
-                countElement.textContent = data.likes_count;
-                console.log('Updated count element:', countElement, 'New count:', data.likes_count);
-            } else {
-                console.error('Count element not found for ID:', `likes-count-${reviewId}`);
-                // Try to find it again
-                const retryCountElement = document.getElementById(`likes-count-${reviewId}`);
-                if (retryCountElement) {
-                    retryCountElement.textContent = data.likes_count;
-                    console.log('Found count element on retry:', retryCountElement);
-                } else {
-                    // Try to find it within the button
-                    const buttonCountElement = button.querySelector(`#likes-count-${reviewId}`);
-                    if (buttonCountElement) {
-                        buttonCountElement.textContent = data.likes_count;
-                        console.log('Found count element within button:', buttonCountElement);
-                    } else {
-                        // Try to find any span within the button
-                        const buttonSpan = button.querySelector('span');
-                        if (buttonSpan) {
-                            buttonSpan.textContent = data.likes_count;
-                            console.log('Updated span within button:', buttonSpan);
-                        }
-                    }
-                }
-            }
-            
-            // Update button state - restore original content first
+            countElement.textContent = data.likes_count;
             button.innerHTML = originalContent;
             
-            // Update count in the restored content - try multiple selectors
-            let countElementInButton = button.querySelector(`#likes-count-${reviewId}`);
-            if (!countElementInButton) {
-                countElementInButton = button.querySelector('span');
-            }
-            if (!countElementInButton) {
-                // If no span found, create one
-                const svg = button.querySelector('svg');
-                if (svg) {
-                    countElementInButton = document.createElement('span');
-                    countElementInButton.id = `likes-count-${reviewId}`;
-                    svg.parentNode.insertBefore(countElementInButton, svg.nextSibling);
-                }
+            const countSpan = button.querySelector('span');
+            if (countSpan) {
+                countSpan.textContent = data.likes_count;
             }
             
-            if (countElementInButton) {
-                countElementInButton.textContent = data.likes_count;
-                console.log('Updated count in restored button:', countElementInButton, 'New count:', data.likes_count);
-            }
-            
-            // Then update the SVG fill based on like state
             const svg = button.querySelector('svg');
             if (data.is_liked) {
                 button.classList.add('liked');
-                if (svg) {
-                    svg.setAttribute('fill', 'currentColor');
-                }
+                if (svg) svg.setAttribute('fill', 'currentColor');
             } else {
                 button.classList.remove('liked');
-                if (svg) {
-                    svg.setAttribute('fill', 'none');
-                }
+                if (svg) svg.setAttribute('fill', 'none');
             }
-            
-            // Show success animation
-            button.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                button.style.transform = 'scale(1)';
-            }, 200);
-        } else {
-            // Handle unsuccessful response
-            console.error('Unsuccessful response:', data);
-            button.innerHTML = originalContent;
-            showNotification(data.message || 'Помилка при оновленні лайка', 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        console.error('Error details:', {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-        });
-        showNotification('Помилка при оновленні лайка: ' + error.message, 'error');
-        // Restore original content properly
         button.innerHTML = originalContent;
-        const svg = button.querySelector('svg');
-        if (svg && button.classList.contains('liked')) {
-            svg.setAttribute('fill', 'currentColor');
-        } else if (svg) {
-            svg.setAttribute('fill', 'none');
-        }
     })
     .finally(() => {
         button.disabled = false;
     });
     @else
-    showNotification('Будь ласка, увійдіть в систему, щоб ставити лайки', 'warning');
+    alert('Будь ласка, увійдіть в систему, щоб ставити лайки');
     @endauth
 }
 
-// Edit comment function
+// Функции для редактирования/удаления главной рецензии (не обрабатывается Vue)
 window.editComment = function(commentId) {
-    console.log('editComment called with ID:', commentId);
-    
-    // Find the comment element
-    const commentElement = document.querySelector(`[data-reply-id="${commentId}"]`);
-    if (!commentElement) {
-        console.error('Comment element not found for ID:', commentId);
-        showNotification('Коментар не знайдено', 'error');
-        return;
-    }
-    
-    // Check if edit form already exists
-    const existingEditForm = commentElement.querySelector('.edit-form');
-    if (existingEditForm) {
-        console.log('Edit form already exists, ignoring duplicate request');
-        return;
-    }
-    
-    // Find the content element
-    const contentElement = commentElement.querySelector('.comment-content');
-    if (!contentElement) {
-        console.error('Content element not found');
-        showNotification('Помилка: не вдалося знайти контент', 'error');
-        return;
-    }
-    
-    // Check if content is already being edited
-    if (contentElement.style.display === 'none') {
-        console.log('Content is already being edited');
-        return;
-    }
-    
-    // Get current content
-    const currentContent = contentElement.textContent.trim();
-    
-    // Create edit form
-    const editForm = document.createElement('div');
-    editForm.className = 'edit-form';
-    editForm.innerHTML = `
-        <div class="edit-form-wrapper">
-            <textarea class="edit-textarea" rows="3" placeholder="Введіть текст коментаря...">${currentContent}</textarea>
-            <div class="edit-buttons">
-                <button type="button" class="cancel-edit-btn" onclick="cancelEdit(${commentId})">
-                    Скасувати
-                </button>
-                <button type="button" class="save-edit-btn" onclick="saveEdit(${commentId})">
-                    Зберегти
-                </button>
-            </div>
-        </div>
-    `;
-    
-    // Replace content with edit form
-    contentElement.style.display = 'none';
-    contentElement.parentNode.insertBefore(editForm, contentElement.nextSibling);
-    
-    // Disable edit button to prevent multiple forms
-    const editBtn = commentElement.querySelector('.edit-btn');
-    if (editBtn) {
-        editBtn.disabled = true;
-        editBtn.style.opacity = '0.5';
-    }
-    
-    // Focus textarea
-    const textarea = editForm.querySelector('.edit-textarea');
-    textarea.focus();
-    textarea.select();
+    // Эта функция больше не используется для ответов (обрабатывается Vue)
+    // Оставляем только для совместимости, если используется где-то еще
 }
 
-// Cancel edit function
-window.cancelEdit = function(commentId) {
-    const commentElement = document.querySelector(`[data-reply-id="${commentId}"]`);
-    if (!commentElement) return;
-    
-    const contentElement = commentElement.querySelector('.comment-content');
-    const editForm = commentElement.querySelector('.edit-form');
-    
-    if (contentElement && editForm) {
-        contentElement.style.display = 'block';
-        editForm.remove();
-        
-        // Re-enable edit button
-        const editBtn = commentElement.querySelector('.edit-btn');
-        if (editBtn) {
-            editBtn.disabled = false;
-            editBtn.style.opacity = '1';
-        }
-    }
-}
-
-// Save edit function
-window.saveEdit = function(commentId) {
-    const commentElement = document.querySelector(`[data-reply-id="${commentId}"]`);
-    if (!commentElement) return;
-    
-    const editForm = commentElement.querySelector('.edit-form');
-    const textarea = editForm?.querySelector('.edit-textarea');
-    
-    if (!textarea) {
-        showNotification('Помилка: форма редагування не знайдена', 'error');
-        return;
-    }
-    
-    const newContent = textarea.value.trim();
-    if (!newContent) {
-        showNotification('Текст коментаря не може бути порожнім', 'error');
-        return;
-    }
-    
-    // Get CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (!csrfToken) {
-        showNotification('Помилка безпеки: токен не знайдено', 'error');
-        return;
-    }
-    
-    // Show loading state
-    const saveBtn = editForm.querySelector('.save-edit-btn');
-    const originalText = saveBtn.textContent;
-    saveBtn.textContent = 'Збереження...';
-    saveBtn.disabled = true;
-    
-    // Send update request
-    fetch(`/books/{{ $book->slug }}/reviews/${commentId}/update`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': csrfToken,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            content: newContent
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            // Update content
-            const contentElement = commentElement.querySelector('.comment-content');
-            if (contentElement) {
-                contentElement.textContent = newContent;
-                contentElement.style.display = 'block';
-            }
-            
-            // Remove edit form
-            editForm.remove();
-            
-            // Re-enable edit button
-            const editBtn = commentElement.querySelector('.edit-btn');
-            if (editBtn) {
-                editBtn.disabled = false;
-                editBtn.style.opacity = '1';
-            }
-            
-            showNotification('Коментар оновлено!', 'success');
-        } else {
-            throw new Error(data.message || 'Помилка при оновленні коментаря');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Помилка при оновленні коментаря: ' + error.message, 'error');
-        saveBtn.textContent = originalText;
-        saveBtn.disabled = false;
-        
-        // Re-enable edit button in case of error
-        const editBtn = commentElement.querySelector('.edit-btn');
-        if (editBtn) {
-            editBtn.disabled = false;
-            editBtn.style.opacity = '1';
-        }
-    });
-}
-
-// Delete comment function
 window.deleteComment = function(commentId) {
-    if (!confirm('Ви впевнені, що хочете видалити цей коментар? Цю дію неможливо скасувати.')) {
-        return;
-    }
-    
-    console.log('deleteComment called with ID:', commentId);
-    
-    // Get CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (!csrfToken) {
-        showNotification('Помилка безпеки: токен не знайдено', 'error');
-        return;
-    }
-    
-    // Find comment element
-    const commentElement = document.querySelector(`[data-reply-id="${commentId}"]`);
-    if (!commentElement) {
-        showNotification('Коментар не знайдено', 'error');
-        return;
-    }
-    
-    // Show loading state
-    const deleteBtn = commentElement.querySelector('.delete-btn');
-    if (deleteBtn) {
-        deleteBtn.disabled = true;
-        deleteBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-    }
-    
-    // Send delete request
-    fetch(`/books/{{ $book->slug }}/reviews/${commentId}/delete`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': csrfToken,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            // Remove comment with animation
-            commentElement.style.opacity = '0';
-            commentElement.style.transform = 'translateX(-100%)';
-            
-            setTimeout(() => {
-                commentElement.remove();
-                updateRepliesCount();
-                showNotification('Коментар видалено!', 'success');
-            }, 300);
-        } else {
-            throw new Error(data.message || 'Помилка при видаленні коментаря');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Помилка при видаленні коментаря: ' + error.message, 'error');
-        
-        // Restore delete button
-        if (deleteBtn) {
-            deleteBtn.disabled = false;
-            deleteBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
-        }
-    });
-}
-
-// Show notification
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => notification.remove());
-    
-    const notification = document.createElement('div');
-    notification.className = `notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
-    
-    const colors = {
-        success: 'bg-green-500 text-white',
-        error: 'bg-red-500 text-white',
-        warning: 'bg-yellow-500 text-white',
-        info: 'bg-blue-500 text-white'
-    };
-    
-    notification.className += ` ${colors[type] || colors.info}`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-    }, 100);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
-}
-
-// Toggle reply input
-window.toggleReplyInput = function(replyId) {
-    const input = document.getElementById(`reply-input-${replyId}`);
-    if (input) {
-        input.classList.toggle('hidden');
-        if (!input.classList.contains('hidden')) {
-            setTimeout(() => {
-                const textarea = input.querySelector('.reply-textarea');
-                if (textarea) {
-                    textarea.focus();
-                    autoResizeTextarea(textarea);
-                }
-            }, 100);
-        }
-    }
-}
-
-// Toggle comment branch (collapse/expand)
-window.toggleCommentBranch = function(replyId) {
-    const container = document.getElementById(`nested-comments-${replyId}`);
-    const button = event.currentTarget;
-    const icon = button.querySelector('.toggle-icon');
-    
-    if (container) {
-        if (container.classList.contains('collapsed')) {
-            // Expand
-            container.classList.remove('collapsed');
-            icon.classList.remove('rotated');
-        } else {
-            // Collapse
-            container.classList.add('collapsed');
-            icon.classList.add('rotated');
-        }
-    }
-}
-
-// Auto-resize textarea
-function autoResizeTextarea(textarea) {
-    // Reset height to auto to get the correct scrollHeight
-    textarea.style.height = 'auto';
-    
-    // Calculate new height based on content
-    const minHeight = 24; // 1.5rem equivalent
-    const maxHeight = 128; // 8rem equivalent
-    const scrollHeight = textarea.scrollHeight;
-    
-    // Set height with constraints
-    const newHeight = Math.max(minHeight, Math.min(scrollHeight, maxHeight));
-    textarea.style.height = newHeight + 'px';
-    
-    // Show scrollbar if content exceeds max height
-    textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
-}
-
-// Update replies count
-function updateRepliesCount() {
-    const countElements = document.querySelectorAll('.replies-count');
-    const currentCount = document.querySelectorAll('.comment-branch').length;
-    
-    countElements.forEach(el => {
-        el.textContent = currentCount;
-    });
-}
-
-// Initialize page
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-resize textareas
-    document.querySelectorAll('.reply-textarea').forEach(textarea => {
-        textarea.addEventListener('input', function() {
-            autoResizeTextarea(this);
-        });
-        
-        // Initial resize
-        autoResizeTextarea(textarea);
-    });
-    
-    // Initialize collapsed state for all nested comments
-    document.querySelectorAll('.nested-comments').forEach(container => {
-        if (!container.classList.contains('collapsed')) {
-            container.classList.add('collapsed');
-        }
-    });
-    
-    // Auto-collapse deep nesting on mobile
-    handleMobileNesting();
-    
-    // Handle window resize
-    window.addEventListener('resize', debounce(handleMobileNesting, 250));
-});
-
-// Handle mobile nesting behavior
-function handleMobileNesting() {
-    const isMobile = window.innerWidth <= 768;
-    const isSmallMobile = window.innerWidth <= 480;
-    
-    if (isMobile) {
-        // Auto-collapse deeply nested comments on mobile
-        document.querySelectorAll('.nested-comments').forEach((container, index) => {
-            const nestingLevel = getNestingLevel(container);
-            
-            if (isSmallMobile && nestingLevel >= 2) {
-                // Auto-collapse after 2 levels on very small screens
-                container.classList.add('collapsed');
-            } else if (nestingLevel >= 3) {
-                // Auto-collapse after 3 levels on regular mobile
-                container.classList.add('collapsed');
-            }
-        });
-    }
-}
-
-// Get nesting level of a container
-function getNestingLevel(element) {
-    let level = 0;
-    let parent = element.parentElement;
-    
-    while (parent) {
-        if (parent.classList.contains('nested-comments')) {
-            level++;
-        }
-        parent = parent.parentElement;
-    }
-    
-    return level;
-}
-
-// Debounce function for performance
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+    // Эта функция больше не используется для ответов (обрабатывается Vue)
+    // Оставляем только для совместимости, если используется где-то еще
 }
 </script>
 @endpush

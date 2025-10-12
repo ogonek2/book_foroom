@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Создать обсуждение')
+@section('title', 'Створити обговорення')
 
 @section('main')
     <div class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300">
         <div class="mb-8">
-            <h1 class="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Создать обсуждение</h1>
-            <p class="text-light-text-secondary dark:text-dark-text-secondary">Поделитесь своими мыслями и начните обсуждение
-                с сообществом</p>
+            <h1 class="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Створити обговорення</h1>
+            <p class="text-light-text-secondary dark:text-dark-text-secondary">Поділіться своїми думками і почати обговорення
+                зі спільнотою</p>
         </div>
 
         <!-- Form -->
@@ -32,15 +32,16 @@
                 <!-- Content -->
                 <div>
                     <label for="content"
-                        class="block text-light-text-primary dark:text-dark-text-primary font-medium mb-3">Содержание
-                        обсуждения</label>
+                        class="block text-light-text-primary dark:text-dark-text-primary font-medium mb-3">Зміст
+                        обговорення</label>
                     <textarea id="content" name="content" style="display: none;"
                         placeholder="Опишите тему для обсуждения. Будьте конкретными и интересными...">{{ old('content') }}</textarea>
+                        placeholder="Опишіть тему для обговорення. Будьте конкретними і цікавими...">{{ old('content') }}</textarea>
                     <div id="quill-editor"></div>
                     @error('content')
                         <p class="mt-2 text-red-500 dark:text-red-400 text-sm">{{ $message }}</p>
                     @enderror
-                    <p class="mt-2 text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Минимум 10 символов</p>
+                    <p class="mt-2 text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Мінімум 10 символів</p>
                 </div>
 
                 <!-- Guidelines -->
@@ -50,10 +51,9 @@
                         Правила создания обсуждений
                     </h4>
                     <ul class="text-blue-600 dark:text-blue-400 text-sm space-y-1">
-                        <li>• Будьте вежливы и уважительны к другим участникам</li>
-                        <li>• Создавайте содержательные и интересные обсуждения</li>
-                        <li>• Избегайте спама и повторяющихся тем</li>
-                        <li>• Используйте понятные и информативные заголовки</li>
+                        <li>• Будьте ввічливими і уважні до інших учасників</li>
+                        <li>• Створюйте цікаві і змістовні обговорення</li>
+                        <li>• Використовуйте понятні і інформативні заголовки</li>
                     </ul>
                 </div>
 
@@ -62,17 +62,17 @@
                     <a href="{{ route('discussions.index') }}"
                         class="text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 transition-colors">
                         <i class="fas fa-arrow-left mr-2"></i>
-                        Назад к обсуждениям
+                        Назад до обговорень
                     </a>
                     <div class="flex space-x-4">
                         <button type="button" onclick="history.back()"
                             class="px-6 py-3 bg-gray-500 dark:bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors">
-                            Отмена
+                            Скасувати
                         </button>
                         <button type="submit"
                             class="bg-gradient-to-r from-brand-500 to-accent-500 text-white px-8 py-3 rounded-xl font-bold hover:from-brand-600 hover:to-accent-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
                             <i class="fas fa-paper-plane mr-2"></i>
-                            Создать обсуждение
+                            Створити обговорення
                         </button>
                     </div>
                 </div>

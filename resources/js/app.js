@@ -16,6 +16,10 @@ import NotificationsPage from './components/NotificationsPage.vue';
 import NotificationFilters from './components/NotificationFilters.vue';
 import NotificationCard from './components/NotificationCard.vue';
 import NotificationPagination from './components/NotificationPagination.vue';
+import DiscussionReply from './components/DiscussionReply.vue';
+import DiscussionRepliesList from './components/DiscussionRepliesList.vue';
+import ReviewReply from './components/ReviewReply.vue';
+import ReviewsRepliesList from './components/ReviewsRepliesList.vue';
 
 // Настройка Axios
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -732,6 +736,10 @@ Vue.component('notifications-page', NotificationsPage);
 Vue.component('notification-filters', NotificationFilters);
 Vue.component('notification-card', NotificationCard);
 Vue.component('notification-pagination', NotificationPagination);
+Vue.component('discussion-reply', DiscussionReply);
+Vue.component('discussion-replies-list', DiscussionRepliesList);
+Vue.component('review-reply', ReviewReply);
+Vue.component('reviews-replies-list', ReviewsRepliesList);
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
