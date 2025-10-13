@@ -62,7 +62,6 @@ return new class extends Migration
             // Индексы для быстрого поиска
             $table->index(['reporter_id', 'status']);
             $table->index(['reported_user_id', 'status']);
-            $table->index(['reportable_type', 'reportable_id']);
             $table->index('status');
             $table->index('type');
         });

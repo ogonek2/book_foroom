@@ -18,7 +18,14 @@ return new class extends Migration
             $table->text('content');
             $table->integer('page_number')->nullable();
             $table->boolean('is_public')->default(true);
+            $table->enum('status', ['active', 'blocked', 'pending'])->default('active');
+            $table->timestamp('moderated_at')->nullable();
+            $table->unsignedBigInteger('moderated_by')->nullable();
+            $table->text('moderation_reason')->nullable();
             $table->timestamps();
+            
+            $table->foreign('moderated_by')->references('id')->on('users')->onDelete('set null');
+            $table->index('status');
         });
     }
 

@@ -10,7 +10,10 @@
                     <div class="flex items-center space-x-3">
                         <img :src="(item.user && item.user.avatar_display) || (item.user && item.user.avatar) || '/storage/avatars/default.png'" 
                              :alt="item.user ? item.user.name : 'Користувач'"
-                             class="w-10 h-10 rounded-full">
+                             class="w-10 h-10 rounded-full" v-if="item.user && item.user.avatar_display">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center" v-else>
+                            <span>{{ item.user ? item.user.name.charAt(0) : 'Н' }}</span>
+                        </div>
                         <div>
                             <div class="text-light-text-primary dark:text-dark-text-primary font-medium">
                                 {{ item.user ? item.user.name : 'Невідомий користувач' }}
@@ -50,7 +53,7 @@
                 </div>
 
                 <!-- Read More Button -->
-                <div v-if="getTextLength(item.content) > 250" class="mb-4">
+                <div v-if="getTextLength(item.content) > 10" class="mb-4">
                     <a :href="getItemUrl(item)"
                        class="text-brand-500 dark:text-brand-400 hover:text-brand-600 dark:hover:text-brand-300 text-sm font-medium transition-colors">
                         Читати далі

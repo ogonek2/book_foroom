@@ -38,10 +38,6 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->group(base_path('routes/books.php'));
                 
-            // Маршруты для форума
-            Route::middleware('web')
-                ->group(base_path('routes/forum.php'));
-                
             // Маршруты для аутентификации
             Route::middleware('web')
                 ->group(base_path('routes/auth.php'));

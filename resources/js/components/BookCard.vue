@@ -1,7 +1,7 @@
 <template>
     <div>
         <div
-            class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-xl border border-white/20 dark:border-slate-700/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div class="p-4">
                 <div class="flex space-x-4">
                     <!-- Book Cover -->
@@ -159,6 +159,10 @@ export default {
         isAuthenticated: {
             type: Boolean,
             default: false
+        },
+        user: {
+            type: Object,
+            default: null
         }
     },
     data() {
@@ -177,11 +181,17 @@ export default {
         },
         profileCollectionsUrl() {
             // Получаем текущего пользователя из глобальных данных Vue или window
-            if (this.$root.$data.user && this.$root.$data.user.username) {
-                return `/users/${this.$root.$data.user.username}/collections`;
+            if (this.user && this.user.username) {
+                return `/users/${this.user.username}/collections`;
             }
             return '#';
         }
+    },
+    mounted() {
+        console.log('BookCard mounted with book:', this.book);
+        console.log('Is authenticated:', this.isAuthenticated);
+        console.log('User:', this.user);
+        console.log('User libraries:', this.userLibraries);
     },
     methods: {
         formatRating(rating) {

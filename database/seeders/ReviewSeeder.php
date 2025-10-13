@@ -115,7 +115,15 @@ class ReviewSeeder extends Seeder
 
         // Создаем основные рецензии
         foreach ($reviews as $reviewData) {
-            Review::create($reviewData);
+            // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
+            $existing = Review::where('book_id', $reviewData['book_id'])
+                ->where('user_id', $reviewData['user_id'])
+                ->whereNull('parent_id')
+                ->first();
+            
+            if (!$existing) {
+                Review::create($reviewData);
+            }
         }
 
         // Создаем ответы на рецензии (replies)
@@ -172,7 +180,16 @@ class ReviewSeeder extends Seeder
         ];
 
         foreach ($guestReviews as $guestReview) {
-            Review::create($guestReview);
+            // Гостевые рецензии можно создавать всегда, так как у них нет user_id для проверки уникальности
+            // Но добавим проверку на случай если контент дублируется
+            $existing = Review::where('book_id', $guestReview['book_id'])
+                ->where('content', $guestReview['content'])
+                ->whereNull('user_id')
+                ->first();
+                
+            if (!$existing) {
+                Review::create($guestReview);
+            }
         }
     }
 }

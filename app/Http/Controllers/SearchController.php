@@ -19,7 +19,7 @@ class SearchController extends Controller
                 $q->where('title', 'like', "%{$query}%")
                   ->orWhere('author', 'like', "%{$query}%")
                   ->orWhere('description', 'like', "%{$query}%");
-            })->with('category')->limit(10)->get();
+            })->with('categories')->limit(10)->get();
 
             // Search topics
             $topics = Topic::where(function ($q) use ($query) {

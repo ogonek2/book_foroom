@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed forum data
         $this->call([
+            RolePermissionSeeder::class,  // Добавляем в начало, так как роли нужны для других сидеров
             ForumSeeder::class,
             AuthorSeeder::class,
             BookSeeder::class,

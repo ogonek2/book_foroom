@@ -56,8 +56,73 @@ class AuthorController extends Controller
     public function show(Author $author)
     {
         $author->loadCount('books');
-        $books = $author->books()->with('category')->paginate(12);
         
-        return view('authors.show', compact('author', 'books'));
+        // Загружаем книги с категориями
+        $books = $author->books()->with('categories')->paginate(12);
+        
+        // Получаем библиотеки текущего пользователя
+        $userLibraries = [];
+        if (auth()->check()) {
+            $userLibraries = auth()->user()->libraries()->with('books')->get();
+        }
+        
+        // Получаем все книги автора для статистики
+        $allBooks = $author->books()->with([
+            'categories',
+            'reviews.user',
+            'reviews.book',
+            'quotes.user',
+            'quotes.book',
+            'facts.user',
+            'facts.book'
+        ])->withCount('reviews')->get();
+        
+        // Статистика из книг автора
+        $stats = [
+            'total_books' => $allBooks->count(),
+            'total_reviews' => $allBooks->sum(function($book) {
+                // Считаем только главные рецензии (не ответы)
+                return $book->reviews->where('parent_id', null)->count();
+            }),
+            'total_quotes' => $allBooks->sum(function($book) {
+                return $book->quotes->count();
+            }),
+            'total_facts' => $allBooks->sum(function($book) {
+                return $book->facts->count();
+            }),
+            'average_rating' => $allBooks->avg('display_rating') ?? 0,
+        ];
+        
+        // Получаем цитаты из всех книг автора (последние 4)
+        $quotes = collect();
+        foreach ($allBooks as $book) {
+            $quotes = $quotes->merge($book->quotes->take(2)); // Берем по 2 цитаты с каждой книги
+        }
+        $quotes = $quotes->sortByDesc('created_at')->take(4);
+        
+        // Получаем факты из всех книг автора (последние 4)
+        $facts = collect();
+        foreach ($allBooks as $book) {
+            $facts = $facts->merge($book->facts->take(2)); // Берем по 2 факта с каждой книги
+        }
+        $facts = $facts->sortByDesc('created_at')->take(4);
+        
+        // Получаем рецензии из всех книг автора (последние 6)
+        // Только главные рецензии (не ответы), у которых есть оценка
+        $reviews = collect();
+        foreach ($allBooks as $book) {
+            // Загружаем только главные рецензии (parent_id = null) с оценкой
+            $bookReviews = $book->reviews()
+                ->whereNull('parent_id') // Только главные рецензии, не ответы
+                ->whereNotNull('rating') // Только те, у которых есть оценка
+                ->with(['user', 'book'])
+                ->withCount(['likes', 'replies'])
+                ->take(2)
+                ->get();
+            $reviews = $reviews->merge($bookReviews);
+        }
+        $reviews = $reviews->sortByDesc('created_at')->take(6);
+        
+        return view('authors.show', compact('author', 'books', 'stats', 'quotes', 'facts', 'reviews', 'userLibraries'));
     }
 }

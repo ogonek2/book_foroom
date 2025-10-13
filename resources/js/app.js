@@ -759,6 +759,7 @@ Vue.component('add-quote-modal', AddQuoteModal);
 Vue.component('interesting-facts', InterestingFacts);
 Vue.component('add-review-modal', AddReviewModal);
 Vue.component('book-reviews-list', BookReviewsList);
+Vue.component('reviews-list', BookReviewsList);
 Vue.component('fact-card', FactCard);
 Vue.component('facts-list', FactsList);
 Vue.component('price-comparison', PriceComparison);

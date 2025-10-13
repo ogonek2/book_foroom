@@ -4,12 +4,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center mb-4">
-                        <div class="w-8 h-8 bg-gradient-to-r from-brand-500 to-brand-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <span class="ml-2 text-xl font-bold text-light-text-primary dark:text-dark-text-primary">BookForum</span>
+                        <span class="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">Foxy</span>
                     </div>
                     <p class="text-light-text-secondary dark:text-dark-text-secondary text-sm">
                         Книжковий форум для обговорення літератури, обміну думками та пошуку нових книг для читання.
@@ -20,7 +15,6 @@
                     <ul class="space-y-2">
                         <li><a href="{{ route('home') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Головна</a></li>
                         <li><a href="{{ route('books.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Книги</a></li>
-                        <li><a href="{{ route('forum.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Форум</a></li>
                         <li><a href="{{ route('categories.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Категорії</a></li>
                         <li><a href="{{ route('authors.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Автори</a></li>
                         <li><a href="{{ route('users.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Користувачі</a></li>

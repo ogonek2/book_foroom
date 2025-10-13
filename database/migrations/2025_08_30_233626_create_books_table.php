@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->string('author');
+            $table->foreignId('author_id')->nullable()->constrained()->onDelete('set null');
             $table->string('isbn')->nullable();
             $table->integer('publication_year')->nullable();
             $table->string('publisher')->nullable();
@@ -25,13 +26,13 @@ return new class extends Migration
             $table->integer('pages')->nullable();
             $table->decimal('rating', 3, 2)->default(0);
             $table->integer('reviews_count')->default(0);
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->boolean('is_featured')->default(false);
+            $table->json('interesting_facts')->nullable();
             $table->timestamps();
             
-            $table->index(['category_id', 'created_at']);
             $table->index(['rating', 'reviews_count']);
             $table->index(['is_featured', 'created_at']);
+            $table->index('author_id');
         });
     }
 

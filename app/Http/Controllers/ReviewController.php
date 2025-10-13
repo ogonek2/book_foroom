@@ -173,8 +173,11 @@ class ReviewController extends Controller
             }
         ]);
 
-        // Получаем связанные книги
-        $relatedBooks = Book::where('category_id', $book->category_id)
+        // Получаем связанные книги (based on shared categories)
+        $categoryIds = $book->categories->pluck('id')->toArray();
+        $relatedBooks = Book::whereHas('categories', function($q) use ($categoryIds) {
+                $q->whereIn('categories.id', $categoryIds);
+            })
             ->where('id', '!=', $book->id)
             ->orderBy('rating', 'desc')
             ->limit(4)

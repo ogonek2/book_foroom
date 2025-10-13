@@ -13,11 +13,11 @@ class BookController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Book::with('category');
+        $query = Book::with('categories');
 
         // Filter by category
         if ($request->has('category') && $request->category) {
-            $query->whereHas('category', function ($q) use ($request) {
+            $query->whereHas('categories', function ($q) use ($request) {
                 $q->where('slug', $request->category);
             });
         }
@@ -68,7 +68,7 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
-        $book->load('category');
+        $book->load('categories');
         
         // Get current user's reading status for this book
         $currentReadingStatus = null;
@@ -137,8 +137,11 @@ class BookController extends Controller
             ->orderBy('price', 'asc')
             ->get();
 
-        // Get related books
-        $relatedBooks = Book::where('category_id', $book->category_id)
+        // Get related books (based on shared categories)
+        $categoryIds = $book->categories->pluck('id')->toArray();
+        $relatedBooks = Book::whereHas('categories', function($q) use ($categoryIds) {
+                $q->whereIn('categories.id', $categoryIds);
+            })
             ->where('id', '!=', $book->id)
             ->orderBy('rating', 'desc')
             ->limit(4)

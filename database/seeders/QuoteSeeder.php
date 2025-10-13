@@ -66,13 +66,24 @@ class QuoteSeeder extends Seeder
         ];
 
         foreach ($quotes as $quoteData) {
-            Quote::create([
-                'user_id' => $users->random()->id,
-                'book_id' => $books->random()->id,
-                'content' => $quoteData['content'],
-                'page_number' => $quoteData['page_number'],
-                'is_public' => true,
-            ]);
+            $userId = $users->random()->id;
+            $bookId = $books->random()->id;
+            
+            // Проверяем, нет ли уже такой же цитаты
+            $existing = Quote::where('user_id', $userId)
+                ->where('book_id', $bookId)
+                ->where('content', $quoteData['content'])
+                ->first();
+                
+            if (!$existing) {
+                Quote::create([
+                    'user_id' => $userId,
+                    'book_id' => $bookId,
+                    'content' => $quoteData['content'],
+                    'page_number' => $quoteData['page_number'],
+                    'is_public' => true,
+                ]);
+            }
         }
     }
 }

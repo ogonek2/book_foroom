@@ -234,7 +234,13 @@ class AuthorSeeder extends Seeder
         ];
 
         foreach ($authors as $authorData) {
-            Author::create($authorData);
+            Author::firstOrCreate(
+                [
+                    'first_name' => $authorData['first_name'],
+                    'last_name' => $authorData['last_name']
+                ],
+                $authorData
+            );
         }
     }
 }

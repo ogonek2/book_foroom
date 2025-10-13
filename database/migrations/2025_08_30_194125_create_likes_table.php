@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->morphs('likeable'); // likeable_id, likeable_type
+            $table->tinyInteger('vote')->default(1)->comment('1 = like, -1 = dislike');
             $table->timestamps();
             
             $table->unique(['user_id', 'likeable_id', 'likeable_type']);

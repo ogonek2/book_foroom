@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
         <div class="flex items-center justify-between mb-6">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 Порівняйте ціни
@@ -8,7 +8,7 @@
 
         <div v-if="prices && prices.length > 0" class="space-y-4">
             <div v-for="price in sortedPrices" :key="price.id" 
-                 class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-200">
+                 class="bg-white/80 dark:bg-slate-800/80 rounded-xl p-6 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-200">
                 <div class="flex items-center justify-between">
                     <!-- Store Info -->
                     <div class="flex items-center space-x-4">

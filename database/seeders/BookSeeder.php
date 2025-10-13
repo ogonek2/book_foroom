@@ -489,18 +489,21 @@ class BookSeeder extends Seeder
                           ->first();
             
             if ($category) {
+                $categoryId = $category->id;
                 unset($bookData['category_slug'], $bookData['author_name']);
-                $bookData['category_id'] = $category->id;
                 $bookData['author_id'] = $author ? $author->id : null;
                 $bookData['author'] = $author ? $author->full_name : 'Невідомий автор';
                 $bookData['rating'] = rand(30, 50) / 10; // 3.0 - 5.0
                 $bookData['reviews_count'] = rand(5, 50);
                 $bookData['language'] = 'uk';
                 
-                Book::firstOrCreate(
+                $book = Book::firstOrCreate(
                     ['title' => $bookData['title'], 'author' => $bookData['author']],
                     $bookData
                 );
+                
+                // Прикрепляем категорию через many-to-many связь
+                $book->categories()->syncWithoutDetaching([$categoryId]);
             }
         }
     }
