@@ -51,6 +51,7 @@
                                      :key="reply.id"
                                      :reply="reply"
                                      :level="0"
+                                     :highlighted-reply-id="highlightedReplyId"
                                      :discussion-id="discussionId"
                                      :current-user-id="currentUserId"
                                      :is-discussion-closed="isDiscussionClosed"
@@ -109,6 +110,10 @@ export default {
         isModerator: {
             type: Boolean,
             default: false
+        },
+        highlightedReplyId: {
+            type: Number,
+            default: null
         }
     },
     data() {

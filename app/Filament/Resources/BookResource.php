@@ -125,34 +125,21 @@ class BookResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Категория и статус')
+                Forms\Components\Section::make('Категории и статус')
                     ->schema([
-                        Forms\Components\Select::make('category_id')
-                            ->relationship('category', 'name')
-                            ->required()
+                        Forms\Components\CheckboxList::make('categories')
+                            ->relationship('categories', 'name')
                             ->searchable()
-                            ->preload()
-                            ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
-                                    ->required()
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('slug')
-                                    ->maxLength(255)
-                                    ->unique(Category::class, 'slug'),
-                                Forms\Components\Textarea::make('description')
-                                    ->rows(3),
-                                Forms\Components\ColorPicker::make('color')
-                                    ->default('#3B82F6'),
-                                Forms\Components\TextInput::make('icon')
-                                    ->maxLength(255)
-                                    ->default('heroicon-o-book-open'),
-                            ])
-                            ->helperText('Выберите или создайте новую категорию'),
+                            ->bulkToggleable()
+                            ->columns(2)
+                            ->gridDirection('row')
+                            ->helperText('Выберите одну или несколько категорий для книги')
+                            ->required(),
                         Forms\Components\Toggle::make('is_featured')
                             ->label('Рекомендуемая')
                             ->helperText('Показывать в рекомендуемых книгах'),
                     ])
-                    ->columns(2),
+                    ->columns(1),
 
                 Forms\Components\Section::make('Обложка')
                     ->schema([
@@ -179,6 +166,62 @@ class BookResource extends Resource
                     ])
                     ->collapsible()
                     ->collapsed(false),
+
+                Forms\Components\Section::make('Цены в магазинах')
+                    ->schema([
+                        Forms\Components\Repeater::make('bookPrices')
+                            ->relationship('bookPrices')
+                            ->schema([
+                                Forms\Components\Select::make('bookstore_id')
+                                    ->label('Магазин')
+                                    ->relationship('bookstore', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->distinct()
+                                    ->helperText('Выберите магазин'),
+                                Forms\Components\TextInput::make('price')
+                                    ->label('Цена')
+                                    ->numeric()
+                                    ->required()
+                                    ->minValue(0)
+                                    ->step(0.01)
+                                    ->suffix('грн')
+                                    ->helperText('Цена книги'),
+                                Forms\Components\TextInput::make('product_url')
+                                    ->label('Ссылка на товар')
+                                    ->url()
+                                    ->required()
+                                    ->maxLength(500)
+                                    ->helperText('Полная ссылка на страницу товара в магазине'),
+                                Forms\Components\Select::make('currency')
+                                    ->label('Валюта')
+                                    ->options([
+                                        'UAH' => 'Гривна (UAH)',
+                                        'USD' => 'Доллар (USD)',
+                                        'EUR' => 'Евро (EUR)',
+                                    ])
+                                    ->default('UAH')
+                                    ->required(),
+                                Forms\Components\Toggle::make('is_available')
+                                    ->label('В наличии')
+                                    ->default(true)
+                                    ->helperText('Товар доступен для покупки'),
+                            ])
+                            ->columns(2)
+                            ->itemLabel(fn (array $state): ?string => 
+                                $state['bookstore_id'] ? 
+                                    \App\Models\Bookstore::find($state['bookstore_id'])?->name ?? 'Новая цена' 
+                                    : 'Новая цена'
+                            )
+                            ->collapsible()
+                            ->collapsed()
+                            ->addActionLabel('Добавить цену')
+                            ->reorderable(false)
+                            ->helperText('Добавьте цены на книгу в разных магазинах'),
+                    ])
+                    ->collapsible()
+                    ->collapsed(true),
             ]);
     }
 
@@ -200,11 +243,13 @@ class BookResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color('info'),
-                Tables\Columns\TextColumn::make('category.name')
-                    ->label('Категория')
-                    ->sortable()
+                Tables\Columns\TextColumn::make('categories.name')
+                    ->label('Категории')
                     ->badge()
-                    ->color(fn (Book $record): string => $record->category?->color ?? 'gray'),
+                    ->separator(',')
+                    ->color('info')
+                    ->wrap()
+                    ->limit(30),
                 Tables\Columns\TextColumn::make('publication_year')
                     ->label('Год')
                     ->numeric()
@@ -268,10 +313,12 @@ class BookResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('category')
-                    ->relationship('category', 'name')
+                Tables\Filters\SelectFilter::make('categories')
+                    ->relationship('categories', 'name')
+                    ->multiple()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->label('Категории'),
                 Tables\Filters\SelectFilter::make('author')
                     ->relationship('author', 'first_name')
                     ->searchable()

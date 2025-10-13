@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             UserLibrarySeeder::class,
             BookReadingStatusSeeder::class,
+            BookstoreSeeder::class,
         ]);
     }
 }

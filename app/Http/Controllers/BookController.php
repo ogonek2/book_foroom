@@ -113,6 +113,30 @@ class BookController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        // Get quotes for this book
+        $quotes = $book->quotes()
+            ->with('user')
+            ->where('status', 'active')
+            ->where('is_public', true)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Get facts for this book
+        $facts = $book->facts()
+            ->with('user')
+            ->where('is_public', true)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Get book prices
+        $prices = $book->bookPrices()
+            ->with('bookstore')
+            ->where('is_available', true)
+            ->orderBy('price', 'asc')
+            ->get();
+
         // Get related books
         $relatedBooks = Book::where('category_id', $book->category_id)
             ->where('id', '!=', $book->id)
@@ -128,6 +152,9 @@ class BookController extends Controller
         return view('books.show', compact(
             'book', 
             'reviews', 
+            'quotes',
+            'facts',
+            'prices',
             'relatedBooks', 
             'currentReadingStatus', 
             'userLibraries', 
@@ -241,4 +268,44 @@ class BookController extends Controller
         
         return response()->json(['id' => $book->id]);
     }
+
+    /**
+     * Add a new interesting fact to the book
+     */
+    public function addFact(Request $request, Book $book)
+    {
+        $request->validate([
+            'fact' => 'required|string|max:1000|min:10',
+        ]);
+
+        // Get current facts or initialize empty array
+        $facts = $book->interesting_facts ?? [];
+        
+        // Add new fact
+        $facts[] = $request->input('fact');
+        
+        // Update book with new facts
+        $book->update([
+            'interesting_facts' => $facts
+        ]);
+
+        // Refresh the book to get updated data
+        $book = $book->fresh();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Факт успішно додано!',
+                'facts' => $book->interesting_facts,
+                'debug' => [
+                    'book_id' => $book->id,
+                    'facts_count' => count($book->interesting_facts ?? []),
+                    'raw_facts' => $book->interesting_facts
+                ]
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Факт успішно додано!');
+    }
+
 }

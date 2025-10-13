@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\BookReadingStatusController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -50,5 +51,11 @@ Route::middleware('web')->group(function () {
         
         // Обновить рейтинг и отзыв
         Route::put('/book/{id}/review', [BookReadingStatusController::class, 'updateReview'])->name('review');
+    });
+
+    // Маршруты для жалоб
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::post('/', [ReportController::class, 'store'])->name('store');
+        Route::get('/types', [ReportController::class, 'getTypes'])->name('types');
     });
 });

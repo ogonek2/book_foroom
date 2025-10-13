@@ -155,9 +155,13 @@ export default {
         
         getNotificationUrl(notification) {
             if (notification.type === 'review_reply' && notification.data) {
-                return `/books/${notification.data.book_id}#review-${notification.data.review_id}`;
+                // Используем book_slug (новые уведомления) или fallback на book_id (старые уведомления)
+                const bookIdentifier = notification.data.book_slug || notification.data.book_id;
+                return `/books/${bookIdentifier}/reviews/${notification.data.review_id}`;
             } else if (notification.type === 'discussion_reply' && notification.data) {
-                return `/discussions/${notification.data.discussion_slug}#reply-${notification.data.reply_id}`;
+                // Используем discussion_id для маршрутизации (поддержка и старого discussion_slug)
+                const discussionIdentifier = notification.data.discussion_id || notification.data.discussion_slug;
+                return `/discussions/${discussionIdentifier}/replies/${notification.data.reply_id}`;
             }
             return null;
         },

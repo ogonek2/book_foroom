@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 
 class Category extends Model
@@ -39,9 +40,13 @@ class Category extends Model
         return $this->hasMany(Topic::class);
     }
 
-    public function books(): HasMany
+    /**
+     * Категория может иметь несколько книг (Many-to-Many)
+     */
+    public function books(): BelongsToMany
     {
-        return $this->hasMany(Book::class);
+        return $this->belongsToMany(Book::class, 'book_category')
+                    ->withTimestamps();
     }
 
     public function getRouteKeyName()

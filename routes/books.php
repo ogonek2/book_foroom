@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\FactController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,8 +25,8 @@ Route::prefix('books')->name('books.')->group(function () {
         Route::post('/', [ReviewController::class, 'store'])->name('store')->middleware('auth');
         Route::post('/guest', [ReviewController::class, 'guestStore'])->name('guest-store');
         
-        // Просмотр отдельной рецензии
-        Route::get('/{review}', [ReviewController::class, 'show'])->name('show');
+        // Просмотр отдельной рецензии (поддерживает как ID, так и slug книги)
+        Route::get('/{reviewIdentifier}', [ReviewController::class, 'show'])->name('show');
         
         // Ответы на рецензии
         Route::post('/{review}/replies', [ReviewController::class, 'storeReply'])->name('replies.store');
@@ -40,6 +42,22 @@ Route::prefix('books')->name('books.')->group(function () {
         Route::get('/{review}/edit', [ReviewController::class, 'edit'])->name('edit')->middleware('auth');
         Route::put('/{review}', [ReviewController::class, 'update'])->name('update')->middleware('auth');
         Route::delete('/{review}', [ReviewController::class, 'destroy'])->name('destroy')->middleware('auth');
+    });
+    
+    // Маршруты для цитат
+    Route::prefix('{book:slug}/quotes')->name('quotes.')->group(function () {
+        Route::post('/', [QuoteController::class, 'store'])->name('store')->middleware('auth');
+        Route::post('/{quote}/like', [QuoteController::class, 'toggleLike'])->name('like')->middleware('auth');
+        Route::put('/{quote}', [QuoteController::class, 'update'])->name('update')->middleware('auth');
+        Route::delete('/{quote}', [QuoteController::class, 'destroy'])->name('destroy')->middleware('auth');
+    });
+    
+    // Маршруты для фактов
+    Route::prefix('{book:slug}/facts')->name('facts.')->group(function () {
+        Route::post('/', [FactController::class, 'store'])->name('store')->middleware('auth');
+        Route::post('/{fact}/like', [FactController::class, 'toggleLike'])->name('like')->middleware('auth');
+        Route::put('/{fact}', [FactController::class, 'update'])->name('update')->middleware('auth');
+        Route::delete('/{fact}', [FactController::class, 'destroy'])->name('destroy')->middleware('auth');
     });
 });
 

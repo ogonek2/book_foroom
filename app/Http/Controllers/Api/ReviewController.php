@@ -45,7 +45,7 @@ class ReviewController extends Controller
         if (!$userId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Необходимо авторизоваться для лайка'
+                'message' => 'Необхідно авторизуватись для лайку'
             ], 401);
         }
 
@@ -83,7 +83,7 @@ class ReviewController extends Controller
             'isLiked' => $isLiked,
             'likesCount' => $review->fresh()->likes_count,
             'dislikesCount' => $review->fresh()->dislikes_count,
-            'message' => $isLiked ? 'Лайк добавлен!' : 'Лайк убран!'
+            'message' => $isLiked ? 'Лайк додано!' : 'Лайк прибрано!'
         ]);
     }
 
@@ -96,7 +96,7 @@ class ReviewController extends Controller
         if (!$userId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Необходимо авторизоваться для дизлайка'
+                'message' => 'Необхідно авторизуватись для дизлайка'
             ], 401);
         }
 
@@ -134,7 +134,7 @@ class ReviewController extends Controller
             'isDisliked' => $isDisliked,
             'likesCount' => $review->fresh()->likes_count,
             'dislikesCount' => $review->fresh()->dislikes_count,
-            'message' => $isDisliked ? 'Дизлайк добавлен!' : 'Дизлайк убран!'
+            'message' => $isDisliked ? 'Дизлайк додано!' : 'Дизлайк прибрано!'
         ]);
     }
 
@@ -149,13 +149,13 @@ class ReviewController extends Controller
             
             return response()->json([
                 'success' => true,
-                'message' => 'Удалено успешно!'
+                'message' => 'Вилучено успішно!'
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Нет прав на удаление'
+            'message' => 'Немає прав на вилучення'
         ], 403);
     }
 }

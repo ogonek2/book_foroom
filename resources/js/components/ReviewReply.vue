@@ -90,24 +90,25 @@
                         <span>Відповісти</span>
                     </button>
 
-                    <!-- Edit/Delete menu for owner -->
-                    <div v-if="canEdit" class="relative group">
-                        <button class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors p-1">
-                            <i class="fas fa-ellipsis-h text-xs"></i>
-                        </button>
-                        <div class="absolute right-0 top-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 min-w-32">
-                            <div class="py-2">
-                                <button @click="startEdit"
-                                        class="block w-full text-left px-3 py-2 text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-gray-700 hover:text-light-text-primary dark:hover:text-dark-text-primary">
-                                    Редагувати
-                                </button>
-                                <button @click="deleteReply"
-                                        class="block w-full text-left px-3 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                                    Вилучити
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Edit Button (for owner) -->
+                    <button v-if="canEdit" @click="startEdit"
+                            class="text-light-text-secondary dark:text-dark-text-secondary hover:text-blue-500 dark:hover:text-blue-400 transition-colors p-1">
+                        <i class="fas fa-edit text-xs"></i>
+                    </button>
+
+                    <!-- Delete Button (for owner) -->
+                    <button v-if="canEdit" @click="deleteReply"
+                            class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors p-1">
+                        <i class="fas fa-trash text-xs"></i>
+                    </button>
+
+                    <!-- Report Button -->
+                    <report-button 
+                        :reportable-type="'App\\Models\\Review'"
+                        :reportable-id="reply.id"
+                        :content-preview="getContentPreview()"
+                        :content-url="getContentUrl()">
+                    </report-button>
                 </div>
             </div>
 
@@ -150,6 +151,7 @@
                               @show-notification="showNotification" />
             </div>
         </div>
+
     </div>
 </template>
 
@@ -371,6 +373,20 @@ export default {
         showNotification(message, type = 'info') {
             // Эмитим событие родителю для единообразия
             this.$emit('show-notification', message, type);
+        },
+
+        getContentPreview() {
+            // Возвращаем превью контента для жалобы
+            if (this.reply.content) {
+                const text = this.reply.content;
+                return text.substring(0, 100) + (text.length > 100 ? '...' : '');
+            }
+            return 'Відповідь на рецензію';
+        },
+
+        getContentUrl() {
+            // Возвращаем URL контента
+            return `/books/${this.bookSlug}/reviews/${this.reviewId}#reply-${this.reply.id}`;
         }
     }
 };

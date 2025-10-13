@@ -26,6 +26,9 @@ class NotificationService
             return;
         }
 
+        // Убеждаемся, что книга загружена
+        $parentReview->load('book');
+        
         Notification::create([
             'user_id' => $recipient->id,
             'sender_id' => $sender->id,
@@ -35,6 +38,7 @@ class NotificationService
             'notifiable_id' => $review->id,
             'data' => [
                 'book_id' => $parentReview->book_id,
+                'book_slug' => $parentReview->book->slug,
                 'book_title' => $parentReview->book->title ?? 'Книга',
                 'review_id' => $parentReview->id,
                 'reply_id' => $review->id,

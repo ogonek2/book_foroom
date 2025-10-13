@@ -42,7 +42,7 @@ class SystemSettings extends Page implements HasForms
             'session_driver' => config('session.driver'),
             'mail_driver' => config('mail.default'),
             'admin_theme' => 'light',
-            'admin_language' => 'ru',
+            'admin_language' => 'uk',
             'admin_timezone' => config('app.timezone'),
         ]);
     }

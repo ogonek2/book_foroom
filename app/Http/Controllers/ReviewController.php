@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Review;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -20,6 +21,11 @@ class ReviewController extends Controller
         $request->validate([
             'content' => 'required|string|max:5000',
             'rating' => 'nullable|integer|min:1|max:10',
+            'review_type' => 'nullable|in:review,opinion',
+            'opinion_type' => 'nullable|in:positive,neutral,negative',
+            'book_type' => 'nullable|in:paper,electronic,audio',
+            'language' => 'nullable|in:uk,en',
+            'contains_spoiler' => 'nullable|boolean',
         ]);
 
         // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
@@ -65,6 +71,11 @@ class ReviewController extends Controller
             'book_id' => $book->getKey(),
             'user_id' => Auth::id(),
             'parent_id' => null,
+            'review_type' => $request->input('review_type', 'review'),
+            'opinion_type' => $request->input('opinion_type', 'positive'),
+            'book_type' => $request->input('book_type', 'paper'),
+            'language' => $request->input('language', 'uk'),
+            'contains_spoiler' => $request->boolean('contains_spoiler', false),
         ]);
 
         // Синхронизируем рейтинг с BookReadingStatus
@@ -104,6 +115,11 @@ class ReviewController extends Controller
         $request->validate([
             'content' => 'required|string|max:5000',
             'rating' => 'required|integer|min:1|max:10',
+            'review_type' => 'nullable|in:review,opinion',
+            'opinion_type' => 'nullable|in:positive,neutral,negative',
+            'book_type' => 'nullable|in:paper,electronic,audio',
+            'language' => 'nullable|in:uk,en,de,other',
+            'contains_spoiler' => 'nullable|boolean',
         ]);
 
         $review = Review::create([
@@ -112,6 +128,11 @@ class ReviewController extends Controller
             'book_id' => $book->getKey(),
             'user_id' => null, // Гість
             'parent_id' => null,
+            'review_type' => $request->input('review_type', 'review'),
+            'opinion_type' => $request->input('opinion_type', 'positive'),
+            'book_type' => $request->input('book_type', 'paper'),
+            'language' => $request->input('language', 'uk'),
+            'contains_spoiler' => $request->boolean('contains_spoiler', false),
         ]);
 
         // Оновлюємо рейтинг книги
@@ -131,8 +152,13 @@ class ReviewController extends Controller
     /**
      * Show a single review with its discussion thread
      */
-    public function show(Book $book, Review $review)
+    public function show(Book $book, $reviewIdentifier)
     {
+        // Находим рецензию по ID
+        $review = Review::where('id', $reviewIdentifier)
+            ->where('book_id', $book->id)
+            ->firstOrFail();
+
         // Загружаем рецензию с автором и первыми ответами (только 2 уровня)
         $review->load([
             'user',
@@ -203,6 +229,8 @@ class ReviewController extends Controller
 
         // Оновлюємо лічильник відповідей для основного отзыва
         $review->updateRepliesCount();
+
+        // Уведомление создается автоматически в событии created модели Review
 
         if ($request->expectsJson()) {
             // Загружаем связанные данные для фронтенда
@@ -290,37 +318,34 @@ class ReviewController extends Controller
         
         $request->validate([
             'content' => 'required|string|max:5000',
-            'rating' => 'required|integer|min:1|max:10',
+            'rating' => 'nullable|integer|min:1|max:10',
+            'review_type' => 'nullable|in:review,opinion',
+            'opinion_type' => 'nullable|in:positive,neutral,negative',
+            'book_type' => 'nullable|in:paper,electronic,audio',
+            'language' => 'nullable|in:uk,en,de,other',
+            'contains_spoiler' => 'nullable|boolean',
         ]);
 
         $review->update([
             'content' => $request->input('content'),
-            'rating' => $request->input('rating'),
+            'rating' => $request->input('rating', $review->rating),
+            'review_type' => $request->input('review_type', $review->review_type),
+            'opinion_type' => $request->input('opinion_type', $review->opinion_type),
+            'book_type' => $request->input('book_type', $review->book_type),
+            'language' => $request->input('language', $review->language),
+            'contains_spoiler' => $request->boolean('contains_spoiler', $review->contains_spoiler),
         ]);
 
-        // Синхронизируем рейтинг с BookReadingStatus
-        $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
-            [
-                'book_id' => $book->getKey(),
-                'user_id' => Auth::id(),
-            ],
-            [
-                'status' => 'read',
-                'finished_at' => now(),
-            ]
-        );
-
-        // Обновляем рейтинг в BookReadingStatus
-        $readingStatus->update(['rating' => $request->input('rating')]);
-
-        // Оновлюємо рейтинг книги
-        $book->updateRating();
+        // Оновлюємо рейтинг книги если рейтинг изменился
+        if ($request->has('rating') && $request->input('rating') != $review->rating) {
+            $book->updateRating();
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Рецензію оновлено!',
-                'review' => $review
+                'review' => $review->fresh()->load('user')
             ]);
         }
 

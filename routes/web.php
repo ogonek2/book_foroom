@@ -12,6 +12,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('dashboard', [ProfileController::class, 'show'])->middleware(['auth', 'verified'])->name('dashboard');
 
+
 // Book rating routes (должны быть ПЕРЕД другими маршрутами)
 Route::middleware(['auth'])->group(function () {
     Route::post('/books/{book:slug}/rating', [BookController::class, 'updateRating'])->name('books.rating.update');

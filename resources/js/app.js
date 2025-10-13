@@ -20,6 +20,19 @@ import DiscussionReply from './components/DiscussionReply.vue';
 import DiscussionRepliesList from './components/DiscussionRepliesList.vue';
 import ReviewReply from './components/ReviewReply.vue';
 import ReviewsRepliesList from './components/ReviewsRepliesList.vue';
+import QuoteCard from './components/books/QuoteCard.vue';
+import QuotesList from './components/books/QuotesList.vue';
+import AddQuoteModal from './components/books/AddQuoteModal.vue';
+import InterestingFacts from './components/books/InterestingFacts.vue';
+import AddReviewModal from './components/books/AddReviewModal.vue';
+import BookReviewsList from './components/books/ReviewsList.vue';
+import FactCard from './components/books/FactCard.vue';
+import FactsList from './components/books/FactsList.vue';
+import PriceComparison from './components/books/PriceComparison.vue';
+import UnifiedContentList from './components/UnifiedContentList.vue';
+import ContentFilters from './components/ContentFilters.vue';
+import ReportModal from './components/ReportModal.vue';
+import ReportButton from './components/ReportButton.vue';
 
 // Настройка Axios
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -740,6 +753,19 @@ Vue.component('discussion-reply', DiscussionReply);
 Vue.component('discussion-replies-list', DiscussionRepliesList);
 Vue.component('review-reply', ReviewReply);
 Vue.component('reviews-replies-list', ReviewsRepliesList);
+Vue.component('quote-card', QuoteCard);
+Vue.component('quotes-list', QuotesList);
+Vue.component('add-quote-modal', AddQuoteModal);
+Vue.component('interesting-facts', InterestingFacts);
+Vue.component('add-review-modal', AddReviewModal);
+Vue.component('book-reviews-list', BookReviewsList);
+Vue.component('fact-card', FactCard);
+Vue.component('facts-list', FactsList);
+Vue.component('price-comparison', PriceComparison);
+Vue.component('unified-content-list', UnifiedContentList);
+Vue.component('content-filters', ContentFilters);
+Vue.component('report-modal', ReportModal);
+Vue.component('report-button', ReportButton);
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {

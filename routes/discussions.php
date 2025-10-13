@@ -25,6 +25,7 @@ Route::prefix('discussions')->name('discussions.')->group(function () {
         Route::post('/{discussion}/reopen', [DiscussionController::class, 'reopen'])->name('reopen');
         
         // Discussion replies - most specific routes first
+        Route::get('/{discussion}/replies/{reply}', [DiscussionController::class, 'showReply'])->name('replies.show');
         Route::post('/{discussion}/replies', [DiscussionController::class, 'storeReply'])->name('replies.store');
         Route::put('/{discussion}/replies/{reply}', [DiscussionController::class, 'updateReply'])->name('replies.update');
         Route::delete('/{discussion}/replies/{reply}', [DiscussionController::class, 'destroyReply'])->name('replies.destroy');

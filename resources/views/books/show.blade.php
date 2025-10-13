@@ -145,327 +145,128 @@
                         </div>
                     </div>
 
-                    <!-- Price Comparison Section -->
-                    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl p-8">
-                        <h2 class="text-2xl font-bold text-white mb-6">Порівняйте ціни</h2>
+                    @php
+                        $pricesData = $prices
+                            ->map(function ($price) {
+                                return [
+                                    'id' => $price->id,
+                                    'price' => $price->price,
+                                    'currency' => $price->currency,
+                                    'formatted_price' => $price->formatted_price,
+                                    'product_url' => $price->product_url,
+                                    'is_available' => $price->is_available,
+                                    'bookstore' => [
+                                        'id' => $price->bookstore->id,
+                                        'name' => $price->bookstore->name,
+                                        'logo_url' => $price->bookstore->logo_url,
+                                        'description' => $price->bookstore->description,
+                                    ],
+                                ];
+                            })
+                            ->toArray();
+                    @endphp
+                    <price-comparison :prices="{{ json_encode($pricesData) }}"></price-comparison>
+                    <!-- Reviews Section (Vue Component) -->
+                    @php
+                        $reviewsData = $reviews
+                            ->map(function ($review) {
+                                return [
+                                    'id' => $review->id,
+                                    'content' => $review->content,
+                                    'rating' => $review->rating,
+                                    'created_at' => $review->created_at->toISOString(),
+                                    'user_id' => $review->user_id,
+                                    'is_guest' => $review->isGuest(),
+                                    'user' => $review->user
+                                        ? [
+                                            'id' => $review->user->id,
+                                            'name' => $review->user->name,
+                                            'username' => $review->user->username,
+                                            'avatar_display' => $review->user->avatar_display ?? null,
+                                        ]
+                                        : null,
+                                    'is_liked' => auth()->check() ? $review->isLikedBy(auth()->id()) : false,
+                                    'likes_count' => $review->likes_count ?? 0,
+                                    'replies_count' => $review->replies_count ?? 0,
+                                    'contains_spoiler' => $review->contains_spoiler ?? false,
+                                ];
+                            })
+                            ->toArray();
+                    @endphp
 
-                        <div class="space-y-4">
-                            <!-- Yakaboo Entry -->
-                            <div
-                                class="bg-gray dark:bg-gray-700 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 cursor-pointer hover:shadow-lg price-card-hover">
-                                <div class="flex items-center space-x-4">
-                                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                                        <span class="text-orange-500 font-bold text-xl">Y</span>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-white font-bold text-lg">Yakaboo</h3>
-                                        <p class="text-gray-300 text-sm">Онлайн книжковий магазин</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-4">
-                                    <span class="text-white font-bold text-xl">250 грн</span>
-                                    <button
-                                        class="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors duration-200 flex items-center space-x-2">
-                                        <span>На сайт</span>
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
+                    <book-reviews-list :reviews="{{ json_encode($reviewsData) }}" book-slug="{{ $book->slug }}"
+                        :current-user-id="{{ auth()->id() }}"
+                        :user-review="{{ $userReview
+                            ? json_encode([
+                                'id' => $userReview->id,
+                                'content' => $userReview->content,
+                                'rating' => $userReview->rating,
+                            ])
+                            : 'null' }}">
+                    </book-reviews-list>
 
-                            <!-- Book E Entry -->
-                            <div
-                                class="bg-gray dark:bg-gray-700 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 cursor-pointer hover:shadow-lg price-card-hover">
-                                <div class="flex items-center space-x-4">
-                                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                                        <span class="text-red-500 font-bold text-xl">E</span>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-white font-bold text-lg">Book E</h3>
-                                        <p class="text-gray-300 text-sm">Електронні книги</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-4">
-                                    <span class="text-white font-bold text-xl">245 грн</span>
-                                    <button
-                                        class="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors duration-200 flex items-center space-x-2">
-                                        <span>На сайт</span>
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
+                    <!-- Quotes Section -->
+                    @php
+                        $quotesData = $quotes
+                            ->map(function ($quote) {
+                                return [
+                                    'id' => $quote->id,
+                                    'content' => $quote->content,
+                                    'page_number' => $quote->page_number,
+                                    'is_public' => $quote->is_public,
+                                    'created_at' => $quote->created_at->toISOString(),
+                                    'user_id' => $quote->user_id,
+                                    'user' => $quote->user
+                                        ? [
+                                            'id' => $quote->user->id,
+                                            'name' => $quote->user->name,
+                                            'username' => $quote->user->username,
+                                            'avatar_display' => $quote->user->avatar_display ?? null,
+                                        ]
+                                        : null,
+                                    'is_liked_by_current_user' => auth()->check()
+                                        ? $quote->isLikedBy(auth()->id())
+                                        : false,
+                                    'likes_count' => $quote->likes()->where('vote', 1)->count(),
+                                ];
+                            })
+                            ->toArray();
+                    @endphp
 
-                            <!-- Буква Entry -->
-                            <div
-                                class="bg-gray dark:bg-gray-700 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 cursor-pointer hover:shadow-lg price-card-hover">
-                                <div class="flex items-center space-x-4">
-                                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                                        <span class="text-orange-500 font-bold text-xl">Б</span>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-white font-bold text-lg">Буква</h3>
-                                        <p class="text-gray-300 text-sm">Книжковий магазин</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-4">
-                                    <span class="text-white font-bold text-xl">265 грн</span>
-                                    <button
-                                        class="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-600 transition-colors duration-200 flex items-center space-x-2">
-                                        <span>На сайт</span>
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
+                    <div id="quotes-app">
+                        <quotes-list :quotes="{{ json_encode($quotesData) }}" book-slug="{{ $book->slug }}"
+                            :current-user-id="{{ auth()->id() }}">
+                        </quotes-list>
                         </div>
 
-                        <!-- Show More Button -->
-                        <div class="text-center mt-6">
-                            <button class="text-white hover:text-gray-300 transition-colors duration-200 font-medium">
-                                Показати більше пропозицій
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Reviews Section -->
-                    <div
-                        class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30">
-                        <div class="p-8 border-b border-slate-200/30 dark:border-slate-700/30">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h2 class="text-3xl font-black text-slate-900 dark:text-white">Рецензії</h2>
-                                    <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">Поділіться своєю думкою
-                                        про книгу</p>
-                                </div>
-                                @auth
-                                    @if ($userReview)
-                                        <div class="flex space-x-4">
-                                            <button onclick="toggleEditReviewForm()" class="text-green-600 dark:text-white"
-                                                style="text-decoration: underline;">
-                                                Редагувати рецензію
-                                            </button>
-                                            <button onclick="deleteUserReview()" class="text-red-500 dark:text-purple-300">
-                                                <i class="fas fa-trash mr-1"></i>
-                                                Видалити рецензію
-                                            </button>
-                                        </div>
-                                    @else
-                                        <button onclick="toggleReviewForm()"
-                                            class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
-                                            <svg class="w-6 h-6 mr-3 inline" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            Написати рецензію
-                                        </button>
-                                    @endif
-                                @else
-                                    <button onclick="toggleReviewForm()"
-                                        class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
-                                        <svg class="w-6 h-6 mr-3 inline" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        Написати рецензію (гість)
-                                    </button>
-                                @endauth
-                            </div>
-                        </div>
-
-                        <!-- Review Form for All Users -->
-                        <div id="reviewForm"
-                            class="hidden p-8 border-b border-slate-200/30 dark:border-slate-700/30 bg-slate-50/50 dark:bg-slate-800/50">
-                            @auth
-                                <!-- Form for authenticated users -->
-                                <form action="{{ route('books.reviews.store', $book) }}" method="POST" class="space-y-6">
-                                    @csrf
-                                    <div>
-                                        <label
-                                            class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Оцінка</label>
-                                        <div class="flex items-center space-x-1 mb-2" id="reviewFormStars">
-                                            @for ($i = 1; $i <= 10; $i++)
-                                                <svg class="w-6 h-6 cursor-pointer transition-all duration-200 hover:scale-110 review-form-star {{ $i <= ($userRating ?? 0) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-300' }}"
-                                                    data-rating="{{ $i }}"
-                                                    fill="{{ $i <= ($userRating ?? 0) ? 'currentColor' : 'none' }}"
-                                                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path
-                                                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                                </svg>
-                                            @endfor
-                                            <span class="ml-3 text-sm text-gray-600 dark:text-gray-400 font-medium"
-                                                id="reviewRatingText">
-                                                @if ($userRating)
-                                                    {{ $userRating }}/10
-                                                @else
-                                                    Оберіть оцінку
-                                                @endif
-                                            </span>
-                                        </div>
-                                        <input type="hidden" name="rating" id="ratingInput" value="">
-                                    </div>
-                                    <div>
-                                        <label
-                                            class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Рецензія</label>
-                                        <textarea name="content" rows="6"
-                                            class="w-full px-6 py-4 border border-slate-300 dark:border-slate-600 rounded-2xl focus:ring-4 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white transition-all duration-300 text-lg font-medium resize-none"
-                                            placeholder="Поділіться своїми думками про книгу, персонажів, сюжет..."></textarea>
-                                    </div>
-                                    <div class="flex justify-end space-x-4">
-                                        <button type="button" onclick="toggleReviewForm()"
-                                            class="px-8 py-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-bold text-lg">
-                                            Скасувати
-                                        </button>
-                                        <button type="submit"
-                                            class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
-                                            <svg class="w-6 h-6 mr-3 inline" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v8" />
-                                            </svg>
-                                            Опублікувати
-                                        </button>
-                                    </div>
-                                </form>
-                            @else
-                                <!-- Form for guests -->
-                                <form action="{{ route('books.reviews.guest-store', $book) }}" method="POST"
-                                    class="space-y-6">
-                                    @csrf
-                                    <div>
-                                        <label
-                                            class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Оцінка</label>
-                                        <div class="flex items-center space-x-1" id="ratingStarsGuest">
-                                            @for ($i = 1; $i <= 10; $i++)
-                                                <button type="button"
-                                                    class="star-rating w-6 h-6 text-slate-300 dark:text-slate-600 hover:text-yellow-400 transition-all duration-200 hover:scale-110 flex items-center justify-center"
-                                                    data-rating="{{ $i }}">
-                                                    <svg class="w-full h-full" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path
-                                                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                                    </svg>
-                                                </button>
-                                            @endfor
-                                            <span class="ml-3 text-sm text-gray-600 dark:text-gray-400 font-medium"
-                                                id="guestRatingText">
-                                                Оберіть оцінку
-                                            </span>
-                                        </div>
-                                        <input type="hidden" name="rating" id="ratingInputGuest" value="">
-                                    </div>
-                                    <div>
-                                        <label
-                                            class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Рецензия</label>
-                                        <textarea name="content" rows="6"
-                                            class="w-full px-6 py-4 border border-slate-300 dark:border-slate-600 rounded-2xl focus:ring-4 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white transition-all duration-300 text-lg font-medium resize-none"
-                                            placeholder="Поделитесь своими мыслями о книге, персонажах, сюжете..."></textarea>
-                                    </div>
-                                    <div class="flex justify-end space-x-4">
-                                        <button type="button" onclick="toggleReviewForm()"
-                                            class="px-8 py-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-bold text-lg">
-                                            Отмена
-                                        </button>
-                                        <button type="submit"
-                                            class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-xl hover:shadow-2xl">
-                                            <svg class="w-6 h-6 mr-3 inline" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v8" />
-                                            </svg>
-                                            Опублікувати як гість
-                                        </button>
-                                    </div>
-                                </form>
-                            @endauth
-                        </div>
-
-                        <!-- Edit Review Form for Authenticated Users -->
-                        @auth
-                            @if ($userReview)
-                                <div id="editReviewForm"
-                                    class="hidden p-8 border-t border-slate-200/30 dark:border-slate-700/30">
-                                    <form
-                                        action="{{ route('books.reviews.update', ['book' => $book, 'review' => $userReview]) }}"
-                                        method="POST" class="space-y-6">
-                                        @csrf
-                                        @method('PUT')
-                                        <div>
-                                            <label
-                                                class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-4">Рейтинг</label>
-                                            <div class="flex space-x-2" id="editRatingStars">
-                                                @for ($i = 1; $i <= 10; $i++)
-                                                    <button type="button" onclick="setEditRating({{ $i }})"
-                                                        class="star-edit text-3xl transition-colors duration-200 {{ $i <= $userReview->rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}">
-                                                        ★
-                                                    </button>
-                                                @endfor
-                                            </div>
-                                            <input type="hidden" name="rating" id="editRatingInput"
-                                                value="{{ $userReview->rating }}">
-                                        </div>
-                                        <div>
-                                            <label
-                                                class="block text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Рецензія</label>
-                                            <textarea name="content" rows="6"
-                                                class="w-full px-6 py-4 border border-slate-300 dark:border-slate-600 rounded-2xl focus:ring-4 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white transition-all duration-300 text-lg font-medium resize-none"
-                                                placeholder="Поділіться своїми думками про книгу, персонажів, сюжет...">{{ $userReview->content }}</textarea>
-                                        </div>
-                                        <div class="flex justify-end space-x-4">
-                                            <button type="button" onclick="toggleEditReviewForm()"
-                                                class="px-8 py-4 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-lg">
-                                                Скасувати
-                                            </button>
-                                            <button type="submit"
-                                                class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-2xl">
-                                                Оновити рецензію
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            @endif
-                        @endauth
-
-                        <!-- Reviews List -->
-                        <div class="p-8">
-                            @if ($reviews->count() > 0)
-                                <div class="space-y-8">
-                                    @foreach ($reviews as $review)
-                                        @if (is_null($review->parent_id))
-                                            @include('books.partials.review', [
-                                                'review' => $review,
-                                                'book' => $book,
-                                            ])
-                                        @endif
-                                    @endforeach
-                                </div>
-                                <div class="mt-8">
-                                    {{ $reviews->links() }}
-                                </div>
-                            @else
-                                <div class="text-center py-20">
-                                    <div
-                                        class="w-32 h-32 mx-auto mb-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
-                                        <svg class="w-16 h-16 text-slate-400" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                        </svg>
-                                    </div>
-                                    <h3 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Поки немає рецензій
-                                    </h3>
-                                    <p class="text-slate-500 dark:text-slate-400 text-xl font-medium">Станьте першим, хто
-                                        поділиться своєю думкою про цю книгу</p>
-                                </div>
-                            @endif
-                        </div>
+                    <!-- Interesting Facts Section -->
+                    @php
+                        $factsData = $facts
+                            ->map(function ($fact) {
+                                return [
+                                    'id' => $fact->id,
+                                    'content' => $fact->content,
+                                    'user_id' => $fact->user_id,
+                                    'user' => [
+                                        'id' => $fact->user->id,
+                                        'name' => $fact->user->name,
+                                        'username' => $fact->user->username,
+                                        'avatar_display' => $fact->user->avatar_display,
+                                    ],
+                                    'is_liked_by_current_user' => auth()->check()
+                                        ? $fact->isLikedBy(auth()->id())
+                                        : false,
+                                    'likes_count' => $fact->likes()->where('vote', 1)->count(),
+                                    'created_at' => $fact->created_at->toISOString(),
+                                ];
+                            })
+                            ->toArray();
+                    @endphp
+                    <div id="facts-app">
+                        <facts-list :facts="{{ json_encode($factsData) }}" book-slug="{{ $book->slug }}"
+                            :current-user-id="{{ auth()->id() }}"
+                            :is-moderator="{{ auth()->check() && auth()->user()->isModerator() ? 'true' : 'false' }}">
+                        </facts-list>
                     </div>
                 </div>
 
@@ -511,8 +312,7 @@
                                                 @endif
                                             </span>
                                         </div>
-                                        <input type="hidden" name="rating" id="ratingValue"
-                                            value="{{ $userRating ?? 0 }}">
+                                        <input type="hidden" name="rating" id="ratingValue" value="{{ $userRating ?? 0 }}">
                                     </form>
                                 </div>
                             @endauth
@@ -627,10 +427,18 @@
         </div>
     </div>
     
+@endsection
+
     @push('scripts')
         <script>
             // Vue приложение для страницы книги
             document.addEventListener('DOMContentLoaded', function() {
+            // Ждем загрузки Vue
+            if (typeof Vue === 'undefined') {
+                console.error('Vue is not loaded');
+                return;
+            }
+
                 const bookShowApp = new Vue({
                         el: '#app',
                         data: {
@@ -641,6 +449,13 @@
                         @endauth
                     },
                     methods: {
+                    // Modal management
+                    openQuoteModal() {
+                        this.$refs.addQuoteModal.show();
+                    },
+                    openReviewModal() {
+                        this.$refs.addReviewModal.show();
+                    },
                         handleNotification(notification) {
                             this.showNotification(notification.message, notification.type);
                         },
@@ -674,124 +489,6 @@
                     }
                 });
             });
-
-            function toggleReviewForm() {
-                const form = document.getElementById('reviewForm');
-                form.classList.toggle('hidden');
-
-                if (!form.classList.contains('hidden')) {
-                    // Инициализируем звезды при открытии формы
-                    setTimeout(() => {
-                        initializeReviewFormStars();
-                    }, 100);
-                    
-                    form.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }
-            }
-
-            // Функция для инициализации звезд в форме рецензии
-            function initializeReviewFormStars() {
-                // Для авторизованных пользователей
-                const reviewStars = document.querySelectorAll('#reviewFormStars .review-form-star');
-                if (reviewStars.length > 0) {
-                    const currentRating = parseInt(document.getElementById('ratingInput').value) || 0;
-                    reviewStars.forEach((s, index) => {
-                        if (index < currentRating) {
-                            s.classList.add('text-yellow-400');
-                            s.classList.remove('text-gray-300', 'dark:text-gray-600');
-                            s.setAttribute('fill', 'currentColor');
-                        } else {
-                            s.classList.remove('text-yellow-400');
-                            s.classList.add('text-gray-300', 'dark:text-gray-600');
-                            s.setAttribute('fill', 'none');
-                        }
-                    });
-                }
-
-                // Для гостей
-                const guestStars = document.querySelectorAll('#ratingStarsGuest .star-rating');
-                if (guestStars.length > 0) {
-                    const currentRating = parseInt(document.getElementById('ratingInputGuest').value) || 0;
-                    guestStars.forEach((s, index) => {
-                        if (index < currentRating) {
-                            s.classList.add('text-yellow-400');
-                            s.classList.remove('text-slate-300', 'dark:text-slate-600');
-                        } else {
-                            s.classList.remove('text-yellow-400');
-                            s.classList.add('text-slate-300', 'dark:text-slate-600');
-                        }
-                    });
-                }
-            }
-
-            function toggleEditReviewForm() {
-                const form = document.getElementById('editReviewForm');
-                form.classList.toggle('hidden');
-
-                if (!form.classList.contains('hidden')) {
-                    form.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }
-            }
-
-            function setEditRating(rating) {
-                document.getElementById('editRatingInput').value = rating;
-
-                const stars = document.querySelectorAll('.star-edit');
-                stars.forEach((star, index) => {
-                    if (index < rating) {
-                        star.classList.remove('text-gray-300', 'dark:text-gray-600');
-                        star.classList.add('text-yellow-400');
-                    } else {
-                        star.classList.remove('text-yellow-400');
-                        star.classList.add('text-gray-300', 'dark:text-gray-600');
-                    }
-                });
-            }
-
-            function deleteUserReview() {
-                if (confirm('Ви впевнені, що хочете видалити свою рецензію? Цю дію неможливо скасувати.')) {
-                    const reviewId = {{ $userReview->id ?? 'null' }};
-                    if (reviewId) {
-                        fetch(`/books/{{ $book->slug }}/reviews/${reviewId}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                                        'content'),
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json', // Важно! Это указывает серверу, что мы ожидаем JSON
-                                },
-                            })
-                            .then(response => {
-                                // Проверяем, что ответ успешный
-                                if (!response.ok) {
-                                    throw new Error(`HTTP error! status: ${response.status}`);
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                if (data.success) {
-                                    showNotification('Рецензію успішно видалено!', 'success');
-                                    // Перезагружаем страницу после небольшой задержки
-                                    setTimeout(() => {
-                                        location.reload();
-                                    }, 1000);
-                                } else {
-                                    showNotification('Помилка при видаленні рецензії: ' + data.message, 'error');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                showNotification('Помилка при видаленні рецензії', 'error');
-                            });
-                    }
-                }
-            }
 
             // Функция для переключения описания книги
             function toggleDescription() {
@@ -864,32 +561,37 @@
                 setTimeout(checkDescriptionHeight, 100);
 
                 // Инициализируем прогресс-бары
-                initializeProgressBars();
-
-                // Инициализируем звезды формы рецензии
-                initializeReviewFormStars();
+            // initializeProgressBars(); // Функция не определена
 
                 // Инициализируем статус чтения
                 @if ($currentReadingStatus)
-                    initializeReadingStatus('{{ $currentReadingStatus->status }}');
+                // initializeReadingStatus('{{ $currentReadingStatus->status }}'); // Функция не определена
                 @endif
 
                 // Обработчик для закрытия модального окна по клику на фон
-                document.getElementById('readingStatusModal').addEventListener('click', function(e) {
+            const readingStatusModal = document.getElementById('readingStatusModal');
+            if (readingStatusModal) {
+                readingStatusModal.addEventListener('click', function(e) {
                     if (e.target === this) {
                         closeReadingStatusModal();
                     }
                 });
+            }
 
                 // Обработчик для закрытия модального окна добавления в доборку по клику на фон
-                document.getElementById('addToLibraryModal').addEventListener('click', function(e) {
+            const addToLibraryModal = document.getElementById('addToLibraryModal');
+            if (addToLibraryModal) {
+                addToLibraryModal.addEventListener('click', function(e) {
                     if (e.target === this) {
                         closeAddToLibraryModal();
                     }
                 });
+            }
 
                 // Обработчик для формы создания новой доборки
-                document.getElementById('createLibraryForm').addEventListener('submit', function(e) {
+            const createLibraryForm = document.getElementById('createLibraryForm');
+            if (createLibraryForm) {
+                createLibraryForm.addEventListener('submit', function(e) {
                     e.preventDefault();
 
                     const formData = new FormData(this);
@@ -934,71 +636,9 @@
                             showNotification('Помилка при створенні добірки', 'error');
                         });
                 });
+            }
 
-                const stars = document.querySelectorAll('.star-rating');
-                const ratingInputs = document.querySelectorAll('input[name="rating"]');
-
-                if (stars.length > 0 && ratingInputs.length > 0) {
-                    stars.forEach(star => {
-                        star.addEventListener('click', function() {
-                            const rating = this.dataset.rating;
-                            const form = this.closest('form');
-                            const formRatingInput = form.querySelector('input[name="rating"]');
-
-                            if (formRatingInput) {
-                                formRatingInput.value = rating;
-                            }
-
-                            // Update all stars in this form
-                            const formStars = form.querySelectorAll('.star-rating');
-                            formStars.forEach((s, index) => {
-                                if (index < rating) {
-                                    s.classList.remove('text-slate-300', 'dark:text-slate-600');
-                                    s.classList.add('text-yellow-400');
-                                } else {
-                                    s.classList.remove('text-yellow-400');
-                                    s.classList.add('text-slate-300', 'dark:text-slate-600');
-                                }
-                            });
-                        });
-
-                        star.addEventListener('mouseenter', function() {
-                            const rating = this.dataset.rating;
-                            const form = this.closest('form');
-                            const formStars = form.querySelectorAll('.star-rating');
-
-                            formStars.forEach((s, index) => {
-                                if (index < rating) {
-                                    s.classList.add('text-yellow-400');
-                                } else {
-                                    s.classList.remove('text-yellow-400');
-                                }
-                            });
-                        });
-                    });
-
-                    // Handle mouse leave for each form
-                    document.querySelectorAll('#ratingStars, #ratingStarsGuest').forEach(ratingContainer => {
-                        ratingContainer.addEventListener('mouseleave', function() {
-                            const form = this.closest('form');
-                            const formRatingInput = form.querySelector('input[name="rating"]');
-                            const formStars = form.querySelectorAll('.star-rating');
-
-                            if (formRatingInput) {
-                                const currentRating = formRatingInput.value;
-                                formStars.forEach((s, index) => {
-                                    if (index < currentRating) {
-                                        s.classList.add('text-yellow-400');
-                                    } else {
-                                        s.classList.remove('text-yellow-400');
-                                        s.classList.add('text-slate-300',
-                                            'dark:text-slate-600');
-                                    }
-                                });
-                            }
-                        });
-                    });
-                }
+            // Старый код звезд формы рецензий удален - используется Vue компонент
             });
 
             // Review text expand/collapse functionality
@@ -1149,11 +789,6 @@
                             }
 
                             updateStarRating(starWrappers, rating, ratingDisplay);
-
-                            // Обновляем скрытое поле в форме рецензии
-                            if (container.getAttribute('data-book-id') === 'review-form-rating') {
-                                document.getElementById('ratingInput').value = rating / 2;
-                            }
 
                             // Отправляем на сервер для интерактивного рейтинга
                             if (container.getAttribute('data-book-id') !== 'book-display-rating' &&
@@ -1449,141 +1084,7 @@
                     star.addEventListener('click', clickHandler);
                 });
 
-                // Звезды в форме рецензии для авторизованных пользователей
-                const reviewStars = document.querySelectorAll('#reviewFormStars .review-form-star');
-                reviewStars.forEach(star => {
-                    star.addEventListener('click', function() {
-                        const rating = parseInt(this.getAttribute('data-rating'));
-
-                        // Обновляем все звезды в форме
-                        reviewStars.forEach((s, index) => {
-                            if (index < rating) {
-                                s.classList.remove('text-gray-300', 'dark:text-gray-600',
-                                    'hover:text-yellow-300');
-                                s.classList.add('text-yellow-400');
-                                s.setAttribute('fill', 'currentColor');
-                            } else {
-                                s.classList.remove('text-yellow-400');
-                                s.classList.add('text-gray-300', 'dark:text-gray-600',
-                                    'hover:text-yellow-300');
-                                s.setAttribute('fill', 'none');
-                            }
-                        });
-
-                        // Обновляем скрытое поле
-                        document.getElementById('ratingInput').value = rating;
-
-                        // Обновляем текст рейтинга
-                        const reviewRatingText = document.getElementById('reviewRatingText');
-                        if (reviewRatingText) {
-                            reviewRatingText.textContent = `${rating}/10`;
-                        }
-                    });
-
-                    // Добавляем hover эффект
-                    star.addEventListener('mouseenter', function() {
-                        const rating = parseInt(this.getAttribute('data-rating'));
-                        reviewStars.forEach((s, index) => {
-                            if (index < rating) {
-                                s.classList.add('text-yellow-400');
-                                s.classList.remove('text-gray-300', 'dark:text-gray-600');
-                            }
-                        });
-                    });
-                });
-
-                // Сбрасываем hover эффект при уходе мыши
-                document.getElementById('reviewFormStars').addEventListener('mouseleave', function() {
-                    const currentRating = parseInt(document.getElementById('ratingInput').value) || 0;
-                    reviewStars.forEach((s, index) => {
-                        if (index < currentRating) {
-                            s.classList.add('text-yellow-400');
-                            s.classList.remove('text-gray-300', 'dark:text-gray-600');
-                            s.setAttribute('fill', 'currentColor');
-                        } else {
-                            s.classList.remove('text-yellow-400');
-                            s.classList.add('text-gray-300', 'dark:text-gray-600');
-                            s.setAttribute('fill', 'none');
-                        }
-                    });
-                });
-
-                // Проверка формы рецензии при отправке
-                const reviewForm = document.querySelector('form[action*="reviews.store"]');
-                if (reviewForm) {
-                    reviewForm.addEventListener('submit', function(e) {
-                        const ratingInput = document.getElementById('ratingInput');
-                        const contentInput = this.querySelector('textarea[name="content"]');
-
-                        // Проверяем, есть ли контент
-                        if (!contentInput.value.trim()) {
-                            e.preventDefault();
-                            showNotification('Будь ласка, напишіть рецензію', 'error');
-                            return;
-                        }
-
-                        // Проверяем, есть ли рейтинг (либо в форме, либо в BookReadingStatus)
-                        if (!ratingInput.value) {
-                            e.preventDefault();
-                            showNotification('Спочатку поставте оцінку книзі, а потім напишіть рецензію',
-                                'error');
-                            return;
-                        }
-                    });
-                }
-
-                // Звезды в форме рецензии для гостей
-                const guestStars = document.querySelectorAll('#ratingStarsGuest .star-rating');
-                guestStars.forEach(star => {
-                    star.addEventListener('click', function() {
-                        const rating = parseInt(this.getAttribute('data-rating'));
-
-                        // Обновляем все звезды в форме
-                        guestStars.forEach((s, index) => {
-                            if (index < rating) {
-                                s.classList.remove('text-slate-300', 'dark:text-slate-600');
-                                s.classList.add('text-yellow-400');
-                            } else {
-                                s.classList.remove('text-yellow-400');
-                                s.classList.add('text-slate-300', 'dark:text-slate-600');
-                            }
-                        });
-
-                        // Обновляем скрытое поле
-                        document.getElementById('ratingInputGuest').value = rating;
-
-                        // Обновляем текст рейтинга
-                        const guestRatingText = document.getElementById('guestRatingText');
-                        if (guestRatingText) {
-                            guestRatingText.textContent = `${rating}/10`;
-                        }
-                    });
-
-                    // Добавляем hover эффект для гостей
-                    star.addEventListener('mouseenter', function() {
-                        const rating = parseInt(this.getAttribute('data-rating'));
-                        guestStars.forEach((s, index) => {
-                            if (index < rating) {
-                                s.classList.add('text-yellow-400');
-                                s.classList.remove('text-slate-300', 'dark:text-slate-600');
-                            }
-                        });
-                    });
-                });
-
-                // Сбрасываем hover эффект при уходе мыши для гостей
-                document.getElementById('ratingStarsGuest').addEventListener('mouseleave', function() {
-                    const currentRating = parseInt(document.getElementById('ratingInputGuest').value) || 0;
-                    guestStars.forEach((s, index) => {
-                        if (index < currentRating) {
-                            s.classList.add('text-yellow-400');
-                            s.classList.remove('text-slate-300', 'dark:text-slate-600');
-                        } else {
-                            s.classList.remove('text-yellow-400');
-                            s.classList.add('text-slate-300', 'dark:text-slate-600');
-                        }
-                    });
-                });
+            // Старый код форм рецензий удален - теперь используется Vue компонент
             });
 
             // Обновление рейтинга пользователя
@@ -1616,12 +1117,6 @@
                             ratingText.textContent = `${rating}/10`;
                         }
 
-                        // Обновляем скрытое поле в форме
-                        const ratingInput = document.getElementById('ratingInput');
-                        if (ratingInput) {
-                            ratingInput.value = rating;
-                        }
-
                         // Показываем уведомление
                         showNotification('Оцінку оновлено!', 'success');
                     } else {
@@ -1648,7 +1143,153 @@
                     }
                 });
             }
+
+        // Share Review Function
+        function shareReview(reviewId, content) {
+            const text = content.substring(0, 200) + (content.length > 200 ? '...' : '');
+            const url = window.location.href;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Рецензія на книгу',
+                    text: text,
+                    url: url
+                }).catch(err => console.log('Error sharing:', err));
+            } else {
+                // Fallback to clipboard
+                navigator.clipboard.writeText(`${text}\n\n${url}`).then(() => {
+                    alert('Посилання скопійовано в буфер обміну!');
+                });
+            }
+        }
+
+        // Report Review Function
+        function reportReview(reviewId) {
+            if (!confirm('Ви впевнені, що хочете поскаржитись на цю рецензію?')) return;
+
+            const reason = prompt('Вкажіть причину скарги (необов\'язково):');
+
+            fetch(`/books/{{ $book->slug }}/reviews/${reviewId}/report`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reason: reason
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Дякуємо за повідомлення. Ми розглянемо вашу скаргу.');
+                    } else {
+                        alert(data.message || 'Помилка при відправці скарги.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Помилка при відправці скарги.');
+                });
+        }
+
+        // Edit Review Function (placeholder)
+        function editReview(reviewId) {
+            // TODO: Implement edit review modal
+            console.log('Edit review:', reviewId);
+        }
         </script>
-    @endpush
-    
-@endsection
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализируем Vue приложение для модальных окон
+            const modalContainer = document.createElement('div');
+            modalContainer.id = 'modal-app';
+            document.body.appendChild(modalContainer);
+
+            window.modalApp = new Vue({
+                el: '#modal-app',
+                template: `
+                         <div>
+                             <add-quote-modal 
+                                 ref="addQuoteModal"
+                                 :book-slug="'{{ $book->slug }}'"
+                                 @@quote-added="handleQuoteAdded"
+                                 @@show-notification="showNotification">
+                             </add-quote-modal>
+                             
+                             <add-review-modal 
+                                 ref="addReviewModal"
+                                 :book-slug="'{{ $book->slug }}'"
+                                 @@review-added="handleReviewAdded"
+                                 @@show-notification="showNotification">
+                             </add-review-modal>
+                         </div>
+                     `,
+                methods: {
+                    showAddQuoteModal: function() {
+                        this.$nextTick(() => {
+                            if (this.$refs.addQuoteModal && typeof this.$refs.addQuoteModal
+                                .show === 'function') {
+                                this.$refs.addQuoteModal.show();
+                            }
+                        });
+                    },
+                    closeAddQuoteModal: function() {
+                        this.$nextTick(() => {
+                            if (this.$refs.addQuoteModal && typeof this.$refs.addQuoteModal
+                                .hide === 'function') {
+                                this.$refs.addQuoteModal.hide();
+                            }
+                        });
+                    },
+                    showAddReviewModal: function() {
+                        this.$nextTick(() => {
+                            if (this.$refs.addReviewModal && typeof this.$refs.addReviewModal
+                                .show === 'function') {
+                                this.$refs.addReviewModal.show();
+                            }
+                        });
+                    },
+                    closeAddReviewModal: function() {
+                        this.$nextTick(() => {
+                            if (this.$refs.addReviewModal && typeof this.$refs.addReviewModal
+                                .hide === 'function') {
+                                this.$refs.addReviewModal.hide();
+                            }
+                        });
+                    },
+                    showEditReviewModal: function(reviewData) {
+                        this.$nextTick(() => {
+                            if (this.$refs.addReviewModal && typeof this.$refs.addReviewModal
+                                .showWithData === 'function') {
+                                this.$refs.addReviewModal.showWithData(reviewData);
+                            }
+                        });
+                    },
+                    handleQuoteAdded: function(newQuote) {
+                        // Эмитим событие для обновления списка цитат
+                        window.dispatchEvent(new CustomEvent('quote-added', {
+                            detail: newQuote
+                        }));
+                    },
+                    handleReviewAdded: function(newReview) {
+                        // Эмитим событие для обновления списка рецензий
+                        window.dispatchEvent(new CustomEvent('review-added', {
+                            detail: newReview
+                        }));
+                    },
+                    showNotification: function(message, type) {
+                        // Используем существующую функцию уведомлений
+                        if (window.showNotification) {
+                            window.showNotification(message, type);
+                        } else {
+                            alert(message);
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
+@endpush

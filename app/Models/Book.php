@@ -24,8 +24,8 @@ class Book extends Model
         'pages',
         'rating',
         'reviews_count',
-        'category_id',
         'is_featured',
+        'interesting_facts',
     ];
 
     protected $casts = [
@@ -34,6 +34,7 @@ class Book extends Model
         'pages' => 'integer',
         'publication_year' => 'integer',
         'is_featured' => 'boolean',
+        'interesting_facts' => 'array',
     ];
 
     protected static function boot()
@@ -47,9 +48,21 @@ class Book extends Model
         });
     }
 
-    public function category(): BelongsTo
+    /**
+     * Книга может иметь несколько категорий (Many-to-Many)
+     */
+    public function categories(): BelongsToMany
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsToMany(Category::class, 'book_category')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Получить первую категорию книги (для обратной совместимости)
+     */
+    public function getCategoryAttribute()
+    {
+        return $this->categories()->first();
     }
 
     public function author(): BelongsTo
@@ -275,6 +288,22 @@ class Book extends Model
     public function getStarRatingAttribute()
     {
         return $this->rating ? round($this->rating / 2, 1) : 0;
+    }
+
+    /**
+     * Get the facts for the book.
+     */
+    public function facts()
+    {
+        return $this->hasMany(Fact::class);
+    }
+
+    /**
+     * Get the book prices for the book.
+     */
+    public function bookPrices()
+    {
+        return $this->hasMany(BookPrice::class);
     }
 
 }

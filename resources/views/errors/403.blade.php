@@ -1,15 +1,13 @@
-@extends('errors.layout')
+@extends('layouts.app')
 
 @section('title', 'Доступ заборонено - 403')
 
-@section('content')
+@section('main')
 <div class="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 text-center">
         <!-- 403 Icon -->
-        <div class="mx-auto h-24 w-24 text-yellow-600">
-            <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
+        <div class="mx-auto text-indigo-600">
+            <i class="fa-solid fa-ban fa-beat-fade text-4xl"></i>
         </div>
 
         <!-- Error Code -->

@@ -45,6 +45,19 @@ class Quote extends Model
         return $this->belongsTo(User::class, 'moderated_by');
     }
 
+    public function likes(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\App\Models\Like::class, 'likeable');
+    }
+
+    /**
+     * Проверяет, лайкнул ли пользователь цитату
+     */
+    public function isLikedBy($userId)
+    {
+        return $this->likes()->where('user_id', $userId)->where('vote', 1)->exists();
+    }
+
     public function approve($moderatorId, $reason = null)
     {
         $this->update([

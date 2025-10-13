@@ -1,5 +1,5 @@
 <template>
-    <div class="discussion-reply" :data-reply-id="reply.id" :data-depth="level">
+    <div class="discussion-reply" :class="{ 'highlighted-reply': isHighlighted }" :data-reply-id="reply.id" :data-depth="level">
         <div class="rounded-xl p-0 py-1 sm:py-2 px-1 sm:px-2">
             <!-- Header -->
             <div class="flex items-center justify-between mb-2">
@@ -26,7 +26,7 @@
 
             <!-- Reply Content -->
             <div v-if="!isEditing" 
-                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed mb-3 sm:mb-4 whitespace-pre-wrap text-sm sm:text-base">
+                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm sm:text-base">
                 {{ reply.content }}
             </div>
 
@@ -130,6 +130,7 @@
                                  :key="nestedReply.id"
                                  :reply="nestedReply"
                                  :level="level + 1"
+                                 :highlighted-reply-id="highlightedReplyId"
                                  :discussion-id="discussionId"
                                  :current-user-id="currentUserId"
                                  :is-discussion-closed="isDiscussionClosed"
@@ -172,6 +173,10 @@ export default {
         isModerator: {
             type: Boolean,
             default: false
+        },
+        highlightedReplyId: {
+            type: Number,
+            default: null
         }
     },
     data() {
@@ -193,6 +198,9 @@ export default {
         },
         canEdit() {
             return this.reply.user_id === this.currentUserId || this.isModerator;
+        },
+        isHighlighted() {
+            return this.highlightedReplyId === this.reply.id;
         }
     },
     methods: {
@@ -437,5 +445,19 @@ export default {
         border-left-width: 1px;
         padding-left: 0.25rem;
     }
+}
+
+/* Highlight styles for target reply */
+.highlighted-reply {
+    border: 2px solid #f59e0b !important;
+    border-radius: 12px !important;
+    background-color: rgba(245, 158, 11, 0.1) !important;
+    animation: pulse-highlight 2s ease-in-out;
+}
+
+@keyframes pulse-highlight {
+    0% { background-color: rgba(245, 158, 11, 0.2); }
+    50% { background-color: rgba(245, 158, 11, 0.15); }
+    100% { background-color: rgba(245, 158, 11, 0.1); }
 }
 </style>

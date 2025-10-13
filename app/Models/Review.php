@@ -19,12 +19,18 @@ class Review extends Model
         'moderated_at',
         'moderated_by',
         'moderation_reason',
+        'review_type',
+        'opinion_type',
+        'book_type',
+        'language',
+        'contains_spoiler',
     ];
 
     protected $casts = [
         'rating' => 'integer',
         'replies_count' => 'integer',
         'moderated_at' => 'datetime',
+        'contains_spoiler' => 'boolean',
     ];
 
     public function book(): BelongsTo
