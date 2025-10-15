@@ -33,6 +33,7 @@ Route::get('/users/{username}/reviews', [UserController::class, 'publicReviews']
 Route::get('/users/{username}/discussions', [UserController::class, 'publicDiscussions'])->name('users.public.discussions');
 Route::get('/users/{username}/quotes', [UserController::class, 'publicQuotes'])->name('users.public.quotes');
 Route::get('/users/{username}/collections', [UserController::class, 'publicCollections'])->name('users.public.collections');
+Route::get('/users/{username}/awards', [UserController::class, 'publicAwards'])->name('users.public.awards');
 
 // Profile routes
 Route::middleware(['auth'])->group(function () {

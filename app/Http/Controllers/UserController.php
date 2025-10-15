@@ -311,7 +311,14 @@ class UserController extends Controller
             })->toArray();
         }
 
-        return view('users.public.profile', compact('user', 'stats', 'ratingStats', 'recentReadBooks', 'recentReviews', 'userLibraries', 'isOwner'));
+        // Загружаем награды пользователя
+        $userAwards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('users.public.profile', compact('user', 'stats', 'ratingStats', 'recentReadBooks', 'recentReviews', 'userLibraries', 'isOwner', 'userAwards'));
     }
 
     /**
@@ -351,7 +358,14 @@ class UserController extends Controller
             ->limit(3)
             ->get();
         
-        return view('users.public.library', compact('user', 'stats', 'recentReadBooks'));
+        // Награды пользователя
+        $userAwards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        
+        return view('users.public.library', compact('user', 'stats', 'recentReadBooks', 'userAwards'));
     }
 
     /**
@@ -404,7 +418,14 @@ class UserController extends Controller
                 ->get();
         }
         
-        return view('users.public.reviews', compact('user', 'stats', 'reviews', 'recentReadBooks'));
+        // Награды пользователя
+        $userAwards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        
+        return view('users.public.reviews', compact('user', 'stats', 'reviews', 'recentReadBooks', 'userAwards'));
     }
 
     /**
@@ -457,7 +478,14 @@ class UserController extends Controller
                 ->get();
         }
         
-        return view('users.public.discussions', compact('user', 'stats', 'discussions', 'recentReadBooks'));
+        // Награды пользователя
+        $userAwards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        
+        return view('users.public.discussions', compact('user', 'stats', 'discussions', 'recentReadBooks', 'userAwards'));
     }
 
     /**
@@ -510,7 +538,14 @@ class UserController extends Controller
                 ->get();
         }
         
-        return view('users.public.quotes', compact('user', 'stats', 'quotes', 'recentReadBooks'));
+        // Награды пользователя
+        $userAwards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        
+        return view('users.public.quotes', compact('user', 'stats', 'quotes', 'recentReadBooks', 'userAwards'));
     }
 
     /**
@@ -588,6 +623,69 @@ class UserController extends Controller
                 ->get();
         }
         
-        return view('users.public.collections', compact('user', 'stats', 'libraries', 'books', 'selectedLibrary', 'recentReadBooks'));
+        // Награды пользователя
+        $userAwards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        
+        return view('users.public.collections', compact('user', 'stats', 'libraries', 'books', 'selectedLibrary', 'recentReadBooks', 'userAwards'));
+    }
+
+    /**
+     * Показать публичные награды пользователя
+     */
+    public function publicAwards($username)
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        
+        // Проверяем, является ли просматривающий владельцем профиля
+        $isOwner = auth()->check() && auth()->id() === $user->id;
+        
+        // Проверяем публичность профиля
+        if (!$isOwner && !$user->public_profile) {
+            return view('users.public.private-profile', compact('user'));
+        }
+        
+        // Загружаем данные для статистики с учетом настроек приватности
+        $stats = [
+            'discussions_count' => $user->discussions()->where('status', 'active')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'quotes_count' => $user->quotes()->where('is_public', true)->count(),
+        ];
+        
+        // Добавляем статистику читания только если разрешено или это владелец
+        if ($isOwner || $user->show_reading_stats) {
+            $stats['read_count'] = $user->readingStatuses()->where('status', 'read')->count();
+            $stats['reading_count'] = $user->readingStatuses()->where('status', 'reading')->count();
+            $stats['want_to_read_count'] = $user->readingStatuses()->where('status', 'want_to_read')->count();
+            $stats['average_rating'] = $user->readingStatuses()->whereNotNull('rating')->avg('rating');
+        } else {
+            $stats['read_count'] = null;
+            $stats['reading_count'] = null;
+            $stats['want_to_read_count'] = null;
+            $stats['average_rating'] = null;
+        }
+
+        // Недавно прочитанные книги (только если разрешено или это владелец)
+        $recentReadBooks = collect();
+        if ($isOwner || $user->show_reading_stats) {
+            $recentReadBooks = $user->readingStatuses()
+                ->where('status', 'read')
+                ->with('book')
+                ->orderBy('finished_at', 'desc')
+                ->limit(4)
+                ->get();
+        }
+
+        // Загружаем все награды пользователя
+        $userAwards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('users.public.awards', compact('user', 'stats', 'recentReadBooks', 'userAwards', 'isOwner'));
     }
 }

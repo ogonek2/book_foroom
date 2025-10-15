@@ -41,8 +41,15 @@ class ProfileController extends Controller
         
         $view = $viewMap[$tab] ?? 'profile.private.overview';
         
+        // Загружаем награды пользователя (для всех вкладок)
+        $userAwards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        
         // Для вкладки collections нужно передать библиотеки
-        $data = compact('user', 'stats', 'ratingStats', 'recentActivity');
+        $data = compact('user', 'stats', 'ratingStats', 'recentActivity', 'userAwards');
         
         if ($tab === 'collections') {
             $libraries = $user->libraries()->withCount('books')->with(['books' => function($q) {

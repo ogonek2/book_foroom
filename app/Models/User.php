@@ -416,4 +416,39 @@ class User extends Authenticatable
                     ->withTimestamps()
                     ->orderBy('saved_libraries.created_at', 'desc');
     }
+
+    /**
+     * Награды пользователя
+     */
+    public function awards(): BelongsToMany
+    {
+        return $this->belongsToMany(Award::class, 'user_awards')
+                    ->withPivot(['awarded_at', 'note'])
+                    ->withTimestamps()
+                    ->orderBy('user_awards.awarded_at', 'desc');
+    }
+
+    /**
+     * Записи о наградах пользователя
+     */
+    public function userAwards(): HasMany
+    {
+        return $this->hasMany(UserAward::class);
+    }
+
+    /**
+     * Проверить, есть ли у пользователя определенная награда
+     */
+    public function hasAward(int $awardId): bool
+    {
+        return $this->awards()->where('award_id', $awardId)->exists();
+    }
+
+    /**
+     * Получить общее количество очков от наград
+     */
+    public function getAwardsPointsAttribute(): int
+    {
+        return $this->awards()->sum('points');
+    }
 }

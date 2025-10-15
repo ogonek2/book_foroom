@@ -122,6 +122,51 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('award')
+                    ->label('Назначить награду')
+                    ->icon('heroicon-o-trophy')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\Select::make('award_id')
+                            ->label('Награда')
+                            ->relationship('awards', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        
+                        Forms\Components\DateTimePicker::make('awarded_at')
+                            ->label('Дата получения')
+                            ->default(now())
+                            ->required(),
+                        
+                        Forms\Components\Textarea::make('note')
+                            ->label('Заметка')
+                            ->rows(3)
+                            ->helperText('Дополнительная информация о том, за что была получена награда'),
+                    ])
+                    ->action(function (User $record, array $data): void {
+                        // Проверяем, нет ли уже такой награды у пользователя
+                        if ($record->hasAward($data['award_id'])) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Ошибка')
+                                ->body('У пользователя уже есть эта награда')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+                        
+                        // Назначаем награду
+                        $record->awards()->attach($data['award_id'], [
+                            'awarded_at' => $data['awarded_at'],
+                            'note' => $data['note'] ?? null,
+                        ]);
+                        
+                        \Filament\Notifications\Notification::make()
+                            ->title('Награда назначена')
+                            ->body('Пользователь получил награду')
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

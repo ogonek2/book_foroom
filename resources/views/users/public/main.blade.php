@@ -2,6 +2,54 @@
 
 @section('title', $user->name . ' - Публічний профіль')
 
+@push('styles')
+<style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Tooltip animations */
+    .group:hover .tooltip {
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+    
+    .tooltip {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(0);
+    }
+    
+    /* Award hover effects */
+    .award-icon {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .award-icon:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Fade in animation */
+    .animate-fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+@endpush
+
 @php
     // Функция для определения активного состояния навигации
     function isActiveRoute($routeName, $currentRoute)
@@ -74,13 +122,77 @@
                                     <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $stats['quotes_count'] }}</div>
                                     <div class="text-sm text-gray-600 dark:text-gray-400">Цитат</div>
                                 </div>
+                                @if(isset($userAwards) && $userAwards->count() > 0)
+                                <div class="text-center">
+                                    <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $userAwards->count() }}</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">Нагород</div>
+                                </div>
+                                @endif
                             </div>
-
-                            <!-- Follow Button -->
-                            <button
-                                class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200">
-                                + Відстежувати
-                            </button>
+                            <!-- Awards Section -->
+                            @if(isset($userAwards) && $userAwards->count() > 0)
+                            <div class="mt-4 animate-fade-in">
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($userAwards->take(8) as $award)
+                                        <div class="relative group">
+                                            @if($award->image)
+                                                <img src="{{ $award->image }}" 
+                                                     alt="{{ $award->name }}" 
+                                                     class="award-icon w-10 h-10 rounded-full object-cover cursor-pointer border-2 border-white/20 shadow-md">
+                                            @else
+                                                <div class="award-icon w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer border-2 border-white/20 shadow-md" 
+                                                     style="background-color: {{ $award->color }}">
+                                                    {{ substr($award->name, 0, 1) }}
+                                                </div>
+                                            @endif
+                                            
+                                            <!-- Tooltip -->
+                                            <div class="tooltip absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-xl shadow-2xl opacity-0 pointer-events-none z-20 min-w-[200px] max-w-[280px]">
+                                                <div class="font-bold text-sm mb-1">{{ $award->name }}</div>
+                                                @if($award->description)
+                                                    <div class="text-gray-300 text-xs leading-relaxed mb-2">{{ $award->description }}</div>
+                                                @endif
+                                                @if($award->points > 0)
+                                                    <div class="flex items-center space-x-1 text-yellow-400 text-xs font-medium">
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.783.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                        </svg>
+                                                        <span>+{{ $award->points }} очок</span>
+                                                    </div>
+                                                @endif
+                                                <!-- Arrow -->
+                                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                    
+                                    @if($userAwards->count() > 8)
+                                        <a href="{{ route('users.public.awards', $user->username) }}" class="relative group">
+                                            <div class="award-icon w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm cursor-pointer border-2 border-white/20 shadow-md">
+                                                +{{ $userAwards->count() - 8 }}
+                                            </div>
+                                            
+                                            <!-- Tooltip for "more" -->
+                                            <div class="tooltip absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-3 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-xl shadow-2xl opacity-0 pointer-events-none z-20 min-w-[180px]">
+                                                <div class="font-bold text-sm mb-1">Ще {{ $userAwards->count() - 8 }} нагород</div>
+                                                <div class="text-gray-300 text-xs">Натисніть, щоб побачити всі нагороди користувача</div>
+                                                <!-- Arrow -->
+                                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
+                                            </div>
+                                        </a>
+                                    @endif
+                                </div>
+                                
+                                @if($userAwards->count() > 8)
+                                    <div class="mt-2">
+                                        <a href="{{ route('users.public.awards', $user->username) }}" 
+                                           class="text-xs text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200 font-medium">
+                                            Переглянути всі нагороди →
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                            @endif
                         </div>
 
                     </div>
@@ -125,6 +237,12 @@
                                     class="px-4 py-2 {{ isActiveRoute('users.public.collections', $currentRoute) ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
                                     Добірки
                                 </a>
+                                @if(isset($userAwards) && $userAwards->count() > 0)
+                                <a href="{{ route('users.public.awards', $user->username) }}"
+                                    class="px-4 py-2 {{ isActiveRoute('users.public.awards', $currentRoute) ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
+                                    Нагороди
+                                </a>
+                                @endif
                             </div>
 
                             <!-- Content Area -->
@@ -192,6 +310,15 @@
                                 <span class="text-sm font-medium text-gray-900 dark:text-white">{{ number_format($stats['average_rating'], 1) }}</span>
                             </div>
                             @endif
+                            @if(isset($userAwards) && $userAwards->sum('points') > 0)
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Очки нагород</span>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $userAwards->sum('points') }}</span>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -246,6 +373,7 @@
                     @endif
                 </div>
             </div>
+
         </div>
     </div>
 @endsection
