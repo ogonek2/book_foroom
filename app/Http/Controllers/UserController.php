@@ -549,24 +549,34 @@ class UserController extends Controller
         }
         
         try {
-            // Показываем только публичные коллекции для других пользователей
+            // Готовим коллекции и книги для публичного профиля
             $libraries = $user->libraries()
                 ->where('is_private', false)
                 ->withCount('books')
-                ->orderBy('created_at', 'desc')
+                ->with([
+                    'user',
+                    'books' => function ($q) {
+                        $q->select('books.id','books.slug','books.title','books.cover_image','books.author')
+                          ->limit(3);
+                    },
+                    'likes'
+                ])
+                ->orderBy('created_at','desc')
                 ->get();
-            
+
             $selectedLibrary = $libraries->first();
-            
+
+            $books = collect();
             if ($selectedLibrary) {
-                $books = $selectedLibrary->books()->with(['author', 'category'])->paginate(12);
-            } else {
-                $books = collect();
+                $books = $selectedLibrary->books()
+                    ->select('books.*')
+                    ->with(['author','categories'])
+                    ->paginate(12);
             }
         } catch (\Exception $e) {
             $libraries = collect();
-            $books = collect();
             $selectedLibrary = null;
+            $books = collect();
         }
         
         $recentReadBooks = collect();

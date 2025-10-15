@@ -5,7 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\User;
 use App\Models\Book;
 use App\Models\Review;
-use App\Models\Post;
+use App\Models\Discussion;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -29,7 +29,7 @@ class StatsOverview extends BaseWidget
                 ->descriptionIcon('heroicon-m-chat-bubble-left-right')
                 ->color('warning'),
             
-            Stat::make('Всего постов', Post::count())
+            Stat::make('Всего постов', Discussion::count())
                 ->description('В форуме')
                 ->descriptionIcon('heroicon-m-document-text')
                 ->color('primary'),

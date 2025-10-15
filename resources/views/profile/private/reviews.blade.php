@@ -64,7 +64,7 @@
             <div id="reviewsList" class="space-y-6">
                 @php
                     $reviews = $user->reviews()
-                        ->with(['book.author', 'book.category'])
+                        ->with(['book.author', 'book.categories'])
                         ->orderBy('created_at', 'desc')
                         ->paginate(10);
                 @endphp

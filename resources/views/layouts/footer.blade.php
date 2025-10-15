@@ -15,7 +15,6 @@
                     <ul class="space-y-2">
                         <li><a href="{{ route('home') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Головна</a></li>
                         <li><a href="{{ route('books.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Книги</a></li>
-                        <li><a href="{{ route('categories.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Категорії</a></li>
                         <li><a href="{{ route('authors.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Автори</a></li>
                         <li><a href="{{ route('users.index') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm transition-colors duration-200">Користувачі</a></li>
                     </ul>

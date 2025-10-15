@@ -80,7 +80,7 @@
                                     :library='@json($library)'
                                     :is-authenticated="{{ auth()->check() ? 'true' : 'false' }}"
                                     :is-liked="{{ auth()->check() && $library->likes()->where('user_id', auth()->id())->exists() ? 'true' : 'false' }}"
-                                    :is-saved="{{ auth()->check() && DB::table('user_saved_libraries')->where('user_id', auth()->id())->where('library_id', $library->id)->exists() ? 'true' : 'false' }}"
+                                    :is-saved="{{ auth()->check() && DB::table('saved_libraries')->where('user_id', auth()->id())->where('library_id', $library->id)->exists() ? 'true' : 'false' }}"
                                     :likes-count="{{ $library->likes()->count() }}"
                                     @notification="handleNotification"
                                     @liked="handleLiked"
@@ -145,8 +145,7 @@
                             window.location.href = url;
                         },
                         openCreateModal() {
-                            // TODO: Implement create library modal
-                            console.log('Open create library modal');
+                            window.location.href = "{{ route('libraries.create') }}";
                         },
                         handleNotification(notification) {
                             this.showNotification(notification.message, notification.type);

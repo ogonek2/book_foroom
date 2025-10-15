@@ -3,7 +3,7 @@
 @section('title', 'Редагувати добірку - ' . $library->name)
 
 @section('main')
-    <div id="app" class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div id="app">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Breadcrumb -->
             <nav class="mb-8">
@@ -151,7 +151,7 @@
                 </div>
 
                 @php
-                    $books = $library->books()->with(['author', 'category'])->paginate(12);
+                    $books = $library->books()->with(['author', 'categories'])->paginate(12);
                 @endphp
 
                 @if($books->count() > 0)
@@ -177,7 +177,7 @@
                                         {{ $book->author->first_name ?? $book->author ?? 'Не указан' }}
                                     </p>
                                     
-                                    <button onclick="removeBook({{ $book->id }})"
+                                    <button @click="removeBook('{{ $book->slug }}')"
                                             class="w-full px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
                                         <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -232,15 +232,27 @@
                         @endauth
                     },
                     methods: {
-                        async removeBook(bookId) {
+                        async removeBook(bookSlug) {
                             if (confirm('Ви впевнені, що хочете видалити цю книгу з добірки?')) {
                                 try {
-                                    const response = await axios.delete(`/libraries/{{ $library->id }}/books/${bookId}`);
-                                    if (response.data.success) {
+                                    const response = await fetch(`/libraries/{{ $library->id }}/books/${bookSlug}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json'
+                                        }
+                                    });
+                                    
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
                                         this.showNotification('Книгу успішно видалено з добірки!', 'success');
                                         setTimeout(() => {
                                             location.reload();
                                         }, 1000);
+                                    } else {
+                                        this.showNotification(data.message || 'Помилка при видаленні книги', 'error');
                                     }
                                 } catch (error) {
                                     console.error('Error removing book:', error);
@@ -251,12 +263,22 @@
                         async deleteLibrary() {
                             if (confirm('Ви впевнені, що хочете видалити цю добірку? Цю дію неможливо скасувати.')) {
                                 try {
-                                    const response = await axios.delete(`/libraries/{{ $library->id }}`);
-                                    if (response.status === 200) {
+                                    const response = await fetch(`/libraries/{{ $library->id }}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json'
+                                        }
+                                    });
+                                    
+                                    if (response.ok) {
                                         this.showNotification('Добірку успішно видалено!', 'success');
                                         setTimeout(() => {
                                             window.location.href = '{{ route("libraries.index") }}';
                                         }, 1000);
+                                    } else {
+                                        this.showNotification('Помилка при видаленні добірки', 'error');
                                     }
                                 } catch (error) {
                                     console.error('Error deleting library:', error);

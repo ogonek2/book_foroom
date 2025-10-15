@@ -80,8 +80,9 @@ class Library extends Model
      */
     public function savedByUsers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_saved_libraries')
-                    ->withTimestamps();
+        return $this->belongsToMany(User::class, 'saved_libraries')
+                    ->withTimestamps()
+                    ->orderBy('saved_libraries.created_at', 'desc');
     }
 
     /**
@@ -107,5 +108,13 @@ class Library extends Model
     public function getLikesCountAttribute(): int
     {
         return $this->likes()->count();
+    }
+
+    /**
+     * Количество сохранений
+     */
+    public function getSavedCountAttribute(): int
+    {
+        return $this->savedByUsers()->count();
     }
 }

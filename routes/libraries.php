@@ -21,6 +21,7 @@ Route::middleware(['web'])->group(function () {
         
         // User interactions with libraries
         Route::post('/libraries/{library}/save', [LibraryController::class, 'toggleSave'])->name('libraries.toggle-save');
+        Route::post('/libraries/{library}/unsave', [LibraryController::class, 'unsave'])->name('libraries.unsave');
         Route::post('/libraries/{library}/like', [LibraryController::class, 'toggleLike'])->name('libraries.toggle-like');
     });
     

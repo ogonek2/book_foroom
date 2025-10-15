@@ -406,4 +406,14 @@ class User extends Authenticatable
         $rating = $this->calculateRating();
         return round($rating / 10, 1);
     }
+
+    /**
+     * Сохраненные пользователем библиотеки
+     */
+    public function savedLibraries(): BelongsToMany
+    {
+        return $this->belongsToMany(Library::class, 'saved_libraries')
+                    ->withTimestamps()
+                    ->orderBy('saved_libraries.created_at', 'desc');
+    }
 }

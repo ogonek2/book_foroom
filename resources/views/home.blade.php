@@ -677,14 +677,14 @@
                             <div class="text-4xl text-orange-500/30 mb-4">"</div>
                             <p
                                 class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1">
-                                {{ $quote->content }}
+                                {{ $quote['content'] }}
                             </p>
                             <div class="flex items-center justify-between mt-auto">
                                 <div>
                                     <p class="text-light-text-primary dark:text-dark-text-primary font-semibold">
-                                        {{ $quote->user ? $quote->user->name : 'Анонімний автор' }}</p>
+                                        {{ $quote['user'] ? $quote['user']['name'] : 'Анонімний автор' }}</p>
                                     <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
-                                        {{ $quote->book_title ?? 'Без назви книги' }}</p>
+                                        {{ $quote['book_title'] ?? 'Без назви книги' }}</p>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <button class="text-orange-500 hover:text-orange-400 transition-colors">
@@ -694,7 +694,7 @@
                                         </svg>
                                     </button>
                                     <span
-                                        class="text-gray-600 dark:text-gray-400 text-sm">{{ $quote->likes_count ?? 0 }}</span>
+                                        class="text-gray-600 dark:text-gray-400 text-sm">{{ $quote['likes_count'] ?? 0 }}</span>
                                 </div>
                             </div>
                         </div>

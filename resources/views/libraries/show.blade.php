@@ -180,10 +180,22 @@
                             }
 
                             try {
-                                const response = await axios.post(`/libraries/${this.libraryId}/save`);
-                                if (response.data.success) {
-                                    this.isSaved = response.data.is_saved;
-                                    this.showNotification(response.data.message, 'success');
+                                const response = await fetch(`/libraries/${this.libraryId}/save`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    }
+                                });
+                                
+                                const data = await response.json();
+                                
+                                if (data.success) {
+                                    this.isSaved = data.is_saved;
+                                    this.showNotification(data.message, 'success');
+                                } else {
+                                    this.showNotification(data.message || 'Помилка при збереженні добірки', 'error');
                                 }
                             } catch (error) {
                                 console.error('Error toggling save:', error);

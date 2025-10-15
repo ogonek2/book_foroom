@@ -112,7 +112,7 @@ class LibraryController extends Controller
         // Check if current user has saved this library
         $isSaved = false;
         if (Auth::check()) {
-            $isSaved = DB::table('user_saved_libraries')
+            $isSaved = DB::table('saved_libraries')
                 ->where('user_id', Auth::id())
                 ->where('library_id', $library->id)
                 ->exists();
@@ -164,10 +164,17 @@ class LibraryController extends Controller
     public function destroy(Library $library)
     {
         if (!$library->canBeEditedBy(Auth::user())) {
-            abort(403);
+            return response()->json(['success' => false, 'message' => 'У вас нет прав на редактирование этой библиотеки'], 403);
         }
 
         $library->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Добірку видалено успішно!'
+            ]);
+        }
 
         return redirect()->route('libraries.index')
             ->with('success', 'Добірку видалено успішно!');
@@ -228,20 +235,20 @@ class LibraryController extends Controller
             return response()->json(['success' => false, 'message' => 'Необходима авторизация'], 401);
         }
 
-        $isSaved = DB::table('user_saved_libraries')
+        $isSaved = DB::table('saved_libraries')
             ->where('user_id', Auth::id())
             ->where('library_id', $library->id)
             ->exists();
 
         if ($isSaved) {
-            DB::table('user_saved_libraries')
+            DB::table('saved_libraries')
                 ->where('user_id', Auth::id())
                 ->where('library_id', $library->id)
                 ->delete();
             
             $message = 'Добірку видалено зі збережених';
         } else {
-            DB::table('user_saved_libraries')->insert([
+            DB::table('saved_libraries')->insert([
                 'user_id' => Auth::id(),
                 'library_id' => $library->id,
                 'created_at' => now(),
@@ -300,6 +307,33 @@ class LibraryController extends Controller
             'message' => $message,
             'is_liked' => !$isLiked,
             'likes_count' => $likesCount
+        ]);
+    }
+
+    /**
+     * Remove library from user's saved libraries
+     */
+    public function unsave(Library $library)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Потрібна авторизація'], 401);
+        }
+
+        $user = Auth::user();
+        
+        // Check if library is saved by user
+        $isSaved = $user->savedLibraries()->where('library_id', $library->id)->exists();
+        
+        if (!$isSaved) {
+            return response()->json(['success' => false, 'message' => 'Добірка не збережена'], 400);
+        }
+
+        // Remove from saved libraries
+        $user->savedLibraries()->detach($library->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Добірку прибрано з збережених'
         ]);
     }
 }

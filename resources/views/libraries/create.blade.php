@@ -3,7 +3,7 @@
 @section('title', 'Створити добірку')
 
 @section('main')
-    <div id="app" class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div id="app" class="">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Breadcrumb -->
             <nav class="mb-8">

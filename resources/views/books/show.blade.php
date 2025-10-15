@@ -195,7 +195,7 @@
                     @endphp
 
                     <book-reviews-list :reviews="{{ json_encode($reviewsData) }}" book-slug="{{ $book->slug }}"
-                        :current-user-id="{{ auth()->id() }}"
+                        :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}"
                         :user-review="{{ $userReview
                             ? json_encode([
                                 'id' => $userReview->id,
@@ -235,7 +235,7 @@
 
                     <div id="quotes-app">
                         <quotes-list :quotes="{{ json_encode($quotesData) }}" book-slug="{{ $book->slug }}"
-                            :current-user-id="{{ auth()->id() }}">
+                            :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}">
                         </quotes-list>
                         </div>
 
@@ -264,7 +264,7 @@
                     @endphp
                     <div id="facts-app">
                         <facts-list :facts="{{ json_encode($factsData) }}" book-slug="{{ $book->slug }}"
-                            :current-user-id="{{ auth()->id() }}"
+                            :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}"
                             :is-moderator="{{ auth()->check() && auth()->user()->isModerator() ? 'true' : 'false' }}">
                         </facts-list>
                     </div>
@@ -1096,8 +1096,18 @@
 
                     const response = await fetch(`{{ route('books.rating.update', $book->slug) }}`, {
                         method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
                         body: formData
                     });
+
+                    if (!response.ok) {
+                        const text = await response.text();
+                        console.error('Response is not OK:', response.status, text);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
 
                     const data = await response.json();
 

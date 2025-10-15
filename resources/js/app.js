@@ -33,6 +33,8 @@ import UnifiedContentList from './components/UnifiedContentList.vue';
 import ContentFilters from './components/ContentFilters.vue';
 import ReportModal from './components/ReportModal.vue';
 import ReportButton from './components/ReportButton.vue';
+import QuotesSlider from './components/QuotesSlider.vue';
+import QuotesSliderSimple from './components/QuotesSliderSimple.vue';
 
 // Настройка Axios
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -767,6 +769,8 @@ Vue.component('unified-content-list', UnifiedContentList);
 Vue.component('content-filters', ContentFilters);
 Vue.component('report-modal', ReportModal);
 Vue.component('report-button', ReportButton);
+Vue.component('quotes-slider', QuotesSlider);
+Vue.component('quotes-slider-simple', QuotesSliderSimple);
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {

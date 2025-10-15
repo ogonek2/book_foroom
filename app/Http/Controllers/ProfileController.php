@@ -48,7 +48,13 @@ class ProfileController extends Controller
             $libraries = $user->libraries()->withCount('books')->with(['books' => function($q) {
                 $q->limit(3); // Для предварительного просмотра берем только первые 3 книги
             }, 'likes'])->orderBy('created_at', 'desc')->get();
+            
+            $savedLibraries = $user->savedLibraries()->withCount('books')->with(['books' => function($q) {
+                $q->limit(3); // Для предварительного просмотра берем только первые 3 книги
+            }, 'likes', 'user'])->orderBy('saved_libraries.created_at', 'desc')->get();
+            
             $data['libraries'] = $libraries;
+            $data['savedLibraries'] = $savedLibraries;
         }
         
         return view($view, $data);

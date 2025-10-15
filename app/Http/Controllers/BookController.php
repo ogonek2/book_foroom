@@ -181,15 +181,23 @@ class BookController extends Controller
             'url' => $request->url()
         ]);
 
-        $request->validate([
-            'rating' => 'required|integer|min:1|max:10',
-        ]);
-
         if (!auth()->check()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Потрібна авторизація для оцінки книги'
             ], 401);
+        }
+
+        try {
+            $request->validate([
+                'rating' => 'required|integer|min:1|max:10',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Невірне значення рейтингу',
+                'errors' => $e->errors()
+            ], 422);
         }
 
         $userId = auth()->id();

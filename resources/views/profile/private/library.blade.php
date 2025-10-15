@@ -69,7 +69,7 @@
             <div id="booksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @php
                     $books = $user->bookReadingStatuses()
-                        ->with(['book.author', 'book.category'])
+                        ->with(['book.author', 'book.categories'])
                         ->orderBy('created_at', 'desc')
                         ->paginate(12);
                 @endphp

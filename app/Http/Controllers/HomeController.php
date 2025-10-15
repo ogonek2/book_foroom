@@ -39,10 +39,29 @@ class HomeController extends Controller
 
         // Получаем публичные цитаты
         $featuredQuotes = Quote::where('is_public', true)
-            ->with('user')
+            ->with(['user', 'book'])
+            ->withCount('likes')
             ->orderBy('created_at', 'desc')
-            ->limit(3)
-            ->get();
+            ->limit(6)
+            ->get()
+            ->map(function ($quote) {
+                return [
+                    'id' => $quote->id,
+                    'content' => $quote->content,
+                    'page_number' => $quote->page_number,
+                    'is_public' => $quote->is_public,
+                    'created_at' => $quote->created_at,
+                    'user' => $quote->user ? [
+                        'id' => $quote->user->id,
+                        'name' => $quote->user->name,
+                        'avatar_display' => $quote->user->avatar_display
+                    ] : null,
+                    'book_title' => $quote->book ? $quote->book->title : 'Без назви книги',
+                    'book_slug' => $quote->book ? $quote->book->slug : null,
+                    'likes_count' => $quote->likes_count,
+                    'is_liked' => auth()->check() ? $quote->likes()->where('user_id', auth()->id())->exists() : false
+                ];
+            });
 
         return view('home', compact('stats', 'featuredBooks', 'recentReviews', 'recommendedBooks', 'featuredQuotes'));
     }

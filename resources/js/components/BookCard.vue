@@ -36,9 +36,9 @@
                                     </template>
                                 </div>
                                 <span class="ml-2 text-sm text-gray-600 dark:text-gray-400 font-medium">{{
-                                    formatRating(book.rating) }}/10</span>
+                                    formatRating(book.rating) }}</span>
                                 <span class="ml-1 text-sm text-gray-500 dark:text-gray-500">({{ book.reviews_count || 0
-                                }})</span>
+                                    }})</span>
                             </div>
                         </div>
 
@@ -46,13 +46,13 @@
                         <div class="flex justify-end w-full">
                             <div class="flex justify-between w-full align-center">
                                 <div class="flex items-center space-x-4">
-                                    <div class="flex items-center space-x-2 text-slate-600 dark:text-slate-400">
+                                    <div class="flex items-center space-x-2 text-slate-600 dark:text-slate-400" v-if="book.reviews_count > 0">
                                         <i class="fas fa-feather"></i>
-                                        <span class="text-base font-semibold">{{ book.reviews_count || 0 }}</span>
+                                        <span class="text-base font-semibold">{{ book.reviews_count }}</span>
                                     </div>
-                                    <div class="flex items-center space-x-2 text-slate-600 dark:text-slate-400">
+                                    <div class="flex items-center space-x-2 text-slate-600 dark:text-slate-400" v-if="book.pages > 0">
                                         <i class="fas fa-paragraph"></i>
-                                        <span class="text-base font-semibold">{{ book.pages || 0 }}</span>
+                                        <span class="text-base font-semibold">{{ book.pages }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -68,10 +68,13 @@
                                 </div>
                             </button>
                             <a v-else :href="loginUrl"
-                                class="bg-gradient-to-r w-full text-center from-gray-500 to-gray-600 text-white hover:from-gray-600 hover:to-gray-700 font-bold py-2 px-2 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg">
-                                <div class="flex items-center w-full justify-center space-x-2">
-                                    <i class="fas fa-user"></i>
-                                    <span class="text-sm">Увійти</span>
+                                class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 font-bold py-2 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                    <span class="text-sm">Додати</span>
                                 </div>
                             </a>
                         </div>
