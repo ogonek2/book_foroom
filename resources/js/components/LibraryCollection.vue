@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
+    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
          @click="openLibrary">
         <!-- Header with author info -->
         <div class="flex items-center justify-between mb-4">
@@ -32,24 +32,24 @@
         <div class="mb-4">
             <div class="flex space-x-2">
                 <!-- First book cover -->
-                <div v-if="library.books && library.books.length > 0" class="flex-shrink-0">
+                <div v-if="library.books && library.books.length > 0" class="flex-shrink-0" style="width: 32%">
                     <img :src="library.books[0].cover_image || defaultCover"
                          :alt="library.books[0].title"
-                         class="w-16 h-20 object-cover rounded-lg shadow-md">
+                         class="object-cover rounded-lg shadow-md" style="aspect-ratio: 2 / 3;">
                 </div>
-                <div v-else class="w-16 h-20 bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                <div v-else class="bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
                     <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
                     </svg>
                 </div>
 
                 <!-- Second book cover -->
-                <div v-if="library.books && library.books.length > 1" class="flex-shrink-0">
+                <div v-if="library.books && library.books.length > 1" class="flex-shrink-0"  style="width: 32%">
                     <img :src="library.books[1].cover_image || defaultCover"
                          :alt="library.books[1].title"
-                         class="w-16 h-20 object-cover rounded-lg shadow-md">
+                         class="object-cover rounded-lg shadow-md" style="aspect-ratio: 2 / 3;">
                 </div>
-                <div v-else class="w-16 h-20 bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                <div v-else class="bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
                     <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
                     </svg>
@@ -57,10 +57,10 @@
 
                 <!-- Additional books counter -->
                 <div v-if="library.books_count > 2" 
-                     class="w-16 h-20 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                     class="w-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center backdrop-blur-sm"  style="width: 32%">
                     <span class="text-white font-bold text-sm">+{{ library.books_count - 2 }}</span>
                 </div>
-                <div v-else class="w-16 h-20 bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                <div v-else class="w-16 bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
                     <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
                     </svg>

@@ -38,7 +38,7 @@ module.exports = {
         },
         // Нейтральные цвета для светлой темы
         light: {
-          bg: '#ffffff',
+          bg: '#EFECE9',
           'bg-secondary': '#f8fafc',
           'bg-tertiary': '#f1f5f9',
           'text-primary': '#1e293b',

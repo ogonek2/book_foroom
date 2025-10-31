@@ -23,7 +23,7 @@
                 <p
                     class="text-base md:text-lg text-light-text-secondary dark:text-dark-text-secondary mb-6 max-w-2xl mx-auto leading-relaxed">
                     Приєднуйтесь до найбільшої спільноти читачів України.
-                    <span class="text-brand-500 dark:text-brand-300 font-medium">Діліться думками, відкривайте нові автори та
+                    <span class="text-brand-500 dark:text-brand-300 font-medium">Діліться думками, відкривайте нових авторів та
                         знаходьте натхнення.</span>
                 </p>
 
@@ -54,19 +54,19 @@
                 <!-- Stats -->
                 <div class="grid grid-cols-3 gap-4">
                     <div
-                        class="bg-light-bg dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
+                        class="dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
                         <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">
                             {{ number_format($stats['users']) }}</div>
                         <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Активних читачів</div>
                     </div>
                     <div
-                        class="bg-light-bg dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
+                        class="dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
                         <div class="text-xl font-bold text-accent-500 dark:text-accent-400 mb-1">
                             {{ number_format($stats['books']) }}</div>
                         <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Книг у каталозі</div>
                     </div>
                     <div
-                        class="bg-light-bg dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
+                        class="dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
                         <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">
                             {{ number_format($stats['reviews']) }}</div>
                         <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Рецензій та відгуків
@@ -269,11 +269,11 @@
                             @forelse($recommendedBooks as $index => $book)
                                 <div class="w-full flex-shrink-0">
                                     <div
-                                        class="bg-light-bg dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700">
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                                        class="bg-light-bg-secondary h-full dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-0 h-full">
                                             <div class="relative">
                                                 <div
-                                                    class="relative h-80 md:h-96 bg-light-bg-secondary/20 dark:bg-gray-900/20">
+                                                    class="relative overflow-hidden h-80 md:h-96 bg-light-bg-secondary/20 dark:bg-gray-900/20">
                                                     <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=1200&fit=crop&crop=center' }}"
                                                         alt="{{ $book->title }} (background)"
                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
@@ -315,8 +315,6 @@
                                                             <span
                                                                 class="text-light-text-primary dark:text-white font-semibold">{{ number_format($book->rating, 1) }}</span>
                                                         </div>
-                                                        <span
-                                                            class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">{{ $book->publication_year }}</span>
                                                     </div>
                                                     <a href="{{ route('books.show', $book->slug) }}"
                                                         class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -330,7 +328,7 @@
                             @empty
                                 <div class="w-full flex-shrink-0">
                                     <div
-                                        class="bg-light-bg dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700 p-8 text-center">
+                                        class="bg-light-bg-secondary h-full dark:bg-gray-800 rounded-2xl overflow-hidden border border-light-border dark:border-gray-700 p-8 text-center">
                                         <p class="text-light-text-tertiary dark:text-gray-400">Поки що немає рекомендуваних
                                             книг</p>
                                     </div>
@@ -428,7 +426,7 @@
                     <!-- Review Card -->
                     <div class="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[450px] lg:w-[500px]" style="max-width: 450px;">
                         <div
-                            class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-5 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full shadow-sm hover:shadow-md">
+                            class="dark:bg-dark-bg-secondary rounded-lg p-5 bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full shadow-sm hover:shadow-md">
                             <div class="flex items-start space-x-4 h-full">
                                 <!-- Left side: Avatar + Author name and Review content -->
                                 <div class="flex-1 min-w-0">
@@ -673,7 +671,7 @@
                 @forelse($featuredQuotes as $quote)
                     <div class="flex-shrink-0 w-80">
                         <div
-                            class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-6 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full flex flex-col shadow-sm hover:shadow-md">
+                            class="dark:bg-dark-bg-secondary rounded-lg p-6 bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full flex flex-col shadow-sm hover:shadow-md">
                             <div class="text-4xl text-orange-500/30 mb-4">"</div>
                             <p
                                 class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1">

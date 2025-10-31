@@ -63,7 +63,7 @@
                                     <div class="relative group">
                                         <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
                                             alt="{{ $book->title }}"
-                                            class="object-cover rounded-2xl shadow-2xl group-hover:shadow-3xl transition-all duration-500 group-hover:scale-105">
+                                            class="object-cover rounded-2xl shadow-2xl group-hover:shadow-3xl transition-all duration-500 group-hover:scale-105" style="aspect-ratio: 2 / 3;">
                                     </div>
                                     <!-- Add Button -->
                                     <div class="mt-4 text-center space-y-3">

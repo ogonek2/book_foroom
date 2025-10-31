@@ -1,7 +1,7 @@
 <template>
     <div>
         <div
-            class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-xl shadow-xl border border-white/20 dark:border-slate-700/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/30 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div class="p-4">
                 <div class="flex space-x-4">
                     <!-- Book Cover -->
@@ -10,7 +10,7 @@
                             <img :src="book.cover_image || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=300&fit=crop&crop=center'"
                                 :alt="book.title"
                                 class="aspect-[3/4] object-cover rounded-lg shadow-md group-hover:shadow-lg transition-all duration-300"
-                                style="width: 120px; height: 170px;">
+                                style="width: 120px; height: auto; aspect-ratio: 2 / 3;">
                         </a>
                     </div>
 
