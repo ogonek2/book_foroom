@@ -7,6 +7,8 @@ use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class LibraryController extends Controller
 {
@@ -15,55 +17,29 @@ class LibraryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Library::with(['user', 'books' => function($q) {
-            $q->limit(3); // Для предварительного просмотра берем только первые 3 книги
-        }, 'likes']);
+        $query = $this->buildLibrariesQuery($request);
 
-        // Filter by search
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
+        $libraries = $query->paginate($request->integer('per_page', 12));
+
+        if ($request->wantsJson()) {
+            return response()->json($this->transformPaginatedLibraries($libraries));
         }
 
-        // Filter by visibility (only show public libraries to non-owners)
-        if (!Auth::check() || !$request->has('show_private')) {
-            $query->where('is_private', false);
-        } else {
-            // If user is authenticated and wants to see private, show only their own private libraries
-            $query->where(function ($q) {
-                $q->where('is_private', false)
-                  ->orWhere(function ($subQ) {
-                      $subQ->where('is_private', true)
-                           ->where('user_id', Auth::id());
-                  });
-            });
-        }
+        $payload = $this->transformPaginatedLibraries($libraries);
 
-        // Sort
-        $sort = $request->get('sort', 'popular');
-        switch ($sort) {
-            case 'newest':
-                $query->orderBy('created_at', 'desc');
-                break;
-            case 'oldest':
-                $query->orderBy('created_at', 'asc');
-                break;
-            case 'name':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'books_count':
-                $query->withCount('books')->orderBy('books_count', 'desc');
-                break;
-            default: // popular
-                $query->withCount('books')->orderBy('books_count', 'desc');
-        }
+        $filters = [
+            'search' => (string) $request->get('search', ''),
+            'category' => (string) $request->get('category', ''),
+            'sort' => (string) $request->get('sort', 'popular'),
+            'page' => $libraries->currentPage(),
+        ];
 
-        $libraries = $query->paginate(12);
-
-        return view('libraries.index', compact('libraries'));
+        return view('libraries.index', [
+            'initialData' => $payload,
+            'initialFilters' => $filters,
+            'isAuthenticated' => Auth::check(),
+            'createUrl' => route('libraries.create'),
+        ]);
     }
 
     /**
@@ -335,5 +311,130 @@ class LibraryController extends Controller
             'success' => true,
             'message' => 'Добірку прибрано з збережених'
         ]);
+    }
+
+    /**
+     * Build the base query for listing libraries with applied filters.
+     */
+    protected function buildLibrariesQuery(Request $request): Builder
+    {
+        $query = Library::query()
+            ->with([
+                'user:id,name,username,avatar',
+                'books' => function ($q) {
+                    $q->limit(3);
+                },
+            ])
+            ->withCount(['books', 'likes'])
+            ->whereHas('books');
+
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function (Builder $builder) use ($search) {
+                $builder->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if (!Auth::check() || !$request->has('show_private')) {
+            $query->where('is_private', false);
+        } else {
+            $query->where(function (Builder $builder) {
+                $builder->where('is_private', false)
+                    ->orWhere(function (Builder $sub) {
+                        $sub->where('is_private', true)
+                            ->where('user_id', Auth::id());
+                    });
+            });
+        }
+
+        $sort = $request->get('sort', 'popular');
+        switch ($sort) {
+            case 'newest':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'name':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'books_count':
+                $query->orderBy('books_count', 'desc');
+                break;
+            default:
+                $query->orderBy('likes_count', 'desc')
+                      ->orderBy('books_count', 'desc');
+        }
+
+        return $query;
+    }
+
+    /**
+     * Transform paginated libraries to array structure for API/initial payload.
+     */
+    protected function transformPaginatedLibraries(LengthAwarePaginator $libraries): array
+    {
+        $collection = $libraries->getCollection();
+        $libraryIds = $collection->pluck('id');
+
+        $user = Auth::user();
+        $likedIds = [];
+        $savedIds = [];
+
+        if ($user && $libraryIds->isNotEmpty()) {
+            $likedIds = DB::table('user_liked_libraries')
+                ->where('user_id', $user->id)
+                ->whereIn('library_id', $libraryIds)
+                ->pluck('library_id')
+                ->all();
+
+            $savedIds = DB::table('saved_libraries')
+                ->where('user_id', $user->id)
+                ->whereIn('library_id', $libraryIds)
+                ->pluck('library_id')
+                ->all();
+        }
+
+        $data = $collection->map(function (Library $library) use ($likedIds, $savedIds) {
+            return [
+                'id' => $library->id,
+                'name' => $library->name,
+                'description' => $library->description,
+                'created_at' => optional($library->created_at)->toIso8601String(),
+                'books_count' => (int) ($library->books_count ?? $library->books->count()),
+                'likes_count' => (int) ($library->likes_count ?? 0),
+                'user' => [
+                    'id' => $library->user->id,
+                    'name' => $library->user->name,
+                    'username' => $library->user->username,
+                    'avatar' => $library->user->avatar,
+                ],
+                'books' => $library->books->map(function (Book $book) {
+                    return [
+                        'id' => $book->id,
+                        'title' => $book->title,
+                        'slug' => $book->slug,
+                        'cover_image' => $book->cover_image,
+                    ];
+                })->values(),
+                'is_liked' => in_array($library->id, $likedIds, true),
+                'is_saved' => in_array($library->id, $savedIds, true),
+            ];
+        })->values();
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'current_page' => $libraries->currentPage(),
+                'last_page' => $libraries->lastPage(),
+                'per_page' => $libraries->perPage(),
+                'total' => $libraries->total(),
+            ],
+            'links' => [
+                'prev' => $libraries->previousPageUrl(),
+                'next' => $libraries->nextPageUrl(),
+            ],
+        ];
     }
 }

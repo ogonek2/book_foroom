@@ -131,6 +131,37 @@
                                     {{ $readingStatus->book->author->first_name ?? $readingStatus->book->author ?? 'Не указан' }}
                                 </p>
 
+                                <!-- Additional Info -->
+                                <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400 pt-1">
+                                    @if($readingStatus->times_read && $readingStatus->times_read > 1)
+                                        <span class="flex items-center space-x-1">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <span>{{ $readingStatus->times_read }}x</span>
+                                        </span>
+                                    @endif
+                                    @if($readingStatus->reading_language)
+                                        @php
+                                            $languages = [
+                                                'uk' => '🇺🇦',
+                                                'en' => '🇬🇧',
+                                                'ru' => '🇷🇺',
+                                                'pl' => '🇵🇱',
+                                                'de' => '🇩🇪',
+                                                'fr' => '🇫🇷',
+                                                'es' => '🇪🇸',
+                                                'it' => '🇮🇹',
+                                            ];
+                                            $langFlag = $languages[$readingStatus->reading_language] ?? '🌐';
+                                        @endphp
+                                        <span class="flex items-center space-x-1">
+                                            <span>{{ $langFlag }}</span>
+                                            <span>{{ strtoupper($readingStatus->reading_language) }}</span>
+                                        </span>
+                                    @endif
+                                </div>
+
                                 <!-- Actions -->
                                 <div class="flex items-center justify-between pt-2">
                                     <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -186,7 +217,19 @@
     </div>
 
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <script>
+            // Настройка axios для работы с Laravel
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+                axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+            }
+            axios.defaults.timeout = 10000; // 10 секунд по умолчанию
+            
+            let currentReadingStatus = null;
+            let editModal = null;
+
             function manageLibrary() {
                 // TODO: Implement library management modal
                 console.log('Manage library');
@@ -208,17 +251,275 @@
                 console.log('Sort by:', sortBy);
             }
 
-            function editBookStatus(readingStatusId) {
-                // TODO: Implement edit book status modal
-                console.log('Edit book status:', readingStatusId);
-            }
-
-            function removeFromLibrary(readingStatusId) {
-                if (confirm('Ви впевнені, що хочете видалити цю книгу з бібліотеки?')) {
-                    // TODO: Implement remove from library
-                    console.log('Remove from library:', readingStatusId);
+            async function editBookStatus(readingStatusId) {
+                if (!readingStatusId) {
+                    alert('Помилка: не вказано ID статусу');
+                    return;
+                }
+                
+                try {
+                    // Проверяем наличие CSRF токена
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    if (!csrfToken) {
+                        console.warn('CSRF token not found');
+                    }
+                    
+                    const response = await axios.get(`/api/reading-status/status/${readingStatusId}`, {
+                        timeout: 10000,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.data && response.data.success) {
+                        currentReadingStatus = response.data.data;
+                        openEditModal();
+                    } else {
+                        alert('Помилка при завантаженні даних: ' + (response.data?.message || 'Невідома помилка'));
+                    }
+                } catch (error) {
+                    console.error('Error loading status:', error);
+                    if (error.code === 'ECONNABORTED' || error.message === 'Request aborted') {
+                        console.warn('Request was aborted, this might be due to page navigation');
+                        return; // Не показываем ошибку, если запрос был прерван из-за навигации
+                    } else if (error.response) {
+                        // Сервер ответил с ошибкой
+                        alert('Помилка при завантаженні даних: ' + (error.response.data?.message || `HTTP ${error.response.status}`));
+                    } else if (error.request) {
+                        // Запрос был отправлен, но ответа не получено
+                        alert('Не вдалося отримати відповідь від сервера. Перевірте підключення до інтернету.');
+                    } else {
+                        // Ошибка при настройке запроса
+                        alert('Помилка при налаштуванні запиту: ' + error.message);
+                    }
                 }
             }
+
+            function openEditModal() {
+                if (!editModal) {
+                    // Создаем модальное окно, если его еще нет
+                    const modalHtml = `
+                        <div id="editBookStatusModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" style="display: none;">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+                                <div class="p-6">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Редагувати статус книги</h3>
+                                        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <form id="editStatusForm" onsubmit="saveBookStatus(event)">
+                                        <div class="mb-4">
+                                            <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Статус</label>
+                                            <select id="editStatus" required class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-slate-900 dark:text-white">
+                                                <option value="want_to_read">Хочу прочитати</option>
+                                                <option value="reading">Читаю</option>
+                                                <option value="read">Прочитано</option>
+                                                <option value="abandoned">Закинуто</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Кількість разів прочитано</label>
+                                            <input id="editTimesRead" type="number" min="1" required class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-slate-900 dark:text-white">
+                                        </div>
+                                        <div class="mb-6">
+                                            <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Мова читання</label>
+                                            <select id="editReadingLanguage" class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-slate-900 dark:text-white">
+                                                <option value="">Не вказано</option>
+                                                <option value="uk">Українська</option>
+                                                <option value="en">English</option>
+                                                <option value="ru">Русский</option>
+                                                <option value="pl">Polski</option>
+                                                <option value="de">Deutsch</option>
+                                                <option value="fr">Français</option>
+                                                <option value="es">Español</option>
+                                                <option value="it">Italiano</option>
+                                                <option value="other">Інша</option>
+                                            </select>
+                                        </div>
+                                        <div id="ratingSection" class="mb-6" style="display: none;">
+                                            <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Оцінка</label>
+                                            <div class="flex items-center space-x-1" id="ratingButtons">
+                                                <button type="button" onclick="setRating(this)" data-rating="1" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">1</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="2" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">2</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="3" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">3</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="4" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">4</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="5" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">5</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="6" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">6</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="7" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">7</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="8" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">8</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="9" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">9</button>
+                                                <button type="button" onclick="setRating(this)" data-rating="10" class="w-10 h-10 rounded-lg transition-all duration-200 bg-slate-200 dark:bg-slate-700 text-slate-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/30">10</button>
+                                            </div>
+                                            <input type="hidden" id="editRating" value="">
+                                        </div>
+                                        <div class="flex space-x-3">
+                                            <button type="submit" id="saveStatusBtn" class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-6 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all">
+                                                Зберегти
+                                            </button>
+                                            <button type="button" onclick="closeEditModal()" class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 py-3 px-6 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition-all">
+                                                Скасувати
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.insertAdjacentHTML('beforeend', modalHtml);
+                    editModal = document.getElementById('editBookStatusModal');
+                }
+                
+                // Заполняем форму данными
+                if (currentReadingStatus) {
+                    document.getElementById('editStatus').value = currentReadingStatus.status || 'want_to_read';
+                    document.getElementById('editTimesRead').value = currentReadingStatus.times_read || 1;
+                    document.getElementById('editReadingLanguage').value = currentReadingStatus.reading_language || '';
+                    document.getElementById('editRating').value = currentReadingStatus.rating || '';
+                    
+                    // Показываем/скрываем секцию рейтинга
+                    const ratingSection = document.getElementById('ratingSection');
+                    const statusSelect = document.getElementById('editStatus');
+                    if (statusSelect.value === 'read') {
+                        ratingSection.style.display = 'block';
+                        updateRatingButtons(currentReadingStatus.rating || 0);
+                    } else {
+                        ratingSection.style.display = 'none';
+                    }
+                    
+                    // Обновляем рейтинг при изменении статуса
+                    statusSelect.addEventListener('change', function() {
+                        if (this.value === 'read') {
+                            ratingSection.style.display = 'block';
+                        } else {
+                            ratingSection.style.display = 'none';
+                            document.getElementById('editRating').value = '';
+                        }
+                    });
+                }
+                
+                editModal.style.display = 'flex';
+            }
+            
+            function setRating(button) {
+                const rating = parseInt(button.dataset.rating) || parseInt(button.textContent.trim());
+                document.getElementById('editRating').value = rating;
+                updateRatingButtons(rating);
+            }
+            
+            function updateRatingButtons(rating) {
+                const buttons = document.querySelectorAll('#ratingSection button[data-rating]');
+                buttons.forEach((btn) => {
+                    const value = parseInt(btn.dataset.rating);
+                    if (value <= rating) {
+                        btn.classList.remove('bg-slate-200', 'dark:bg-slate-700', 'text-slate-400');
+                        btn.classList.add('bg-yellow-400', 'text-white');
+                    } else {
+                        btn.classList.remove('bg-yellow-400', 'text-white');
+                        btn.classList.add('bg-slate-200', 'dark:bg-slate-700', 'text-slate-400');
+                    }
+                });
+            }
+
+            function closeEditModal() {
+                if (editModal) {
+                    editModal.style.display = 'none';
+                }
+            }
+
+            async function saveBookStatus(event) {
+                event.preventDefault();
+                
+                const btn = document.getElementById('saveStatusBtn');
+                btn.disabled = true;
+                btn.textContent = 'Збереження...';
+                
+                try {
+                    const formData = {
+                        status: document.getElementById('editStatus').value,
+                        times_read: parseInt(document.getElementById('editTimesRead').value),
+                        reading_language: document.getElementById('editReadingLanguage').value || null,
+                        rating: document.getElementById('editRating').value ? parseInt(document.getElementById('editRating').value) : null
+                    };
+                    
+                    const response = await axios.put(`/api/reading-status/status/${currentReadingStatus.id}`, formData, {
+                        timeout: 10000,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.data.success) {
+                        alert('Статус оновлено!');
+                        window.location.reload();
+                    } else {
+                        alert(response.data.message || 'Помилка при збереженні');
+                    }
+                } catch (error) {
+                    console.error('Error saving status:', error);
+                    alert(error.response?.data?.message || 'Помилка при збереженні статусу');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Зберегти';
+                }
+            }
+
+            async function removeFromLibrary(readingStatusId) {
+                if (!confirm('Ви впевнені, що хочете видалити цю книгу з бібліотеки?')) {
+                    return;
+                }
+                
+                try {
+                    // Получаем book_id из статуса
+                    const statusResponse = await axios.get(`/api/reading-status/status/${readingStatusId}`, {
+                        timeout: 10000,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (!statusResponse.data || !statusResponse.data.success) {
+                        alert('Помилка при завантаженні даних');
+                        return;
+                    }
+                    
+                    const bookId = statusResponse.data.data.book_id;
+                    if (!bookId) {
+                        alert('Помилка: не вдалося отримати ID книги');
+                        return;
+                    }
+                    
+                    const response = await axios.delete(`/api/reading-status/book/${bookId}`, {
+                        timeout: 10000,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.data.success) {
+                        alert('Книгу видалено з бібліотеки!');
+                        window.location.reload();
+                    } else {
+                        alert(response.data.message || 'Помилка при видаленні');
+                    }
+                } catch (error) {
+                    console.error('Error removing from library:', error);
+                    alert('Помилка при видаленні книги');
+                }
+            }
+
+            // Закрытие модального окна при клике на фон
+            document.addEventListener('click', function(event) {
+                if (editModal && event.target === editModal) {
+                    closeEditModal();
+                }
+            });
         </script>
     @endpush
 @endsection

@@ -57,21 +57,24 @@
                 <!-- Authors Grid -->
                 <div class="flex-1 min-w-0">
                     @if ($authors->count() > 0)
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                             @foreach ($authors as $author)
                                 <div
-                                    class="group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105">
+                                    class="group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-xs border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-xl transition-all duration-300">
                                     <a href="{{ route('authors.show', $author) }}" class="block">
                                         <!-- Card Container -->
                                         <div class="aspect-[3/4] relative">
                                             <img src="{{ $author->photo_url }}" alt="{{ $author->full_name ?? 'Автор' }}"
-                                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                class="w-full h-full object-cover"
                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
 
                                             <!-- Icon Fallback (only shown when image fails to load) -->
-                                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800" style="display: none;">
-                                                <svg class="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800"
+                                                style="display: none;">
+                                                <svg class="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                 </svg>
                                             </div>
 
@@ -86,8 +89,7 @@
                                                     class="flex items-center space-x-1 bg-white/80 dark:bg-black/70 rounded-full px-2 py-1.5">
                                                     <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none"
                                                         stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                             d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                                     </svg>
                                                     <span
@@ -96,7 +98,8 @@
                                             </div>
 
                                             <!-- Author Info -->
-                                            <div class="absolute left-0 right-0 z-10 p-4" style="bottom: 0rem; background: linear-gradient(to top, rgba(0, 0, 0, 0.863) 0%, rgba(0, 0, 0, 0.603) 67.31%, rgba(0,0,0,0) 100%);">
+                                            <div class="absolute left-0 right-0 z-10 p-4"
+                                                style="bottom: 0rem; background: linear-gradient(to top, rgba(0, 0, 0, 0.863) 0%, rgba(0, 0, 0, 0.603) 67.31%, rgba(0,0,0,0) 100%);">
                                                 <h6
                                                     class="text-l font-bold text-white group-hover:text-purple-200 transition-colors line-clamp-2">
                                                     {{ $author->full_name ?? ($author->name ?? 'Автор #' . ($author->id ?? '?')) }}
@@ -104,13 +107,10 @@
                                             </div>
 
                                             <!-- Hover Button -->
-                                            <div
-                                                class="absolute bottom-0 left-0 right-0 z-50 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-white/95 to-white/80 dark:from-black/95 dark:to-black/80 backdrop-blur-sm opacity-0 group-hover:opacity-100">
-                                                <div class="p-4">
-                                                    <button
-                                                        class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-105">
-                                                        Перейти к автору
-                                                    </button>
+                                            <div class="absolute top-4 left-4 z-20">
+                                                <div
+                                                    class="flex items-center space-x-1 bg-gradient-to-r from-brand-500 to-accent-500 rounded-full px-2 py-1.5">
+                                                    <i class="fa fa-arrow-right"></i>
                                                 </div>
                                             </div>
                                         </div>

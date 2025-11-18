@@ -50,10 +50,6 @@
                                         <i class="fas fa-feather"></i>
                                         <span class="text-base font-semibold">{{ book.reviews_count }}</span>
                                     </div>
-                                    <div class="flex items-center space-x-2 text-slate-600 dark:text-slate-400" v-if="book.pages > 0">
-                                        <i class="fas fa-paragraph"></i>
-                                        <span class="text-base font-semibold">{{ book.pages }}</span>
-                                    </div>
                                 </div>
                             </div>
                             <!-- Add Button -->

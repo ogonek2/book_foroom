@@ -92,4 +92,22 @@ class Quote extends Model
     {
         return $this->status === 'blocked';
     }
+
+    /**
+     * Пользователи, которые добавили цитату в избранное
+     */
+    public function favoritedByUsers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'favorite_quotes')
+                    ->withTimestamps()
+                    ->orderBy('favorite_quotes.created_at', 'desc');
+    }
+
+    /**
+     * Проверяет, добавлена ли цитата в избранное пользователем
+     */
+    public function isFavoritedBy($userId): bool
+    {
+        return $this->favoritedByUsers()->where('user_id', $userId)->exists();
+    }
 }

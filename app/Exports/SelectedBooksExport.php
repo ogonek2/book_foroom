@@ -24,7 +24,7 @@ class SelectedBooksExport implements FromCollection, WithHeadings, WithMapping, 
      */
     public function collection()
     {
-        return Book::with(['author', 'category'])
+        return Book::with(['author', 'categories'])
             ->whereIn('id', $this->selectedIds)
             ->get();
     }
@@ -37,19 +37,25 @@ class SelectedBooksExport implements FromCollection, WithHeadings, WithMapping, 
         return [
             'ID',
             'Название',
+            'Название (UA)',
             'Слаг',
-            'Описание',
+            'Анотация',
+            'Источник анотации',
             'Автор (старый)',
+            'Автор',
             'ISBN',
             'Год издания',
+            'Первое издание',
             'Издательство',
             'Обложка',
             'Язык',
+            'Мова оригіналу',
             'Страницы',
             'Рейтинг',
             'Количество рецензий',
-            'Категория',
-            'Автор',
+            'Категории',
+            'Синоніми',
+            'Серія',
             'Рекомендуемая',
             'Дата создания',
             'Дата обновления',
@@ -65,19 +71,25 @@ class SelectedBooksExport implements FromCollection, WithHeadings, WithMapping, 
         return [
             $book->id,
             $book->title,
+            $book->book_name_ua,
             $book->slug,
-            $book->description,
+            $book->annotation,
+            $book->annotation_source,
             $book->author, // старое поле author
+            $book->author_full_name,
             $book->isbn,
             $book->publication_year,
+            $book->first_publish_year,
             $book->publisher,
             $book->cover_image,
             $book->language,
+            $book->original_language,
             $book->pages,
             $book->rating,
             $book->reviews_count,
-            $book->category?->name ?? 'Не указана',
-            $book->author_full_name,
+            $book->categories->pluck('name')->implode(', '),
+            implode(', ', $book->synonyms ?? []),
+            $book->series,
             $book->is_featured ? 'Да' : 'Нет',
             $book->created_at?->format('d.m.Y H:i'),
             $book->updated_at?->format('d.m.Y H:i'),
@@ -115,22 +127,27 @@ class SelectedBooksExport implements FromCollection, WithHeadings, WithMapping, 
         return [
             'A' => 8,   // ID
             'B' => 30,  // Название
-            'C' => 20,  // Слаг
-            'D' => 40,  // Описание
-            'E' => 20,  // Автор (старый)
-            'F' => 15,  // ISBN
-            'G' => 12,  // Год издания
-            'H' => 20,  // Издательство
-            'I' => 30,  // Обложка
-            'J' => 8,   // Язык
-            'K' => 10,  // Страницы
-            'L' => 10,  // Рейтинг
-            'M' => 15,  // Количество рецензий
-            'N' => 20,  // Категория
-            'O' => 25,  // Автор
-            'P' => 12,  // Рекомендуемая
-            'Q' => 15,  // Дата создания
-            'R' => 15,  // Дата обновления
+            'C' => 30,  // Название UA
+            'D' => 20,  // Слаг
+            'E' => 40,  // Анотация
+            'F' => 25,  // Источник анотации
+            'G' => 20,  // Автор (старый)
+            'H' => 25,  // Автор
+            'I' => 15,  // ISBN
+            'J' => 12,  // Год издания
+            'K' => 12,  // Перше видання
+            'L' => 20,  // Издательство
+            'M' => 30,  // Обложка
+            'N' => 8,   // Язык
+            'O' => 10,  // Мова оригіналу
+            'P' => 10,  // Страницы
+            'Q' => 10,  // Рейтинг
+            'R' => 20,  // Категории
+            'S' => 25,  // Синоніми
+            'T' => 20,  // Серія
+            'U' => 12,  // Рекомендуемая
+            'V' => 15,  // Дата создания
+            'W' => 15,  // Дата обновления
         ];
     }
 }

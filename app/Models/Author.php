@@ -12,6 +12,14 @@ class Author extends Model
         'first_name',
         'last_name',
         'middle_name',
+        'first_name_ua',
+        'middle_name_ua',
+        'last_name_ua',
+        'first_name_eng',
+        'middle_name_eng',
+        'last_name_eng',
+        'pseudonym',
+        'synonyms',
         'slug',
         'biography',
         'birth_date',
@@ -19,6 +27,7 @@ class Author extends Model
         'nationality',
         'photo',
         'website',
+        'web_page',
         'awards',
         'is_featured',
     ];
@@ -27,6 +36,7 @@ class Author extends Model
         'birth_date' => 'date',
         'death_date' => 'date',
         'is_featured' => 'boolean',
+        'synonyms' => 'array',
     ];
 
     protected static function boot()
@@ -35,7 +45,23 @@ class Author extends Model
         
         static::creating(function ($author) {
             if (empty($author->slug)) {
-                $author->slug = Str::slug($author->first_name . ' ' . $author->last_name);
+                $nameForSlug = $author->pseudonym ?: trim(($author->first_name ?? '') . ' ' . ($author->last_name ?? ''));
+                $author->slug = Str::slug($nameForSlug);
+            }
+            // Синхронизация website и web_page
+            if ($author->website && !$author->web_page) {
+                $author->web_page = $author->website;
+            } elseif ($author->web_page && !$author->website) {
+                $author->website = $author->web_page;
+            }
+        });
+        
+        static::updating(function ($author) {
+            // Синхронизация website и web_page при обновлении
+            if ($author->isDirty('website') && !$author->isDirty('web_page')) {
+                $author->web_page = $author->website;
+            } elseif ($author->isDirty('web_page') && !$author->isDirty('website')) {
+                $author->website = $author->web_page;
             }
         });
     }

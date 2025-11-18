@@ -1,9 +1,8 @@
 // Импортируем стили
 import '../css/app.scss';
 
-// Импортируем Vue и Axios
+// Импортируем Vue
 import Vue from 'vue';
-import axios from 'axios';
 
 // Импортируем компоненты
 import BookCard from './components/BookCard.vue';
@@ -33,8 +32,48 @@ import UnifiedContentList from './components/UnifiedContentList.vue';
 import ContentFilters from './components/ContentFilters.vue';
 import ReportModal from './components/ReportModal.vue';
 import ReportButton from './components/ReportButton.vue';
-import QuotesSlider from './components/QuotesSlider.vue';
-import QuotesSliderSimple from './components/QuotesSliderSimple.vue';
+import FeaturedQuotesCarousel from './components/quotes/FeaturedQuotesCarousel.vue';
+import LibrariesExplorer from './components/LibrariesExplorer.vue';
+import BookSearch from './components/BookSearch.vue';
+
+// Экспортируем Vue глобально для использования в Blade шаблонах
+window.Vue = Vue;
+
+// Регистрируем компоненты глобально
+Vue.component('book-card', BookCard);
+Vue.component('add-to-library-modal', AddToLibraryModal);
+Vue.component('add-to-library-button', AddToLibraryButton);
+Vue.component('library-collection', LibraryCollection);
+Vue.component('user-library-book-card', UserLibraryBookCard);
+Vue.component('notification-bell', NotificationBell);
+Vue.component('notifications-page', NotificationsPage);
+Vue.component('notification-filters', NotificationFilters);
+Vue.component('notification-card', NotificationCard);
+Vue.component('notification-pagination', NotificationPagination);
+Vue.component('discussion-reply', DiscussionReply);
+Vue.component('discussion-replies-list', DiscussionRepliesList);
+Vue.component('review-reply', ReviewReply);
+Vue.component('reviews-replies-list', ReviewsRepliesList);
+Vue.component('quote-card', QuoteCard);
+Vue.component('quotes-list', QuotesList);
+Vue.component('add-quote-modal', AddQuoteModal);
+Vue.component('interesting-facts', InterestingFacts);
+Vue.component('add-review-modal', AddReviewModal);
+Vue.component('book-reviews-list', BookReviewsList);
+Vue.component('reviews-list', BookReviewsList);
+Vue.component('fact-card', FactCard);
+Vue.component('facts-list', FactsList);
+Vue.component('price-comparison', PriceComparison);
+Vue.component('unified-content-list', UnifiedContentList);
+Vue.component('content-filters', ContentFilters);
+Vue.component('report-modal', ReportModal);
+Vue.component('report-button', ReportButton);
+Vue.component('featured-quotes-carousel', FeaturedQuotesCarousel);
+Vue.component('libraries-explorer', LibrariesExplorer);
+Vue.component('book-search', BookSearch);
+
+// Импортируем Axios
+import axios from 'axios';
 
 // Настройка Axios
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -49,30 +88,37 @@ if (token) {
 // Глобальные переменные
 window.repliesPages = {};
 
-// Функции для управления ветками (сворачивание/разворачивания)
+// Функции для управления ветками (сворачивание/разворачивание)
 window.toggleBranch = function(branchId) {
-    console.log('toggleBranch called with:', branchId);
-    
     const branchContent = document.getElementById(`branchContent${branchId}`);
-    console.log('Branch content element:', branchContent);
+    const toggleButton = document.getElementById(`branchToggle${branchId}`);
     
-    if (branchContent) {
+    if (branchContent && toggleButton) {
         const isCollapsed = branchContent.classList.contains('collapsed');
-        console.log('Is collapsed:', isCollapsed);
         
         if (isCollapsed) {
             // Разворачиваем ветку
             branchContent.classList.remove('collapsed');
             branchContent.classList.add('expanded');
-            console.log('Branch expanded');
+            toggleButton.classList.remove('collapsed');
+            toggleButton.innerHTML = `
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+                Свернуть
+            `;
         } else {
             // Сворачиваем ветку
             branchContent.classList.remove('expanded');
             branchContent.classList.add('collapsed');
-            console.log('Branch collapsed');
+            toggleButton.classList.add('collapsed');
+            toggleButton.innerHTML = `
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                Развернуть
+            `;
         }
-    } else {
-        console.error('Branch content element not found for ID:', `branchContent${branchId}`);
     }
 };
 
@@ -95,27 +141,22 @@ window.toggleReplyForm = function(reviewId) {
 window.loadReplies = function(reviewId, page = 1) {
     console.log('Loading replies for review:', reviewId, 'page:', page);
     
-    // Если это первая страница, просто показываем контейнер (содержимое уже загружено через Blade)
-    if (page === 1) {
-        const container = document.getElementById(`repliesContainer${reviewId}`);
-        if (container) {
-            container.classList.remove('hidden');
-        }
-        return;
-    }
-    
-    // Для последующих страниц загружаем через API
     axios.get(`/api/reviews/${reviewId}/replies?page=${page}`)
         .then(response => {
             const data = response.data;
-            console.log('Additional replies loaded:', data);
+            console.log('Replies loaded:', data);
             
-            const container = document.getElementById(`repliesContent${reviewId}`);
+            const container = document.getElementById(`repliesContainer${reviewId}`);
             if (container) {
-                // Добавляем дополнительные ответы
+                container.classList.remove('hidden');
+                
+                if (page === 1) {
+                    container.innerHTML = ''; // Очищаем при первой загрузке
+                }
+                
+                // Добавляем ответы
                 data.data.forEach(reply => {
-                    const replyElement = createReplyElementWithBranches(reply, 0);
-                    container.appendChild(replyElement);
+                    container.appendChild(createReplyElement(reply));
                 });
                 
                 // Управляем кнопкой "Загрузить еще"
@@ -165,76 +206,57 @@ window.loadMoreReplies = function(reviewId) {
 
 // Функция для переключения показа/скрытия ответов
 window.toggleReplies = function(reviewId) {
-    console.log('toggleReplies called for review:', reviewId);
-    
     const container = document.getElementById(`repliesContainer${reviewId}`);
-    const toggleButton = document.getElementById(`replyToggle${reviewId}`);
+    const toggleButton = document.querySelector(`[data-review-id="${reviewId}"].reply-toggle-btn`);
     
-    console.log('Container:', container);
-    console.log('Toggle button:', toggleButton);
-    
-    if (!container || !toggleButton) {
-        console.error('Container or toggle button not found for review:', reviewId);
-        return;
-    }
+    if (!container || !toggleButton) return;
     
     const isHidden = container.classList.contains('hidden');
-    console.log('Is hidden:', isHidden);
     
     if (isHidden) {
         // Показываем ответы
         container.classList.remove('hidden');
-        console.log('Showing replies');
-        
-        // Обновляем кнопку
+        toggleButton.setAttribute('data-action', 'hide');
         toggleButton.innerHTML = `
-            <svg class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            Скрыть ответы
+            <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
             </svg>
-            <span>Скрыть ответы</span>
         `;
     } else {
         // Скрываем ответы
         container.classList.add('hidden');
-        console.log('Hiding replies');
-        
-        // Обновляем кнопку
+        toggleButton.setAttribute('data-action', 'show');
         toggleButton.innerHTML = `
-            <svg class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            Показать ответы
+            <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
             </svg>
-            <span>Показать ответы</span>
         `;
     }
 };
 
 // Функция для скрытия ответов
 window.hideReplies = function(reviewId) {
-    console.log('hideReplies called for review:', reviewId);
-    
     const container = document.getElementById(`repliesContainer${reviewId}`);
-    const toggleButton = document.getElementById(`replyToggle${reviewId}`);
+    const toggleButton = document.querySelector(`[data-review-id="${reviewId}"].reply-toggle-btn`);
     
-    if (!container || !toggleButton) {
-        console.log('Container or toggle button not found');
-        return;
-    }
+    if (!container || !toggleButton) return;
     
     container.classList.add('hidden');
+    toggleButton.setAttribute('data-action', 'show');
     toggleButton.innerHTML = `
-        <svg class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        Показать ответы
+        <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
         </svg>
-        <span>Показать ответы</span>
     `;
 };
 
-// Функция для создания ответа с поддержкой веток (новая)
-window.createReplyElementWithBranches = function(reply, depth = 0) {
+window.createReplyElement = function(reply, depth = 0) {
     const div = document.createElement('div');
     const currentDepth = depth + 1;
-    const isThirdLevel = currentDepth == 3; // Третий уровень - ветка
-    const isFourthLevel = currentDepth >= 4; // Четвертый уровень и глубше - в один ряд
+    const isThirdLevel = currentDepth >= 3;
     
     // Простые отступы для первых двух уровней
     const marginLeft = currentDepth <= 2 ? currentDepth * 0.5 : 1; // Максимум 1rem для третьего уровня
@@ -242,7 +264,6 @@ window.createReplyElementWithBranches = function(reply, depth = 0) {
     div.className = `reply-item ml-${marginLeft} border-l-2 border-gray-200 dark:border-gray-700 pl-2 bg-gray-50 dark:bg-gray-800/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700`;
     div.setAttribute('data-reply-id', reply.id);
     div.setAttribute('data-depth', currentDepth);
-    div.setAttribute('data-review-id', reply.parent_id || reply.review_id);
     
     const authorName = reply.user ? reply.user.name : 'Гость';
     const isGuest = !reply.user;
@@ -319,41 +340,8 @@ window.createReplyElementWithBranches = function(reply, depth = 0) {
                     <button onclick="toggleReplyForm(${reply.id})" class="text-xs text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
                         Ответить
                     </button>
-                    
-                    ${reply.replies && reply.replies.length > 0 ? `
-                        <button onclick="toggleBranch('branch_${reply.id}_${currentDepth}')" class="text-xs text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                            <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                            Развернуть
-                        </button>
-                    ` : ''}
                 </div>
             </div>
-            
-            ${reply.replies && reply.replies.length > 0 ? `
-                <div id="branchContent_branch_${reply.id}_${currentDepth}" class="branch-content collapsed mt-3">
-                    <div class="replies-container space-y-3">
-                        ${isFourthLevel ? 
-                            // Четвертый уровень и глубше - в один ряд как на YouTube
-                            reply.replies.map(subReply => {
-                                // Для четвертого уровня создаем простой элемент без рекурсии
-                                const subReplyElement = createSimpleReplyElement(subReply, currentDepth);
-                                subReplyElement.classList.add('flat-reply-item');
-                                subReplyElement.innerHTML = `
-                                    <div class="reply-to-indicator mb-2">
-                                        Ответ для <span class="reply-to-name font-semibold">${reply.user ? reply.user.name : 'Гость'}</span>
-                                    </div>
-                                    ${subReplyElement.innerHTML}
-                                `;
-                                return subReplyElement.outerHTML;
-                            }).join('') :
-                            // Первый, второй и третий уровень - рекурсивно
-                            reply.replies.map(subReply => createReplyElementWithBranches(subReply, currentDepth).outerHTML).join('')
-                        }
-                    </div>
-                </div>
-            ` : ''}
             
             <!-- Reply Form для ответов -->
             <div id="replyForm${reply.id}" class="hidden mt-3 p-3 bg-gray-50 dark:bg-gray-800/30 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -375,98 +363,6 @@ window.createReplyElementWithBranches = function(reply, depth = 0) {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
-    `;
-    
-    return div;
-};
-
-// Функция для создания простого ответа без рекурсии (для четвертого уровня)
-window.createSimpleReplyElement = function(reply, depth = 0) {
-    const div = document.createElement('div');
-    const currentDepth = depth + 1;
-    
-    div.className = `reply-item ml-2 border-l-2 border-gray-200 dark:border-gray-700 pl-2 bg-gray-50 dark:bg-gray-800/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700`;
-    div.setAttribute('data-reply-id', reply.id);
-    div.setAttribute('data-depth', currentDepth);
-    
-    const authorName = reply.user ? reply.user.name : 'Гость';
-    const isGuest = !reply.user;
-    
-    const avatarHtml = isGuest ? 
-        `<div class="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center relative">
-            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-            </svg>
-            <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-orange-500 rounded-full flex items-center justify-center">
-                <span class="text-xs text-white font-bold">Г</span>
-            </div>
-        </div>` :
-        `<div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-full flex items-center justify-center">
-            <span class="text-xs font-bold text-white">${authorName.charAt(0)}</span>
-        </div>`;
-    
-    const guestBadge = isGuest ? 
-        `<span class="ml-2 px-2 py-1 text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-full">Гость</span>` : '';
-    
-    // Форматируем время
-    let timeText = 'только что';
-    if (reply.created_at) {
-        const createdDate = new Date(reply.created_at);
-        const now = new Date();
-        const diffMs = now - createdDate;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-        
-        if (diffMins < 1) {
-            timeText = 'только что';
-        } else if (diffMins < 60) {
-            timeText = `${diffMins} мин. назад`;
-        } else if (diffHours < 24) {
-            timeText = `${diffHours} ч. назад`;
-        } else {
-            timeText = `${diffDays} дн. назад`;
-        }
-    }
-    
-    div.innerHTML = `
-        <div class="flex items-start space-x-3">
-            ${avatarHtml}
-            <div class="flex-1 min-w-0">
-                <div class="flex items-center space-x-2 mb-2">
-                    <span class="font-medium text-gray-900 dark:text-white">${authorName}</span>
-                    ${guestBadge}
-                    <span class="text-xs text-gray-500 dark:text-gray-400">${timeText}</span>
-                </div>
-                <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">${reply.content}</p>
-                <div class="mt-3 flex items-center space-x-4">
-                    <!-- Like/Dislike Section -->
-                    <div class="flex items-center space-x-2">
-                        <!-- Like Button -->
-                        <button onclick="likeReview(${reply.id})"
-                                class="like-btn p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-red-500">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                            </svg>
-                        </button>
-                        <span class="likes-count text-xs text-gray-600 dark:text-gray-400">${reply.likes_count || 0}</span>
-                        
-                        <!-- Dislike Button -->
-                        <button onclick="dislikeReview(${reply.id})"
-                                class="dislike-btn p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-blue-500">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.912c.163 0 .322.028.475.082l3.276 1.5c.337.154.563.504.563.877v6.541c0 .373-.226.723-.563.877l-3.276 1.5a2 2 0 01-.475.082H10V14z"/>
-                            </svg>
-                        </button>
-                        <span class="dislikes-count text-xs text-gray-600 dark:text-gray-400">${reply.dislikes_count || 0}</span>
-                    </div>
-                    
-                    <button onclick="toggleReplyForm(${reply.id})" class="text-xs text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                        Ответить
-                    </button>
-                </div>
             </div>
         </div>
     `;
@@ -525,14 +421,18 @@ window.submitReply = function(event, reviewId, bookId) {
                 showNotification(data.message || 'Ответ добавлен успешно!', 'success');
                 
                 // Обновляем счетчик ответов
-                const toggleButton = document.getElementById(`replyToggle${targetReviewId}`);
+                const toggleButton = document.querySelector(`[data-review-id="${targetReviewId}"].reply-toggle-btn`);
                 if (toggleButton) {
+                    const currentText = toggleButton.textContent;
+                    const currentCount = parseInt(currentText.match(/\d+/)[0]) || 0;
+                    const newCount = currentCount + 1;
+                    
                     // Обновляем текст кнопки
                     toggleButton.innerHTML = `
-                        <svg class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        Показать ${newCount} ${newCount === 1 ? 'ответ' : (newCount === 2 || newCount === 3 || newCount === 4 ? 'ответа' : 'ответов')}
+                        <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
-                        <span>Показать ответы</span>
                     `;
                 }
                 
@@ -540,8 +440,8 @@ window.submitReply = function(event, reviewId, bookId) {
                 toggleReplyForm(reviewId);
                 
                 // Если ответы уже загружены, добавляем новый ответ
-                const container = document.getElementById(`repliesContent${targetReviewId}`);
-                if (container && !container.closest('.hidden')) {
+                const container = document.getElementById(`repliesContainer${targetReviewId}`);
+                if (container && !container.classList.contains('hidden')) {
                     // Если это ответ на ответ, находим родительский элемент
                     if (reviewId !== targetReviewId) {
                         const parentReply = document.querySelector(`[data-reply-id="${reviewId}"]`);
@@ -556,7 +456,7 @@ window.submitReply = function(event, reviewId, bookId) {
                             }
                             // Определяем глубину для нового ответа
                             const parentDepth = parseInt(parentReply.getAttribute('data-depth') || 0);
-                            const newReply = createReplyElementWithBranches(data.reply, parentDepth);
+                            const newReply = createReplyElement(data.reply, parentDepth);
                             repliesContainer.appendChild(newReply);
                             
                             // Настраиваем обработчики для новых кнопок
@@ -567,7 +467,7 @@ window.submitReply = function(event, reviewId, bookId) {
                         }
                     } else {
                         // Если это ответ на основную рецензию
-                        const newReply = createReplyElementWithBranches(data.reply, 0);
+                        const newReply = createReplyElement(data.reply, 0);
                         container.appendChild(newReply);
                         
                         // Настраиваем обработчики для новых кнопок
@@ -737,41 +637,6 @@ window.showNotification = function(message, type = 'info') {
     }, 3000);
 };
 
-// Инициализация Vue приложения
-window.Vue = Vue;
-
-// Регистрируем компоненты глобально
-Vue.component('book-card', BookCard);
-Vue.component('add-to-library-modal', AddToLibraryModal);
-Vue.component('add-to-library-button', AddToLibraryButton);
-Vue.component('library-collection', LibraryCollection);
-Vue.component('user-library-book-card', UserLibraryBookCard);
-Vue.component('notification-bell', NotificationBell);
-Vue.component('notifications-page', NotificationsPage);
-Vue.component('notification-filters', NotificationFilters);
-Vue.component('notification-card', NotificationCard);
-Vue.component('notification-pagination', NotificationPagination);
-Vue.component('discussion-reply', DiscussionReply);
-Vue.component('discussion-replies-list', DiscussionRepliesList);
-Vue.component('review-reply', ReviewReply);
-Vue.component('reviews-replies-list', ReviewsRepliesList);
-Vue.component('quote-card', QuoteCard);
-Vue.component('quotes-list', QuotesList);
-Vue.component('add-quote-modal', AddQuoteModal);
-Vue.component('interesting-facts', InterestingFacts);
-Vue.component('add-review-modal', AddReviewModal);
-Vue.component('book-reviews-list', BookReviewsList);
-Vue.component('reviews-list', BookReviewsList);
-Vue.component('fact-card', FactCard);
-Vue.component('facts-list', FactsList);
-Vue.component('price-comparison', PriceComparison);
-Vue.component('unified-content-list', UnifiedContentList);
-Vue.component('content-filters', ContentFilters);
-Vue.component('report-modal', ReportModal);
-Vue.component('report-button', ReportButton);
-Vue.component('quotes-slider', QuotesSlider);
-Vue.component('quotes-slider-simple', QuotesSliderSimple);
-
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     console.log('App loaded successfully!');
@@ -785,14 +650,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Функция настройки обработчиков для кнопок показать/скрыть ответы
 function setupReplyToggleButtons() {
-    // Находим все кнопки показать/скрыть ответы по ID
-    const toggleButtons = document.querySelectorAll('[id^="replyToggle"]');
+    // Находим все кнопки показать/скрыть ответы
+    const toggleButtons = document.querySelectorAll('.reply-toggle-btn');
     
     toggleButtons.forEach(button => {
         setupReplyToggleButton(button);
     });
-    
-    console.log('Found toggle buttons:', toggleButtons.length);
 }
 
 // Функция для настройки одной кнопки показать/скрыть ответы
@@ -803,21 +666,12 @@ function setupReplyToggleButton(button) {
     // Создаем новый обработчик
     button._replyToggleHandler = function(e) {
         e.preventDefault();
+        const reviewId = this.getAttribute('data-review-id');
+        const action = this.getAttribute('data-action');
         
-        // Получаем reviewId из ID кнопки (replyToggle{reviewId})
-        const buttonId = this.id;
-        const reviewId = buttonId.replace('replyToggle', '');
-        
-        if (!reviewId) {
-            console.error('Could not extract reviewId from button ID:', buttonId);
-            return;
-        }
-        
-        // Просто переключаем состояние
-        const container = document.getElementById(`repliesContainer${reviewId}`);
-        if (container && container.classList.contains('hidden')) {
+        if (action === 'show') {
             toggleReplies(reviewId);
-        } else {
+        } else if (action === 'hide') {
             hideReplies(reviewId);
         }
     };

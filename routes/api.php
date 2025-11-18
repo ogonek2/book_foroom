@@ -13,10 +13,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('web')->group(function () {
+    Route::get('/quotes/featured', [App\Http\Controllers\Api\QuoteController::class, 'featured'])->name('quotes.featured');
+
     // Маршруты для книг
     Route::prefix('books')->name('books.')->group(function () {
         // Получение ID книги по slug
         Route::get('/{slug}/id', [App\Http\Controllers\BookController::class, 'getIdBySlug'])->name('id');
+        // Поиск с подсказками
+        Route::get('/search/suggestions', [App\Http\Controllers\BookController::class, 'searchSuggestions'])->name('search.suggestions');
     });
 
     // Маршруты для рецензий
@@ -34,6 +38,12 @@ Route::middleware('web')->group(function () {
 
     // Маршруты для статусов чтения книг
     Route::middleware(['web', 'auth'])->prefix('reading-status')->name('reading-status.')->group(function () {
+        // Получить статистику чтения (должен быть перед /{id})
+        Route::get('/stats', [BookReadingStatusController::class, 'getReadingStats'])->name('stats');
+        
+        // Получить книги по статусу (должен быть перед /{id})
+        Route::get('/books/{status}', [BookReadingStatusController::class, 'getBooksByStatus'])->name('books');
+        
         // Получить статус чтения конкретной книги
         Route::get('/book/{id}', [BookReadingStatusController::class, 'getStatus'])->name('get');
         
@@ -43,14 +53,14 @@ Route::middleware('web')->group(function () {
         // Удалить статус чтения
         Route::delete('/book/{id}', [BookReadingStatusController::class, 'removeStatus'])->name('remove');
         
-        // Получить книги по статусу
-        Route::get('/books/{status}', [BookReadingStatusController::class, 'getBooksByStatus'])->name('books');
-        
-        // Получить статистику чтения
-        Route::get('/stats', [BookReadingStatusController::class, 'getReadingStats'])->name('stats');
-        
         // Обновить рейтинг и отзыв
         Route::put('/book/{id}/review', [BookReadingStatusController::class, 'updateReview'])->name('review');
+        
+        // Получить статус чтения по ID (должен быть в конце, после всех специфичных роутов)
+        Route::get('/status/{id}', [BookReadingStatusController::class, 'show'])->name('show');
+        
+        // Обновить статус чтения по ID
+        Route::put('/status/{id}', [BookReadingStatusController::class, 'update'])->name('update');
     });
 
     // Маршруты для жалоб

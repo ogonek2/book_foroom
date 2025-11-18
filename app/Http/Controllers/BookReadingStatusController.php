@@ -21,6 +21,8 @@ class BookReadingStatusController extends Controller
         
         return response()->json([
             'status' => $status ? $status->status : null,
+            'times_read' => $status ? $status->times_read : 1,
+            'reading_language' => $status ? $status->reading_language : null,
             'rating' => $status ? $status->rating : null,
             'review' => $status ? $status->review : null,
             'started_at' => $status ? $status->started_at : null,
@@ -35,7 +37,9 @@ class BookReadingStatusController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'status' => 'required|in:read,reading,want_to_read',
+                'status' => 'required|in:read,reading,want_to_read,abandoned',
+                'times_read' => 'nullable|integer|min:1',
+                'reading_language' => 'nullable|string|max:10',
                 'rating' => 'nullable|integer|min:1|max:10',
                 'review' => 'nullable|string|max:2000',
             ]);
@@ -64,6 +68,22 @@ class BookReadingStatusController extends Controller
             'book_id' => $book->id,
             'status' => $request->status,
         ];
+
+        // Обновляем количество прочтений
+        if ($request->has('times_read')) {
+            $data['times_read'] = $request->times_read;
+        } elseif ($status && $status->times_read) {
+            $data['times_read'] = $status->times_read;
+        } else {
+            $data['times_read'] = 1;
+        }
+
+        // Обновляем язык чтения
+        if ($request->has('reading_language')) {
+            $data['reading_language'] = $request->reading_language;
+        } elseif ($status && $status->reading_language) {
+            $data['reading_language'] = $status->reading_language;
+        }
 
         // Обновляем рейтинг только если он передан в запросе
         if ($request->has('rating')) {
@@ -94,6 +114,10 @@ class BookReadingStatusController extends Controller
         if ($status) {
             $status->update($data);
         } else {
+            // Устанавливаем значения по умолчанию при создании
+            if (!isset($data['times_read'])) {
+                $data['times_read'] = 1;
+            }
             $status = BookReadingStatus::create($data);
         }
 
@@ -141,7 +165,7 @@ class BookReadingStatusController extends Controller
     {
         $user = Auth::user();
         
-        if (!in_array($status, ['read', 'reading', 'want_to_read'])) {
+        if (!in_array($status, ['read', 'reading', 'want_to_read', 'abandoned'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Неверный статус'
@@ -171,6 +195,7 @@ class BookReadingStatusController extends Controller
             'read_count' => $user->readingStatuses()->where('status', 'read')->count(),
             'reading_count' => $user->readingStatuses()->where('status', 'reading')->count(),
             'want_to_read_count' => $user->readingStatuses()->where('status', 'want_to_read')->count(),
+            'abandoned_count' => $user->readingStatuses()->where('status', 'abandoned')->count(),
             'total_books' => $user->readingStatuses()->count(),
             'average_rating' => $user->readingStatuses()
                 ->where('status', 'read')
@@ -220,6 +245,110 @@ class BookReadingStatusController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Рейтинг и отзыв обновлены',
+            'data' => $status
+        ]);
+    }
+
+    /**
+     * Обновить статус чтения книги (полное обновление)
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'status' => 'required|in:read,reading,want_to_read,abandoned',
+                'times_read' => 'nullable|integer|min:1',
+                'reading_language' => 'nullable|string|max:10',
+                'rating' => 'nullable|integer|min:1|max:10',
+                'review' => 'nullable|string|max:2000',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Пользователь не авторизован'
+                ], 401);
+            }
+            
+            $status = BookReadingStatus::findOrFail($id);
+            
+            // Проверяем, что статус принадлежит текущему пользователю
+            if ($status->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Нет доступа к этому статусу'
+                ], 403);
+            }
+
+            $data = [
+                'status' => $request->status,
+                'times_read' => $request->times_read ?? $status->times_read ?? 1,
+                'reading_language' => $request->reading_language ?? $status->reading_language,
+            ];
+
+            // Обновляем рейтинг если передан
+            if ($request->has('rating')) {
+                $data['rating'] = $request->rating;
+            }
+
+            // Обновляем отзыв если передан
+            if ($request->has('review')) {
+                $data['review'] = $request->review;
+            }
+
+            // Устанавливаем даты в зависимости от статуса
+            if ($request->status === 'reading' && !$status->started_at) {
+                $data['started_at'] = now();
+            } elseif ($request->status === 'read') {
+                $data['finished_at'] = now();
+                if (!$status->started_at) {
+                    $data['started_at'] = now();
+                }
+            }
+
+            $status->update($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Статус обновлен',
+                'data' => $status->fresh()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in update: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при обновлении статуса: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Получить статус чтения по ID
+     */
+    public function show($id)
+    {
+        $user = Auth::user();
+        $status = BookReadingStatus::with(['book', 'book.author'])->findOrFail($id);
+        
+        // Проверяем, что статус принадлежит текущему пользователю
+        if ($status->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Нет доступа к этому статусу'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
             'data' => $status
         ]);
     }

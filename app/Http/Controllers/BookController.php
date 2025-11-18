@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class BookController extends Controller
 {
@@ -23,13 +24,39 @@ class BookController extends Controller
         }
 
         // Search
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('author', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+        if ($request->filled('search')) {
+            $search = $request->string('search')->trim();
+            $likeSearch = "%{$search}%";
+            $lowerSearch = '%' . Str::lower($search) . '%';
+
+            $query->where(function ($q) use ($likeSearch, $lowerSearch) {
+                $q->where('title', 'like', $likeSearch)
+                    ->orWhere('book_name_ua', 'like', $likeSearch)
+                    ->orWhere('author', 'like', $likeSearch)
+                    ->orWhere('annotation', 'like', $likeSearch)
+                    ->orWhere(function ($synonymsQuery) use ($likeSearch, $lowerSearch) {
+                        $synonymsQuery->whereNotNull('synonyms')
+                            ->where(function ($inner) use ($likeSearch, $lowerSearch) {
+                                $inner->where('synonyms', 'like', $likeSearch)
+                                    ->orWhereRaw("JSON_SEARCH(LOWER(synonyms), 'one', ?) IS NOT NULL", [$lowerSearch]);
+                            });
+                    });
             });
+        }
+
+        // Rating range filter
+        $ratingMin = (int) $request->input('rating_min', 1);
+        $ratingMax = (int) $request->input('rating_max', 10);
+
+        if ($ratingMin > $ratingMax) {
+            [$ratingMin, $ratingMax] = [$ratingMax, $ratingMin];
+        }
+
+        $ratingMin = max(1, min(10, $ratingMin));
+        $ratingMax = max(1, min(10, $ratingMax));
+
+        if ($ratingMin > 1 || $ratingMax < 10) {
+            $query->whereBetween('rating', [$ratingMin, $ratingMax]);
         }
 
         // Sort
@@ -52,12 +79,43 @@ class BookController extends Controller
         }
 
         $books = $query->paginate(12);
-        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        $categories = Category::where('is_active', true)
+            ->withCount('books')
+            ->orderBy('name')
+            ->get();
         
         // Get user's libraries for the add to library modal
         $userLibraries = collect();
         if (auth()->check()) {
             $userLibraries = auth()->user()->libraries()->orderBy('name')->get();
+        }
+
+        if ($request->expectsJson()) {
+            $booksCollection = $books->getCollection()->map(function (Book $book) {
+                return [
+                    'id' => $book->id,
+                    'slug' => $book->slug,
+                    'title' => $book->title,
+                    'book_name_ua' => $book->book_name_ua,
+                    'author' => $book->author,
+                    'cover_image' => $book->cover_image,
+                    'rating' => (float) $book->rating,
+                    'reviews_count' => (int) $book->reviews_count,
+                    'pages' => (int) $book->pages,
+                    'publication_year' => $book->publication_year,
+                    'categories' => $book->categories->pluck('name'),
+                ];
+            });
+
+            return response()->json([
+                'data' => $booksCollection,
+                'meta' => [
+                    'current_page' => $books->currentPage(),
+                    'last_page' => $books->lastPage(),
+                    'per_page' => $books->perPage(),
+                    'total' => $books->total(),
+                ],
+            ]);
         }
 
         return view('books.index', compact('books', 'categories', 'userLibraries'));
@@ -68,7 +126,9 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
-        $book->load('categories');
+        $book->load(['categories', 'author']);
+
+        $authorModel = $book->getRelation('author');
         
         // Get current user's reading status for this book
         $currentReadingStatus = null;
@@ -154,6 +214,7 @@ class BookController extends Controller
 
         return view('books.show', compact(
             'book', 
+            'authorModel',
             'reviews', 
             'quotes',
             'facts',
@@ -317,6 +378,65 @@ class BookController extends Controller
         }
 
         return redirect()->back()->with('success', 'Факт успішно додано!');
+    }
+
+    /**
+     * Search suggestions for autocomplete
+     */
+    public function searchSuggestions(Request $request)
+    {
+        $query = $request->get('q', '');
+        $limit = (int) $request->get('limit', 5);
+
+        if (strlen($query) < 2) {
+            return response()->json(['data' => []]);
+        }
+
+        $searchTerm = trim($query);
+        $likeSearch = "%{$searchTerm}%";
+        $lowerSearch = '%' . Str::lower($searchTerm) . '%';
+
+        $books = Book::where(function ($q) use ($likeSearch, $lowerSearch, $searchTerm) {
+                // Exact match on title (highest priority)
+                $q->where('title', 'like', $likeSearch)
+                    ->orWhere('book_name_ua', 'like', $likeSearch)
+                    ->orWhere('author', 'like', $likeSearch)
+                    ->orWhere('publisher', 'like', $likeSearch)
+                    ->orWhere('annotation', 'like', $likeSearch)
+                    ->orWhere(function ($synonymsQuery) use ($likeSearch, $lowerSearch) {
+                        $synonymsQuery->whereNotNull('synonyms')
+                            ->where(function ($inner) use ($likeSearch, $lowerSearch) {
+                                $inner->where('synonyms', 'like', $likeSearch)
+                                    ->orWhereRaw("JSON_SEARCH(LOWER(synonyms), 'one', ?) IS NOT NULL", [$lowerSearch]);
+                            });
+                    });
+            })
+            ->with('categories')
+            ->orderByRaw("
+                CASE 
+                    WHEN title LIKE ? THEN 1
+                    WHEN book_name_ua LIKE ? THEN 2
+                    WHEN author LIKE ? THEN 3
+                    ELSE 4
+                END
+            ", ["%{$searchTerm}%", "%{$searchTerm}%", "%{$searchTerm}%"])
+            ->limit($limit)
+            ->get();
+
+        $results = $books->map(function (Book $book) {
+            return [
+                'id' => $book->id,
+                'slug' => $book->slug,
+                'title' => $book->title,
+                'book_name_ua' => $book->book_name_ua,
+                'author' => $book->author,
+                'cover_image' => $book->cover_image_display ?? $book->cover_image,
+                'rating' => (float) ($book->rating ?? 0),
+                'reviews_count' => (int) ($book->reviews_count ?? 0),
+            ];
+        });
+
+        return response()->json(['data' => $results]);
     }
 
 }

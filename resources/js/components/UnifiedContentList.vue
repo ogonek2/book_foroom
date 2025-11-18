@@ -8,20 +8,49 @@
                 <!-- Header with Avatar and Action -->
                 <div class="flex items-start justify-between mb-4">
                     <div class="flex items-center space-x-3">
-                        <img :src="(item.user && item.user.avatar_display) || (item.user && item.user.avatar) || '/storage/avatars/default.png'" 
-                             :alt="item.user ? item.user.name : 'Користувач'"
-                             class="w-10 h-10 rounded-full" v-if="item.user && item.user.avatar_display">
-                        <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center" v-else>
-                            <span>{{ item.user ? item.user.name.charAt(0) : 'Н' }}</span>
-                        </div>
-                        <div>
-                            <div class="text-light-text-primary dark:text-dark-text-primary font-medium">
-                                {{ item.user ? item.user.name : 'Невідомий користувач' }}
+                        <template v-if="item.user && item.user.username">
+                            <a :href="profileUrl(item.user.username)"
+                               class="flex items-center space-x-3 group">
+                                <div>
+                                    <img v-if="userAvatar(item.user)"
+                                         :src="userAvatar(item.user)"
+                                         :alt="item.user.name"
+                                         class="w-10 h-10 rounded-full transition-transform duration-200 group-hover:scale-110">
+                                    <div v-else
+                                         class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-light-text-primary dark:text-dark-text-primary font-semibold transition-transform duration-200 group-hover:scale-110">
+                                        {{ userInitial(item.user) }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-light-text-primary dark:text-dark-text-primary font-medium group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                        {{ item.user.name }}
+                                    </div>
+                                    <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
+                                        {{ getActionText(item.type) }}
+                                    </div>
+                                </div>
+                            </a>
+                        </template>
+                        <template v-else>
+                            <div>
+                                <img v-if="userAvatar(item.user)"
+                                     :src="userAvatar(item.user)"
+                                     :alt="item.user ? (item.user.name || item.user.username || 'Користувач') : 'Користувач'"
+                                     class="w-10 h-10 rounded-full">
+                                <div v-else
+                                     class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                    <span>{{ userInitial(item.user) }}</span>
+                                </div>
                             </div>
-                            <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
-                                {{ getActionText(item.type) }}
+                            <div>
+                                <div class="text-light-text-primary dark:text-dark-text-primary font-medium">
+                                    {{ item.user ? item.user.name : 'Невідомий користувач' }}
+                                </div>
+                                <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
+                                    {{ getActionText(item.type) }}
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </div>
                     
                     <!-- Rating for Reviews -->
@@ -272,6 +301,26 @@ export default {
         }
     },
     methods: {
+        profileUrl(username) {
+            return username ? `/users/${username}` : '#';
+        },
+        userAvatar(user) {
+            if (!user) {
+                return null;
+            }
+
+            return user.avatar_display
+                || user.avatar_url
+                || user.avatar
+                || null;
+        },
+        userInitial(user) {
+            if (!user) {
+                return 'Н';
+            }
+            const source = user.name || user.username || 'Н';
+            return source.charAt(0).toUpperCase();
+        },
         getActionText(type) {
             return type === 'discussion' ? 'створив обговорення' : 'написав рецензію';
         },

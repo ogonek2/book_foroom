@@ -4,32 +4,63 @@
             <!-- Header -->
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center space-x-2 sm:space-x-3">
-                    <template v-if="reply.user && reply.user.avatar_display">
-                        <img :src="reply.user.avatar_display" 
-                             :alt="reply.user.name"
-                             class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0">
-                    </template>
-                    <div v-else-if="reply.is_guest" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                        Г
-                    </div>
-                    <div v-else class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                        {{ (reply.user?.name || 'U').charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center space-x-2">
-                            <div class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm truncate">
-                                {{ reply.is_guest ? 'Гість' : (reply.user?.name || 'Користувач') }}
-                                <span v-if="reply.is_guest" class="ml-2 px-2 py-0.5 bg-orange-500 text-white text-sm rounded-full">Гість</span>
+                    <template v-if="!reply.is_guest && reply.user && reply.user.username">
+                        <a :href="profileUrl(reply.user.username)"
+                           class="flex items-center space-x-2 sm:space-x-3 group"
+                           @click.stop>
+                            <div>
+                                <img v-if="reply.user.avatar_display" 
+                                     :src="reply.user.avatar_display"
+                                     :alt="reply.user.name"
+                                     class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
+                                <div v-else class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
+                                    {{ (reply.user?.name || 'U').charAt(0).toUpperCase() }}
+                                </div>
                             </div>
-                            <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm">
-                                {{ formatDate(reply.created_at) }}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm truncate group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                        {{ reply.user?.name || 'Користувач' }}
+                                    </div>
+                                    <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm">
+                                        {{ formatDate(reply.created_at) }}
+                                    </div>
+                                </div>
+                                <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs truncate group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                    {{ '@' + reply.user.username }}
+                                </div>
                             </div>
-                        </div>
-                        <a v-if="reply.user && reply.user.username" :href="`/users/${reply.user.username}`"
-                           class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs truncate block">
-                            {{ '@' + reply.user.username }}
                         </a>
-                    </div>
+                    </template>
+                    <template v-else>
+                        <template v-if="reply.user && reply.user.avatar_display">
+                            <img :src="reply.user.avatar_display" 
+                                 :alt="reply.user?.name || 'Користувач'"
+                                 class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0">
+                        </template>
+                        <div v-else-if="reply.is_guest" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                            Г
+                        </div>
+                        <div v-else class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                            {{ (reply.user?.name || 'U').charAt(0).toUpperCase() }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center space-x-2">
+                                <div class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm truncate">
+                                    {{ reply.is_guest ? 'Гість' : (reply.user?.name || 'Користувач') }}
+                                    <span v-if="reply.is_guest" class="ml-2 px-2 py-0.5 bg-orange-500 text-white text-sm rounded-full">Гість</span>
+                                </div>
+                                <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm">
+                                    {{ formatDate(reply.created_at) }}
+                                </div>
+                            </div>
+                            <a v-if="reply.user && reply.user.username"
+                               :href="profileUrl(reply.user.username)"
+                               class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs truncate block">
+                                {{ '@' + reply.user.username }}
+                            </a>
+                        </div>
+                    </template>
                 </div>
             </div>
 
@@ -387,6 +418,9 @@ export default {
         getContentUrl() {
             // Возвращаем URL контента
             return `/books/${this.bookSlug}/reviews/${this.reviewId}#reply-${this.reply.id}`;
+        },
+        profileUrl(username) {
+            return username ? `/users/${username}` : '#';
         }
     }
 };

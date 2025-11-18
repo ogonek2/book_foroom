@@ -5,20 +5,49 @@
         <div>
             <div class="flex items-center space-x-3 justify-between">
                 <div class="flex items-center space-x-3">
-                    <img v-if="quote.user && quote.user.avatar_display" :src="quote.user.avatar_display"
-                        :alt="quote.user.name" class="w-8 h-8 rounded-full">
-                    <div v-else
-                        class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm">
-                        {{ (quote.user?.name || 'U').charAt(0).toUpperCase() }}
-                    </div>
-                    <div>
-                        <div class="text-sm font-medium text-slate-900 dark:text-white">
-                            {{ quote.user?.name || 'Користувач' }}
+                    <template v-if="quote.user && quote.user.username">
+                        <a :href="profileUrl(quote.user.username)"
+                           class="flex items-center space-x-3 group"
+                           @click.stop>
+                            <div>
+                                <img v-if="quote.user.avatar_display" :src="quote.user.avatar_display"
+                                    :alt="quote.user.name"
+                                    class="w-8 h-8 rounded-full transition-transform duration-200 group-hover:scale-110">
+                                <div v-else
+                                    class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm transition-transform duration-200 group-hover:scale-110">
+                                    {{ (quote.user?.name || 'U').charAt(0).toUpperCase() }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                    {{ quote.user?.name || 'Користувач' }}
+                                </div>
+                                <div v-if="quote.user?.username"
+                                    class="text-xs text-slate-500 dark:text-slate-400 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                    {{ '@' + quote.user.username }}
+                                </div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
+                                    {{ formatDate(quote.created_at) }}
+                                </div>
+                            </div>
+                        </a>
+                    </template>
+                    <template v-else>
+                        <img v-if="quote.user && quote.user.avatar_display" :src="quote.user.avatar_display"
+                            :alt="quote.user?.name || 'Користувач'" class="w-8 h-8 rounded-full">
+                        <div v-else
+                            class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm">
+                            {{ (quote.user?.name || 'U').charAt(0).toUpperCase() }}
                         </div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400">
-                            {{ formatDate(quote.created_at) }}
+                        <div>
+                            <div class="text-sm font-medium text-slate-900 dark:text-white">
+                                {{ quote.user?.name || 'Користувач' }}
+                            </div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">
+                                {{ formatDate(quote.created_at) }}
+                            </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
                 <!-- Quote Icon -->
                 <div class="mb-4">
@@ -76,6 +105,15 @@
                     <span class="text-sm">{{ likesCount }}</span>
                 </button>
 
+                <!-- Favorite Button -->
+                <button v-if="currentUserId" @click="toggleFavorite"
+                    :class="['flex items-center space-x-1 transition-colors', isFavorited ? 'text-yellow-500 dark:text-yellow-400' : 'text-slate-600 dark:text-slate-400 hover:text-yellow-500 dark:hover:text-yellow-400']">
+                    <svg class="w-5 h-5" :fill="isFavorited ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                </button>
+
                 <!-- Share Button -->
                 <button @click="shareQuote"
                     class="flex items-center space-x-1 text-slate-600 dark:text-slate-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors">
@@ -129,6 +167,7 @@ export default {
         return {
             isLiked: this.quote.is_liked_by_current_user || false,
             likesCount: this.quote.likes_count || 0,
+            isFavorited: this.quote.is_favorited_by_current_user || false,
             isEditing: false,
             editContent: '',
             editPageNumber: null,
@@ -260,6 +299,25 @@ export default {
         getContentUrl() {
             // Возвращаем URL контента
             return `/books/${this.bookSlug}#quote-${this.quote.id}`;
+        },
+        async toggleFavorite() {
+            if (!this.currentUserId) {
+                this.$emit('show-notification', 'Будь ласка, увійдіть, щоб додати до избранного.', 'error');
+                return;
+            }
+            try {
+                const response = await axios.post(`/books/${this.bookSlug}/quotes/${this.quote.id}/favorite`);
+                if (response.data.success) {
+                    this.isFavorited = response.data.is_favorited;
+                    this.$emit('show-notification', response.data.message, 'success');
+                }
+            } catch (error) {
+                console.error('Error toggling favorite:', error);
+                this.$emit('show-notification', 'Помилка при зміні избранного.', 'error');
+            }
+        },
+        profileUrl(username) {
+            return username ? `/users/${username}` : '#';
         }
     }
 };

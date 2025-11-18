@@ -303,6 +303,39 @@ class ReviewController extends Controller
     }
 
     /**
+     * Toggle favorite for a review
+     */
+    public function toggleFavorite(Book $book, Review $review)
+    {
+        $user = auth()->user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Необхідно авторизуватись'
+            ], 401);
+        }
+        
+        $isFavorited = $review->isFavoritedBy($user->id);
+        
+        if ($isFavorited) {
+            // Remove from favorites
+            $review->favoritedByUsers()->detach($user->id);
+            $isFavorited = false;
+        } else {
+            // Add to favorites
+            $review->favoritedByUsers()->attach($user->id);
+            $isFavorited = true;
+        }
+        
+        return response()->json([
+            'success' => true,
+            'is_favorited' => $isFavorited,
+            'message' => $isFavorited ? 'Рецензію додано до избранного!' : 'Рецензію видалено з избранного!'
+        ]);
+    }
+
+    /**
      * Show the form for editing a review
      */
     public function edit(Book $book, Review $review)

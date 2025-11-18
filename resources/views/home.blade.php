@@ -431,25 +431,56 @@
                                 <!-- Left side: Avatar + Author name and Review content -->
                                 <div class="flex-1 min-w-0">
                                     <!-- Author info -->
-                                    <div class="flex items-center space-x-3 mb-3">
-                                        <!-- Avatar with first letter -->
-                                        @if ($review->user)
-                                            <div
-                                                class="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-accent-500 flex items-center justify-center flex-shrink-0">
+                                <div class="flex items-center space-x-3 mb-3">
+                                    <!-- Avatar with first letter -->
+                                    @php
+                                        $reviewUser = $review->user;
+                                        $reviewUserAvatar = $reviewUser?->avatar_display ?? $reviewUser?->avatar_url ?? $reviewUser?->avatar;
+                                        $reviewUserName = optional($reviewUser)->name;
+                                        $reviewUserUsername = optional($reviewUser)->username;
+                                        $reviewUserInitial = Str::upper(Str::substr($reviewUserName ?: $reviewUserUsername ?: 'Г', 0, 1));
+                                    @endphp
+                                    @if ($reviewUser && $reviewUser->username)
+                                        <a href="{{ route('users.public.profile', $reviewUser->username) }}"
+                                            class="flex items-center space-x-3 group">
+                                            @if ($reviewUserAvatar)
+                                                <img src="{{ $reviewUserAvatar }}" alt="{{ $reviewUserName ?: $reviewUserInitial }}"
+                                                    class="w-10 h-10 rounded-full object-cover flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+                                            @else
+                                                <div
+                                                    class="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-accent-500 flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+                                                    <span class="text-white font-semibold text-sm">{{ $reviewUserInitial }}</span>
+                                                </div>
+                                            @endif
+                                            <div class="flex-1 min-w-0">
                                                 <span
-                                                    class="text-white font-semibold text-sm">{{ strtoupper(substr($review->user->name, 0, 1)) }}</span>
+                                                    class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                                    {{ $review->getAuthorName() }}
+                                                </span>
+                                                <span
+                                                    class="block text-light-text-tertiary dark:text-dark-text-tertiary text-xs group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                                    {{ '@' . $reviewUserUsername }}
+                                                </span>
                                             </div>
+                                        </a>
+                                    @else
+                                        @if ($reviewUserAvatar)
+                                            <img src="{{ $reviewUserAvatar }}" alt="{{ $reviewUserName ?? 'Користувач' }}"
+                                                class="w-10 h-10 rounded-full object-cover flex-shrink-0">
                                         @else
                                             <div
                                                 class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
-                                                <span class="text-gray-300 font-semibold text-sm">Г</span>
+                                                <span class="text-gray-300 font-semibold text-sm">{{ $reviewUserInitial }}</span>
                                             </div>
                                         @endif
                                         <div class="flex-1 min-w-0">
                                             <span
-                                                class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm">{{ $review->getAuthorName() }}</span>
+                                                class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm">
+                                                {{ $review->getAuthorName() }}
+                                            </span>
                                         </div>
-                                    </div>
+                                    @endif
+                                </div>
 
                                     <!-- Review content -->
                                     <p
@@ -664,52 +695,9 @@
     </script>
 
     <!-- 4. Цитати -->
-    <section class="mb-12">
-        <h2 class="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-6">Цитати</h2>
-        <div class="relative">
-            <div class="flex space-x-6 overflow-x-auto pb-4 scrollbar-hide">
-                @forelse($featuredQuotes as $quote)
-                    <div class="flex-shrink-0 w-80">
-                        <div
-                            class="dark:bg-dark-bg-secondary rounded-lg p-6 bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full flex flex-col shadow-sm hover:shadow-md">
-                            <div class="text-4xl text-orange-500/30 mb-4">"</div>
-                            <p
-                                class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1">
-                                {{ $quote['content'] }}
-                            </p>
-                            <div class="flex items-center justify-between mt-auto">
-                                <div>
-                                    <p class="text-light-text-primary dark:text-dark-text-primary font-semibold">
-                                        {{ $quote['user'] ? $quote['user']['name'] : 'Анонімний автор' }}</p>
-                                    <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
-                                        {{ $quote['book_title'] ?? 'Без назви книги' }}</p>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button class="text-orange-500 hover:text-orange-400 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                        </svg>
-                                    </button>
-                                    <span
-                                        class="text-gray-600 dark:text-gray-400 text-sm">{{ $quote['likes_count'] ?? 0 }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="flex-shrink-0 w-full text-center py-8">
-                        <p class="text-light-text-tertiary dark:text-dark-text-tertiary">Поки що немає цитат</p>
-                    </div>
-                @endforelse
-            </div>
-            <!-- Scroll Arrow -->
-            <button
-                class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-light-bg dark:bg-dark-bg-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary text-light-text-secondary dark:text-dark-text-primary p-2 rounded-full transition-colors duration-200 shadow-lg">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
+    <section class="mb-16">
+        <div id="featured-quotes-section">
+            <featured-quotes-carousel></featured-quotes-carousel>
         </div>
     </section>
 
@@ -904,6 +892,13 @@
                             console.log('User data:', this.user);
                             console.log('User libraries:', this.userLibraries);
                         }
+                    });
+                }
+
+                const featuredQuotesSection = document.querySelector('#featured-quotes-section');
+                if (featuredQuotesSection) {
+                    new Vue({
+                        el: featuredQuotesSection,
                     });
                 }
             } else {

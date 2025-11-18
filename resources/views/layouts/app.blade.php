@@ -272,6 +272,29 @@
             .stagger-item:nth-child(3) { animation-delay: 0.3s; }
             .stagger-item:nth-child(4) { animation-delay: 0.4s; }
             .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+
+            /* Mobile Menu Styles */
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+
+            /* Smooth slide up animation for mobile menu */
+            @keyframes slideUp {
+                from {
+                    transform: translateY(100%);
+                }
+                to {
+                    transform: translateY(0);
+                }
+            }
+
+            #mobile-menu {
+                animation: slideUp 0.3s ease-out;
+            }
         </style>
     </head>
     <body class="font-sans antialiased bg-light-bg dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary transition-colors duration-300">
@@ -286,9 +309,9 @@
             @include('layouts.footer')
         </div>
         
-        @stack('scripts')
-        
         <script src="{{ mix('js/app.js') }}"></script>
+        
+        @stack('scripts')
         
         <script>
             // Add loading animation

@@ -24,6 +24,10 @@ class ImportBooks extends Page
     protected static string $view = 'filament.pages.import-books';
 
     public ?array $data = [];
+    public array $previewRows = [];
+    public array $previewErrors = [];
+    public array $previewWarnings = [];
+    public bool $hasPreview = false;
 
     public function mount(): void
     {
@@ -73,6 +77,8 @@ class ImportBooks extends Page
 
     public function import(): void
     {
+        $this->resetPreview();
+
         $data = $this->form->getState();
         
         if (!isset($data['file']) || empty($data['file'])) {
@@ -91,6 +97,7 @@ class ImportBooks extends Page
             $filePath = FileHelper::getFilePath($file);
             
             if (!$filePath || !file_exists($filePath)) {
+                $this->resetPreview();
                 Notification::make()
                     ->title('Ошибка импорта')
                     ->body('Файл не найден. Попробуйте загрузить файл заново.')
@@ -136,5 +143,71 @@ class ImportBooks extends Page
                 ->danger()
                 ->send();
         }
+    }
+
+    public function preview(): void
+    {
+        $this->resetPreview();
+
+        $data = $this->form->getState();
+
+        if (!isset($data['file']) || empty($data['file'])) {
+            Notification::make()
+                ->title('Предпросмотр недоступен')
+                ->body('Пожалуйста, выберите файл для предпросмотра.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $file = $data['file'];
+        $filePath = FileHelper::getFilePath($file);
+
+        if (!$filePath || !file_exists($filePath)) {
+            Notification::make()
+                ->title('Ошибка предпросмотра')
+                ->body('Файл не найден. Попробуйте загрузить файл заново.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        try {
+            $import = new SimpleBooksImport(true);
+            Excel::import($import, $filePath);
+
+            $this->previewRows = $import->getPreviewRows();
+            $this->previewErrors = $import->getErrors();
+            $this->previewWarnings = $import->getWarnings();
+            $this->hasPreview = true;
+
+            $message = 'Предпросмотр сформирован.';
+            if (!empty($this->previewErrors)) {
+                $message .= ' Ошибок: ' . count($this->previewErrors) . '.';
+            }
+            if (!empty($this->previewWarnings)) {
+                $message .= ' Предупреждений: ' . count($this->previewWarnings) . '.';
+            }
+
+            Notification::make()
+                ->title('Предпросмотр готов')
+                ->body($message)
+                ->info()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Ошибка предпросмотра')
+                ->body('Не удалось обработать файл: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    protected function resetPreview(): void
+    {
+        $this->previewRows = [];
+        $this->previewErrors = [];
+        $this->previewWarnings = [];
+        $this->hasPreview = false;
     }
 }

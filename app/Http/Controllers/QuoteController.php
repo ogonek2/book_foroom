@@ -169,4 +169,37 @@ class QuoteController extends Controller
 
         return redirect()->back()->with('success', 'Цитату видалено!');
     }
+
+    /**
+     * Toggle favorite for a quote
+     */
+    public function toggleFavorite(Book $book, Quote $quote)
+    {
+        $user = auth()->user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Необхідно авторизуватись'
+            ], 401);
+        }
+        
+        $isFavorited = $quote->isFavoritedBy($user->id);
+        
+        if ($isFavorited) {
+            // Remove from favorites
+            $quote->favoritedByUsers()->detach($user->id);
+            $isFavorited = false;
+        } else {
+            // Add to favorites
+            $quote->favoritedByUsers()->attach($user->id);
+            $isFavorited = true;
+        }
+        
+        return response()->json([
+            'success' => true,
+            'is_favorited' => $isFavorited,
+            'message' => $isFavorited ? 'Цитату додано до избранного!' : 'Цитату видалено з избранного!'
+        ]);
+    }
 }

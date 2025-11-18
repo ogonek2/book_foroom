@@ -4,23 +4,43 @@
             <!-- Header -->
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center space-x-2 sm:space-x-3">
-                    <img :src="reply.user.avatar_display || reply.user.avatar || '/storage/avatars/default.png'" 
-                         :alt="reply.user.name"
-                         class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0">
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center space-x-2">
-                            <div class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm sm:text-base truncate">
-                                {{ reply.user.name }}
+                    <template v-if="reply.user && reply.user.username">
+                        <a :href="profileUrl(reply.user.username)"
+                           class="flex items-center space-x-2 sm:space-x-3 group"
+                           @click.stop>
+                            <img :src="reply.user.avatar_display || reply.user.avatar || '/storage/avatars/default.png'"
+                                 :alt="reply.user.name"
+                                 class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm sm:text-base truncate group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                        {{ reply.user.name }}
+                                    </div>
+                                    <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm">
+                                        {{ formatDate(reply.created_at) }}
+                                    </div>
+                                </div>
+                                <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm truncate group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                    {{ '@' + reply.user.username }}
+                                </div>
                             </div>
-                            <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm">
-                                {{ formatDate(reply.created_at) }}
+                        </a>
+                    </template>
+                    <template v-else>
+                        <img :src="reply.user.avatar_display || reply.user.avatar || '/storage/avatars/default.png'" 
+                             :alt="reply.user.name"
+                             class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center space-x-2">
+                                <div class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm sm:text-base truncate">
+                                    {{ reply.user?.name || 'Користувач' }}
+                                </div>
+                                <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm">
+                                    {{ formatDate(reply.created_at) }}
+                                </div>
                             </div>
                         </div>
-                        <a :href="`/users/${reply.user.username}`"
-                           class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs sm:text-sm truncate block">
-                            {{ '@' + reply.user.username }}
-                        </a>
-                    </div>
+                    </template>
                 </div>
             </div>
 
@@ -253,6 +273,10 @@ export default {
             } finally {
                 this.isSubmitting = false;
             }
+        },
+        
+        profileUrl(username) {
+            return username ? `/users/${username}` : '#';
         },
         
         startEdit() {

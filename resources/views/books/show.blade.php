@@ -112,7 +112,27 @@
                                                 </span>
                                             </div>
                                             <p class="text-lg text-slate-600 dark:text-slate-400 font-bold mb-2">
-                                                {{ $book->author }}</p>
+                                                @if ($authorModel)
+                                                    <a href="{{ route('authors.show', $authorModel->slug) }}"
+                                                        class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors">
+                                                        {{ $authorModel->full_name ?? $authorModel->short_name ?? $book->author }}
+                                                    </a>
+                                                @else
+                                                    {{ $book->author }}
+                                                @endif
+                                            </p>
+
+                                            @if ($book->categories->isNotEmpty())
+                                                <div class="flex flex-wrap gap-2 mt-3">
+                                                    @foreach ($book->categories as $category)
+                                                        <a href="{{ route('books.index', ['category' => $category->slug]) }}"
+                                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100/70 dark:bg-purple-500/15 text-purple-700 dark:text-purple-200 border border-purple-200/60 dark:border-purple-400/30 hover:bg-purple-200/80 dark:hover:bg-purple-500/25 transition">
+                                                            <i class="fas fa-hashtag mr-1 opacity-75"></i>
+                                                            {{ $category->name }}
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
 
@@ -186,6 +206,7 @@
                                         ]
                                         : null,
                                     'is_liked' => auth()->check() ? $review->isLikedBy(auth()->id()) : false,
+                                    'is_favorited' => auth()->check() ? $review->isFavoritedBy(auth()->id()) : false,
                                     'likes_count' => $review->likes_count ?? 0,
                                     'replies_count' => $review->replies_count ?? 0,
                                     'contains_spoiler' => $review->contains_spoiler ?? false,
@@ -226,6 +247,9 @@
                                         : null,
                                     'is_liked_by_current_user' => auth()->check()
                                         ? $quote->isLikedBy(auth()->id())
+                                        : false,
+                                    'is_favorited_by_current_user' => auth()->check()
+                                        ? $quote->isFavoritedBy(auth()->id())
                                         : false,
                                     'likes_count' => $quote->likes()->where('vote', 1)->count(),
                                 ];

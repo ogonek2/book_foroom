@@ -5,8 +5,8 @@ namespace App\Filament\Resources;
 use App\Exports\BooksExport;
 use App\Exports\BooksTemplateExport;
 use App\Exports\SelectedBooksExport;
-use App\Helpers\FileHelper;
 use App\Helpers\CDNUploader;
+use App\Helpers\FileHelper;
 use App\Imports\SimpleBooksImport;
 use App\Filament\Resources\BookResource\Pages;
 use App\Filament\Resources\BookResource\RelationManagers;
@@ -20,6 +20,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Maatwebsite\Excel\Facades\Excel;
 
 class BookResource extends Resource
@@ -38,9 +41,10 @@ class BookResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Основная информация')
+                Forms\Components\Section::make('Основная інформація')
                     ->schema([
                         Forms\Components\TextInput::make('title')
+                            ->label('Назва (основна)')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
@@ -50,16 +54,25 @@ class BookResource extends Resource
                                 }
                                 $set('slug', \Illuminate\Support\Str::slug($state));
                             }),
+                        Forms\Components\TextInput::make('book_name_ua')
+                            ->label('Назва українською')
+                            ->maxLength(255)
+                            ->helperText('Якщо відрізняється від основної назви'),
                         Forms\Components\TextInput::make('slug')
                             ->required()
                             ->maxLength(255)
                             ->unique(Book::class, 'slug', ignoreRecord: true)
                             ->rules(['alpha_dash'])
                             ->helperText('URL-дружественный идентификатор книги'),
-                        Forms\Components\Textarea::make('description')
+                        Forms\Components\Textarea::make('annotation')
+                            ->label('Анотація')
                             ->columnSpanFull()
                             ->rows(4)
-                            ->helperText('Подробное описание книги'),
+                            ->helperText('Детальний опис або анотація книги'),
+                        Forms\Components\TextInput::make('annotation_source')
+                            ->label('Джерело анотації')
+                            ->maxLength(255)
+                            ->helperText('Посилання або вказівка на джерело опису'),
                     ])
                     ->columns(2),
 
@@ -100,7 +113,12 @@ class BookResource extends Resource
                             ->numeric()
                             ->minValue(1000)
                             ->maxValue(date('Y') + 10)
-                            ->helperText('Год издания'),
+                            ->helperText('Рік поточного видання'),
+                        Forms\Components\TextInput::make('first_publish_year')
+                            ->numeric()
+                            ->minValue(1000)
+                            ->maxValue(date('Y') + 10)
+                            ->helperText('Рік першого видання'),
                         Forms\Components\TextInput::make('pages')
                             ->numeric()
                             ->minValue(1)
@@ -116,16 +134,40 @@ class BookResource extends Resource
                             ])
                             ->default('ru')
                             ->helperText('Язык книги'),
-                        Forms\Components\TextInput::make('rating')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(5)
-                            ->step(0.1)
-                            ->helperText('Рейтинг от 0 до 5'),
+                        Forms\Components\Select::make('original_language')
+                            ->label('Мова оригіналу')
+                            ->options([
+                                'ru' => 'Русский',
+                                'uk' => 'Українська',
+                                'en' => 'English',
+                                'de' => 'Deutsch',
+                                'fr' => 'Français',
+                                'es' => 'Español',
+                                'it' => 'Italiano',
+                                'pl' => 'Polski',
+                                'ja' => '日本語',
+                                'zh' => '中文',
+                            ])
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Вкажіть мову оригіналу'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Категории и статус')
+                Forms\Components\Section::make('Додаткові дані')
+                    ->schema([
+                        Forms\Components\TagsInput::make('synonyms')
+                            ->label('Синоніми / альтернативні назви')
+                            ->placeholder('Додайте назву та натисніть Enter')
+                            ->helperText('Використовуйте Enter для додавання кількох значень'),
+                        Forms\Components\TextInput::make('series')
+                            ->label('Серія')
+                            ->maxLength(255)
+                            ->helperText('Якщо книга входить до серії'),
+                    ])
+                    ->columns(1),
+
+                Forms\Components\Section::make('Категорії та статус')
                     ->schema([
                         Forms\Components\CheckboxList::make('categories')
                             ->relationship('categories', 'name')
@@ -144,6 +186,7 @@ class BookResource extends Resource
                 Forms\Components\Section::make('Обложка')
                     ->schema([
                         Forms\Components\FileUpload::make('cover_image')
+                            ->label('Обкладинка')
                             ->image()
                             ->imageEditor()
                             ->imageEditorAspectRatios([
@@ -152,16 +195,69 @@ class BookResource extends Resource
                                 '1:1',
                             ])
                             ->helperText('Загрузите обложку книги (будет сохранена на CDN)')
-                            ->disk('public')
-                            ->directory('book-covers-temp')
-                            ->visibility('public')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
-                            ->maxSize(2048) // 2MB
-                            ->afterStateUpdated(function ($state, $record, Forms\Set $set) {
-                                \Log::info('Book FileUpload afterStateUpdated called', [
-                                    'state' => $state,
-                                    'record_id' => $record?->id
+                            ->maxSize(2048)
+                            ->fetchFileInformation(false)
+                            ->afterStateHydrated(function (Forms\Components\FileUpload $component, $state): void {
+                                if (blank($state)) {
+                                    $component->state([]);
+
+                                    return;
+                                }
+
+                                $component->state([
+                                    (string) Str::uuid() => $state,
                                 ]);
+                            })
+                            ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                                $cdnUrl = CDNUploader::uploadFile($file, 'book-covers');
+
+                                if (!$cdnUrl) {
+                                    throw ValidationException::withMessages([
+                                        'cover_image' => 'Не вдалося зберегти обкладинку на CDN. Спробуйте ще раз.',
+                                    ]);
+                                }
+
+                                return $cdnUrl;
+                            })
+                            ->getUploadedFileUsing(function (Forms\Components\FileUpload $component, string $file, string | array | null $storedFileNames): ?array {
+                                if (blank($file)) {
+                                    return null;
+                                }
+
+                                $url = $file;
+                                $name = null;
+
+                                if (is_array($storedFileNames)) {
+                                    $name = $storedFileNames[$file] ?? null;
+                                } elseif (is_string($storedFileNames)) {
+                                    $name = $storedFileNames;
+                                }
+
+                                $name ??= basename(parse_url($url, PHP_URL_PATH) ?: $url);
+
+                                return [
+                                    'name' => $name,
+                                    'size' => null,
+                                    'type' => null,
+                                    'url' => $url,
+                                ];
+                            })
+                            ->deleteUploadedFileUsing(function ($file): void {
+                                $fileUrl = null;
+                                
+                                // Обрабатываем разные типы данных, которые может передать Filament
+                                if (is_string($file)) {
+                                    $fileUrl = $file;
+                                } elseif (is_array($file) && isset($file['url'])) {
+                                    $fileUrl = $file['url'];
+                                } elseif (is_object($file) && isset($file->url)) {
+                                    $fileUrl = $file->url;
+                                }
+                                
+                                if ($fileUrl && filter_var($fileUrl, FILTER_VALIDATE_URL)) {
+                                    CDNUploader::deleteFromBunnyCDN($fileUrl);
+                                }
                             }),
                     ])
                     ->collapsible()
@@ -237,7 +333,11 @@ class BookResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
-                    ->description(fn (Book $record): string => $record->description ? \Str::limit($record->description, 50) : ''),
+                    ->description(fn (Book $record): string => $record->annotation ? \Str::limit($record->annotation, 50) : ''),
+                Tables\Columns\TextColumn::make('book_name_ua')
+                    ->label('Назва (UA)')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('author_full_name')
                     ->label('Автор')
                     ->sortable()
@@ -256,17 +356,26 @@ class BookResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color('success'),
+                Tables\Columns\TextColumn::make('first_publish_year')
+                    ->label('Перший рік')
+                    ->numeric()
+                    ->sortable()
+                    ->badge()
+                    ->color('warning')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('rating')
                     ->label('Рейтинг')
                     ->numeric()
                     ->sortable()
-                    ->formatStateUsing(fn (string $state): string => $state . ' ⭐')
-                    ->color(fn (string $state): string => match (true) {
+                    ->formatStateUsing(fn ($state): string => number_format((float) $state, 1) . ' ⭐')
+                    ->description('Розраховується за оцінками користувачів')
+                    ->color(fn ($state): string => match (true) {
                         $state >= 4.5 => 'success',
                         $state >= 3.5 => 'warning',
                         $state >= 2.5 => 'danger',
                         default => 'gray',
-                    }),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('reviews_count')
                     ->label('Отзывы')
                     ->numeric()
@@ -310,6 +419,14 @@ class BookResource extends Resource
                     ->label('Обновлено')
                     ->dateTime('d.m.Y H:i')
                     ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('original_language')
+                    ->label('Мова оригіналу')
+                    ->badge()
+                    ->color('gray')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('series')
+                    ->label('Серія')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

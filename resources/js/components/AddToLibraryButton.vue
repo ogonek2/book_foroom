@@ -1,11 +1,20 @@
 <template>
     <div>
         <!-- Кнопка добавления в список чтения -->
-        <button @click="openReadingStatusModal" v-if="currentStatus"
-            :class="statusColors[currentStatus]"
-            class="w-full bg-gradient-to-r text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 transform shadow-lg hover:shadow-xl flex items-center justify-center">
-            {{ statusTexts[currentStatus] }}
-        </button>
+        <div v-if="currentStatus" class="flex items-center space-x-2">
+            <button @click="openReadingStatusModal"
+                :class="statusColors[currentStatus]"
+                class="flex-1 bg-gradient-to-r text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 transform shadow-lg hover:shadow-xl flex items-center justify-center">
+                {{ statusTexts[currentStatus] }}
+            </button>
+            <button @click="removeStatus"
+                class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-xl font-bold transition-all duration-300 transform shadow-lg hover:shadow-xl flex items-center justify-center"
+                title="Видалити статус">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                </svg>
+            </button>
+        </div>
         <button @click="openReadingStatusModal" v-else
             class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform shadow-lg hover:shadow-xl">
             <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,12 +128,14 @@ export default {
             statusTexts: {
                 'read': 'Прочитано',
                 'reading': 'Читаю',
-                'want_to_read': 'Буду читати'
+                'want_to_read': 'Буду читати',
+                'abandoned': 'Закинуто'
             },
             statusColors: {
                 'read': 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
                 'reading': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-                'want_to_read': 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700'
+                'want_to_read': 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
+                'abandoned': 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
             }
         }
     },
@@ -149,12 +160,13 @@ export default {
                 const bookId = await this.getBookIdBySlug(this.book.slug);
 
                 // Отправляем запрос на сервер
+                const normalizedStatus = status === 'want-to-read' ? 'want_to_read' : status;
                 const response = await axios.post(`/api/reading-status/book/${bookId}`, {
-                    status: status === 'want-to-read' ? 'want_to_read' : status
+                    status: normalizedStatus
                 });
 
                 if (response.data.success) {
-                    this.currentStatus = status === 'want-to-read' ? 'want_to_read' : status;
+                    this.currentStatus = normalizedStatus;
                     this.$emit('notification', {
                         message: 'Книга додана до списку!',
                         type: 'success'
@@ -175,6 +187,36 @@ export default {
             }
 
             this.closeModal();
+        },
+        async removeStatus() {
+            if (!confirm('Ви впевнені, що хочете видалити статус для цієї книги?')) {
+                return;
+            }
+
+            try {
+                const bookId = await this.getBookIdBySlug(this.book.slug);
+                const response = await axios.delete(`/api/reading-status/book/${bookId}`);
+
+                if (response.data.success) {
+                    this.currentStatus = null;
+                    this.$emit('notification', {
+                        message: 'Статус видалено!',
+                        type: 'success'
+                    });
+                    this.$emit('status-updated', null);
+                } else {
+                    this.$emit('notification', {
+                        message: response.data.message || 'Помилка при видаленні статусу',
+                        type: 'error'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.$emit('notification', {
+                    message: 'Помилка при видаленні статусу',
+                    type: 'error'
+                });
+            }
         },
         async getBookIdBySlug(slug) {
             try {

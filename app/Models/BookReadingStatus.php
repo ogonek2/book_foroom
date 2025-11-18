@@ -14,6 +14,8 @@ class BookReadingStatus extends Model
         'user_id',
         'book_id',
         'status',
+        'times_read',
+        'reading_language',
         'rating',
         'review',
         'started_at',
@@ -24,12 +26,14 @@ class BookReadingStatus extends Model
         'started_at' => 'date',
         'finished_at' => 'date',
         'rating' => 'integer',
+        'times_read' => 'integer',
     ];
 
     // Константы для статусов
     const STATUS_READ = 'read';
     const STATUS_READING = 'reading';
     const STATUS_WANT_TO_READ = 'want_to_read';
+    const STATUS_ABANDONED = 'abandoned';
 
     // Отношения
     public function user(): BelongsTo
@@ -58,6 +62,11 @@ class BookReadingStatus extends Model
         return $query->where('status', self::STATUS_WANT_TO_READ);
     }
 
+    public function scopeAbandoned($query)
+    {
+        return $query->where('status', self::STATUS_ABANDONED);
+    }
+
     // Методы для получения статусов
     public static function getStatuses()
     {
@@ -65,6 +74,7 @@ class BookReadingStatus extends Model
             self::STATUS_READ => 'Прочитано',
             self::STATUS_READING => 'Читаю',
             self::STATUS_WANT_TO_READ => 'Буду читать',
+            self::STATUS_ABANDONED => 'Закинуто',
         ];
     }
 

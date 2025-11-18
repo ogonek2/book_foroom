@@ -37,6 +37,7 @@ class ProfileController extends Controller
             'discussions' => 'profile.private.discussions',
             'quotes' => 'profile.private.quotes',
             'collections' => 'profile.pages.collections', // Используем существующий шаблон для добірок
+            'favorites' => 'profile.private.favorites',
         ];
         
         $view = $viewMap[$tab] ?? 'profile.private.overview';
@@ -62,6 +63,22 @@ class ProfileController extends Controller
             
             $data['libraries'] = $libraries;
             $data['savedLibraries'] = $savedLibraries;
+        }
+        
+        if ($tab === 'favorites') {
+            $favoriteQuotes = $user->favoriteQuotes()
+                ->with(['book', 'user'])
+                ->orderBy('favorite_quotes.created_at', 'desc')
+                ->paginate(10);
+            
+            $favoriteReviews = $user->favoriteReviews()
+                ->with(['book', 'user'])
+                ->whereNull('parent_id') // Только основные рецензии, не ответы
+                ->orderBy('favorite_reviews.created_at', 'desc')
+                ->paginate(10);
+            
+            $data['favoriteQuotes'] = $favoriteQuotes;
+            $data['favoriteReviews'] = $favoriteReviews;
         }
         
         return view($view, $data);

@@ -38,6 +38,9 @@ Route::prefix('books')->name('books.')->group(function () {
         // Лайки рецензий
         Route::post('/{review}/like', [ReviewController::class, 'toggleLike'])->name('like')->middleware('auth');
         
+        // Избранные рецензии
+        Route::post('/{review}/favorite', [ReviewController::class, 'toggleFavorite'])->name('favorite')->middleware('auth');
+        
         // Редактирование и удаление рецензий
         Route::get('/{review}/edit', [ReviewController::class, 'edit'])->name('edit')->middleware('auth');
         Route::put('/{review}', [ReviewController::class, 'update'])->name('update')->middleware('auth');
@@ -48,6 +51,7 @@ Route::prefix('books')->name('books.')->group(function () {
     Route::prefix('{book:slug}/quotes')->name('quotes.')->group(function () {
         Route::post('/', [QuoteController::class, 'store'])->name('store')->middleware('auth');
         Route::post('/{quote}/like', [QuoteController::class, 'toggleLike'])->name('like')->middleware('auth');
+        Route::post('/{quote}/favorite', [QuoteController::class, 'toggleFavorite'])->name('favorite')->middleware('auth');
         Route::put('/{quote}', [QuoteController::class, 'update'])->name('update')->middleware('auth');
         Route::delete('/{quote}', [QuoteController::class, 'destroy'])->name('destroy')->middleware('auth');
     });

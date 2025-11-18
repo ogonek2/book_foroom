@@ -5,20 +5,49 @@
         <div>
             <div class="flex items-center space-x-3 justify-between">
                 <div class="flex items-center space-x-3">
-                    <img v-if="fact.user && fact.user.avatar_display" :src="fact.user.avatar_display"
-                        :alt="fact.user.name" class="w-8 h-8 rounded-full">
-                    <div v-else
-                        class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm">
-                        {{ (fact.user?.name || 'U').charAt(0).toUpperCase() }}
-                    </div>
-                    <div>
-                        <div class="text-sm font-medium text-slate-900 dark:text-white">
-                            {{ fact.user?.name || 'Користувач' }}
+                    <template v-if="fact.user && fact.user.username">
+                        <a :href="profileUrl(fact.user.username)"
+                           class="flex items-center space-x-3 group"
+                           @click.stop>
+                            <div>
+                                <img v-if="fact.user.avatar_display" :src="fact.user.avatar_display"
+                                    :alt="fact.user.name"
+                                    class="w-8 h-8 rounded-full transition-transform duration-200 group-hover:scale-110">
+                                <div v-else
+                                    class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm transition-transform duration-200 group-hover:scale-110">
+                                    {{ (fact.user?.name || 'U').charAt(0).toUpperCase() }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                    {{ fact.user?.name || 'Користувач' }}
+                                </div>
+                                <div v-if="fact.user?.username"
+                                    class="text-xs text-slate-500 dark:text-slate-400 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                    {{ '@' + fact.user.username }}
+                                </div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">
+                                    {{ formatDate(fact.created_at) }}
+                                </div>
+                            </div>
+                        </a>
+                    </template>
+                    <template v-else>
+                        <img v-if="fact.user && fact.user.avatar_display" :src="fact.user.avatar_display"
+                            :alt="fact.user?.name || 'Користувач'" class="w-8 h-8 rounded-full">
+                        <div v-else
+                            class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm">
+                            {{ (fact.user?.name || 'U').charAt(0).toUpperCase() }}
                         </div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400">
-                            {{ formatDate(fact.created_at) }}
+                        <div>
+                            <div class="text-sm font-medium text-slate-900 dark:text-white">
+                                {{ fact.user?.name || 'Користувач' }}
+                            </div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">
+                                {{ formatDate(fact.created_at) }}
+                            </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
             <!-- Fact Text -->
@@ -229,6 +258,9 @@ export default {
         getContentUrl() {
             // Возвращаем URL контента
             return `/books/${this.bookSlug}#fact-${this.fact.id}`;
+        },
+        profileUrl(username) {
+            return username ? `/users/${username}` : '#';
         }
     }
 };

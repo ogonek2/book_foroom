@@ -5,7 +5,7 @@
 @section('main')
     <div class="min-h-screen duration-300">
         <div class="max-w-7xl mx-auto flex gap-8">
-            <div class="flex flex-col lg:flex-row gap-8">
+            <div class="flex flex-col lg:flex-row gap-8 w-full">
                 <!-- Main Content -->
                 <div class="flex-1 min-w-0 order-2 lg:order-1">
 
@@ -19,14 +19,14 @@
                                         <span
                                             class="bg-yellow-500 text-yellow-900 dark:bg-yellow-600 dark:text-yellow-100 px-3 py-1 rounded-full text-sm font-bold">
                                             <i class="fas fa-thumbtack mr-1"></i>
-                                            Р—Р°РєСЂРµРїР»РµРЅРѕ
+                                            Закріплено
                                         </span>
                                     @endif
                                     @if ($discussion->is_closed)
                                         <span
                                             class="bg-red-500 text-red-900 dark:bg-red-600 dark:text-red-100 px-3 py-1 rounded-full text-sm font-bold">
                                             <i class="fas fa-lock mr-1"></i>
-                                            Р—Р°РєСЂС‹С‚Рѕ
+                                            Зачинено
                                         </span>
                                     @endif
                                 </div>
@@ -37,17 +37,17 @@
 
                                 <!-- Author Info -->
                                 <div class="flex items-center space-x-4">
-                                    <img src="{{ $discussion->user->avatar_display }}" alt="{{ $discussion->user->name }}"
-                                        class="w-12 h-12 rounded-full">
-                                    <div>
-                                        <div class="text-light-text-primary dark:text-dark-text-primary font-medium">
-                                            {{ $discussion->user->name }}
-                                            <a href="{{ route('users.public.profile', $discussion->user->username) }}"
-                                                class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">{{ '@' . $discussion->user->username }}</a>
+                                    <a href="{{ route('users.public.profile', $discussion->user->username) }}" class="flex items-center space-x-4 group">
+                                        <img src="{{ $discussion->user->avatar_display }}" alt="{{ $discussion->user->name }}"
+                                            class="w-12 h-12 rounded-full">
+                                        <div>
+                                            <div class="text-light-text-primary dark:text-dark-text-primary font-medium">
+                                                {{ $discussion->user->name }}
+                                            </div>
+                                            <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
+                                                {{ $discussion->created_at->diffForHumans() }}</div>
                                         </div>
-                                        <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
-                                            {{ $discussion->created_at->diffForHumans() }}</div>
-                                    </div>
+                                    </a>
                                     <!-- Like Button -->
                                     @auth
                                         <button onclick="toggleLike({{ $discussion->id }})"

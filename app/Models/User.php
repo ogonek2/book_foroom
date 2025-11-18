@@ -451,4 +451,24 @@ class User extends Authenticatable
     {
         return $this->awards()->sum('points');
     }
+
+    /**
+     * Избранные цитаты пользователя
+     */
+    public function favoriteQuotes(): BelongsToMany
+    {
+        return $this->belongsToMany(Quote::class, 'favorite_quotes')
+                    ->withTimestamps()
+                    ->orderBy('favorite_quotes.created_at', 'desc');
+    }
+
+    /**
+     * Избранные рецензии пользователя
+     */
+    public function favoriteReviews(): BelongsToMany
+    {
+        return $this->belongsToMany(Review::class, 'favorite_reviews')
+                    ->withTimestamps()
+                    ->orderBy('favorite_reviews.created_at', 'desc');
+    }
 }

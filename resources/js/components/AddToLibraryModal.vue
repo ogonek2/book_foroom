@@ -71,6 +71,23 @@
                         </div>
                     </button>
 
+                    <!-- Закинуто -->
+                    <button @click="selectStatus('abandoned')"
+                            class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-red-500 dark:hover:border-red-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-red-200 dark:group-hover:bg-red-800/40 transition-colors">
+                                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                    Закинуто</h4>
+                                <p class="text-sm text-slate-600 dark:text-slate-400">Перестав читати цю книгу</p>
+                            </div>
+                        </div>
+                    </button>
+
                     <!-- Divider -->
                     <div class="border-t border-slate-200 dark:border-slate-600 my-4"></div>
 

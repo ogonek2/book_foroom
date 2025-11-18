@@ -12,20 +12,26 @@ class Book extends Model
 {
     protected $fillable = [
         'title',
+        'book_name_ua',
         'slug',
-        'description',
+        'annotation',
+        'annotation_source',
         'author',
         'author_id',
         'isbn',
         'publication_year',
+        'first_publish_year',
         'publisher',
         'cover_image',
         'language',
+        'original_language',
         'pages',
         'rating',
         'reviews_count',
         'is_featured',
         'interesting_facts',
+        'synonyms',
+        'series',
     ];
 
     protected $casts = [
@@ -33,8 +39,10 @@ class Book extends Model
         'reviews_count' => 'integer',
         'pages' => 'integer',
         'publication_year' => 'integer',
+        'first_publish_year' => 'integer',
         'is_featured' => 'boolean',
         'interesting_facts' => 'array',
+        'synonyms' => 'array',
     ];
 
     protected static function boot()
@@ -273,6 +281,55 @@ class Book extends Model
         ];
     }
 
+
+    /**
+     * Аксессор для обратной совместимости с полем description
+     */
+    public function getDescriptionAttribute(): ?string
+    {
+        return $this->annotation;
+    }
+
+    public function setDescriptionAttribute($value): void
+    {
+        $this->attributes['annotation'] = $value;
+    }
+
+    public function getSynonymsAttribute($value): array
+    {
+        if (is_array($value)) {
+            return array_values(array_filter($value, fn ($item) => $item !== null && $item !== ''));
+        }
+
+        if (is_null($value) || $value === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+
+        if (is_array($decoded)) {
+            return array_values(array_filter($decoded, fn ($item) => $item !== null && $item !== ''));
+        }
+
+        return [];
+    }
+
+    public function setSynonymsAttribute($value): void
+    {
+        if (is_string($value)) {
+            $value = preg_split('/[,;|]/u', $value) ?: [];
+        }
+
+        if (is_array($value)) {
+            $clean = array_values(array_filter(array_map('trim', $value), fn ($item) => $item !== ''));
+            $this->attributes['synonyms'] = empty($clean)
+                ? null
+                : json_encode($clean, JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $this->attributes['synonyms'] = null;
+    }
 
     /**
      * Получить отображаемый рейтинг (0-10)

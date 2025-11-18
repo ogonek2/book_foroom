@@ -226,4 +226,22 @@ class Review extends Model
     {
         return $this->status === 'blocked';
     }
+
+    /**
+     * Пользователи, которые добавили рецензию в избранное
+     */
+    public function favoritedByUsers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'favorite_reviews')
+                    ->withTimestamps()
+                    ->orderBy('favorite_reviews.created_at', 'desc');
+    }
+
+    /**
+     * Проверяет, добавлена ли рецензия в избранное пользователем
+     */
+    public function isFavoritedBy($userId): bool
+    {
+        return $this->favoritedByUsers()->where('user_id', $userId)->exists();
+    }
 }
