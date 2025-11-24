@@ -91,6 +91,32 @@
                             </div>
                         </div>
 
+                        <!-- Review Meta Info -->
+                        <div v-if="review.review_type || review.book_type || review.language" class="flex items-center flex-wrap gap-2 py-2">
+                            <span v-if="review.review_type" 
+                                  :class="[
+                                      'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium text-white border',
+                                      review.review_type === 'review' 
+                                          ? 'bg-blue-500/60 dark:bg-blue-600/60 border-blue-400 dark:border-blue-500' 
+                                          : 'bg-purple-500/60 dark:bg-purple-600/60 border-purple-400 dark:border-purple-500'
+                                  ]">
+                                {{ review.review_type === 'review' ? 'Рецензія' : 'Відгук' }}
+                            </span>
+                            <span v-if="review.book_type" 
+                                  class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-indigo-500/60 dark:bg-indigo-600/60 border border-indigo-400 dark:border-indigo-500 text-white">
+                                <span v-if="review.book_type === 'paper'">Паперова</span>
+                                <span v-else-if="review.book_type === 'electronic'">Електронна</span>
+                                <span v-else-if="review.book_type === 'audio'">Аудіо</span>
+                            </span>
+                            <span v-if="review.language" 
+                                  class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/60 dark:bg-emerald-600/60 border border-emerald-400 dark:border-emerald-500 text-white">
+                                <span v-if="review.language === 'uk'">Українська</span>
+                                <span v-else-if="review.language === 'en'">English</span>
+                                <span v-else-if="review.language === 'de'">Deutsch</span>
+                                <span v-else>{{ review.language }}</span>
+                            </span>
+                        </div>
+
                         <!-- Review Text -->
                         <div class="mb-4">
                             <!-- Spoiler Content -->
@@ -99,7 +125,7 @@
                                 <div class="relative overflow-hidden">
                                     <p
                                         class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3 blur-sm filter">
-                                        {{ review.content }}
+                                        {{ stripHTML(review.content) }}
                                     </p>
                                     <!-- Dark overlay -->
                                     <div class="absolute inset-0 bg-opacity-70 flex items-center justify-center">
@@ -118,9 +144,9 @@
                             <div v-else>
                                 <p
                                     class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium line-clamp-3">
-                                    {{ truncateText(review.content, 300) }}
+                                    {{ truncateText(stripHTML(review.content), 300) }}
                                 </p>
-                                <p v-if="review.content.length > 300"
+                                <p v-if="stripHTML(review.content).length > 300"
                                     class="text-indigo-600 dark:text-indigo-400 text-sm font-medium mt-2 cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-300"
                                     @click="goToReview(review.id)">
                                     Розгорнути ↓
@@ -287,10 +313,11 @@ export default {
     },
     methods: {
         openReportModal(review) {
+            const plainText = this.stripHTML(review.content);
             this.reportData = {
                 type: 'App\\Models\\Review',
                 id: review.id,
-                content: this.truncateText(review.content, 200) + (review.content.length > 200 ? '...' : ''),
+                content: this.truncateText(plainText, 200) + (plainText.length > 200 ? '...' : ''),
                 url: window.location.href
             };
             this.showReportModal = true;
@@ -318,7 +345,14 @@ export default {
                 year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
             });
         },
+        stripHTML(html) {
+            if (!html) return '';
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            return temp.textContent || temp.innerText || '';
+        },
         truncateText(text, length) {
+            if (!text) return '';
             if (text.length <= length) return text;
             return text.substring(0, length);
         },
@@ -345,7 +379,8 @@ export default {
             }
         },
         shareReview(review) {
-            const text = this.truncateText(review.content, 200) + (review.content.length > 200 ? '...' : '');
+            const plainText = this.stripHTML(review.content);
+            const text = this.truncateText(plainText, 200) + (plainText.length > 200 ? '...' : '');
             const url = window.location.href;
 
             if (navigator.share) {

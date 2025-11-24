@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\DraftController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\ProfileController;
@@ -51,6 +52,12 @@ Route::middleware(['auth'])->group(function () {
     
     // Public profile routes (with username)
     Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.user.show');
+    
+    // Drafts routes
+    Route::prefix('drafts')->name('drafts.')->group(function () {
+        Route::post('/{type}/{id}/publish', [DraftController::class, 'publish'])->name('publish');
+        Route::delete('/{type}/{id}', [DraftController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // Notification routes

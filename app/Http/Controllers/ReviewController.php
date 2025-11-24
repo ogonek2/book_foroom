@@ -18,43 +18,78 @@ class ReviewController extends Controller
      */
     public function store(Request $request, Book $book)
     {
+        $isDraft = $request->boolean('is_draft', false);
+        
+        // Определяем минимальное и максимальное количество символов в зависимости от типа
+        $reviewType = $request->input('review_type', 'review');
+        $minChars = ($reviewType === 'opinion') ? 100 : 800;
+        $maxChars = ($reviewType === 'opinion') ? 1000 : 15000;
+        
+        // Validate content length (text only, not HTML)
+        $contentText = strip_tags($request->input('content'));
+        $contentLength = mb_strlen($contentText);
+        
+        if ($contentLength < $minChars || $contentLength > $maxChars) {
+            $errorMessage = $reviewType === 'opinion' 
+                ? ($contentLength < $minChars 
+                    ? 'Відгук повинен містити мінімум 100 символів.' 
+                    : 'Відгук повинен містити максимум 1000 символів.')
+                : ($contentLength < $minChars 
+                    ? 'Рецензія повинна містити мінімум 800 символів.' 
+                    : 'Рецензія повинна містити максимум 15000 символів.');
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 422);
+            }
+            
+            return redirect()->back()->withErrors(['content' => $errorMessage])->withInput();
+        }
+        
         $request->validate([
-            'content' => 'required|string|max:5000',
-            'rating' => 'nullable|integer|min:1|max:10',
+            'content' => 'required|string',
+            'rating' => $isDraft ? 'nullable|integer|min:1|max:10' : 'nullable|integer|min:1|max:10',
             'review_type' => 'nullable|in:review,opinion',
             'opinion_type' => 'nullable|in:positive,neutral,negative',
             'book_type' => 'nullable|in:paper,electronic,audio',
             'language' => 'nullable|in:uk,en',
             'contains_spoiler' => 'nullable|boolean',
+            'is_draft' => 'nullable|boolean',
         ]);
 
-        // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
-        $existingReview = Review::where('book_id', $book->getKey())
-            ->where('user_id', Auth::id())
-            ->whereNull('parent_id') // Только основные рецензии, не комментарии
-            ->first();
+        // Для черновиков не проверяем существующие рецензии
+        if (!$isDraft) {
+            // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
+            $existingReview = Review::where('book_id', $book->getKey())
+                ->where('user_id', Auth::id())
+                ->whereNull('parent_id') // Только основные рецензии, не комментарии
+                ->where('is_draft', false) // Исключаем черновики
+                ->first();
 
-        if ($existingReview) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.',
-                    'existing_review' => $existingReview
-                ], 422);
+            if ($existingReview) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.',
+                        'existing_review' => $existingReview
+                    ], 422);
+                }
+
+                return redirect()->back()->with('error', 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
             }
-
-            return redirect()->back()->with('error', 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
         }
 
         // Получаем рейтинг из BookReadingStatus, если он не передан в запросе
         $rating = $request->input('rating');
-        if (!$rating) {
+        if (!$rating && !$isDraft) {
             $userRating = $book->getUserRating(Auth::id());
             $rating = $userRating;
         }
 
-        // Если нет рейтинга ни в запросе, ни в BookReadingStatus, возвращаем ошибку
-        if (!$rating) {
+        // Если нет рейтинга ни в запросе, ни в BookReadingStatus, возвращаем ошибку (только для не-черновиков)
+        if (!$rating && !$isDraft) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -65,8 +100,11 @@ class ReviewController extends Controller
             return redirect()->back()->with('error', 'Спочатку поставте оцінку книзі, а потім напишіть рецензію.');
         }
 
+        // Sanitize HTML content
+        $content = $this->sanitizeHTML($request->input('content'));
+
         $review = Review::create([
-            'content' => $request->input('content'),
+            'content' => $content,
             'rating' => $rating,
             'book_id' => $book->getKey(),
             'user_id' => Auth::id(),
@@ -76,35 +114,39 @@ class ReviewController extends Controller
             'book_type' => $request->input('book_type', 'paper'),
             'language' => $request->input('language', 'uk'),
             'contains_spoiler' => $request->boolean('contains_spoiler', false),
+            'is_draft' => $isDraft,
         ]);
 
-        // Синхронизируем рейтинг с BookReadingStatus
-        $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
-            [
-                'book_id' => $book->getKey(),
-                'user_id' => Auth::id(),
-            ],
-            [
-                'status' => 'read',
-                'finished_at' => now(),
-            ]
-        );
+        // Для черновиков не обновляем рейтинги
+        if (!$isDraft) {
+            // Синхронизируем рейтинг с BookReadingStatus
+            $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
+                [
+                    'book_id' => $book->getKey(),
+                    'user_id' => Auth::id(),
+                ],
+                [
+                    'status' => 'read',
+                    'finished_at' => now(),
+                ]
+            );
 
-        // Обновляем рейтинг в BookReadingStatus
-        $readingStatus->update(['rating' => $rating]);
+            // Обновляем рейтинг в BookReadingStatus
+            $readingStatus->update(['rating' => $rating]);
 
-        // Обновляем средний рейтинг книги
-        $book->updateRating();
+            // Обновляем средний рейтинг книги
+            $book->updateRating();
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Рецензію додано!',
+                'message' => $isDraft ? 'Чернетку збережено!' : 'Рецензію додано!',
                 'review' => $review->load('user')
             ]);
         }
 
-        return redirect()->back()->with('success', 'Рецензію додано!');
+        return redirect()->back()->with('success', $isDraft ? 'Чернетку збережено!' : 'Рецензію додано!');
     }
 
     /**
@@ -150,6 +192,42 @@ class ReviewController extends Controller
     }
 
     /**
+     * Get review data (including drafts) for editing
+     */
+    public function getReviewData(Book $book, Review $review)
+    {
+        // Проверяем права доступа - только владелец может редактировать черновик
+        if ($review->user_id !== Auth::id()) {
+            abort(403, 'У вас немає прав для редагування цієї рецензії');
+        }
+
+        // Проверяем, что рецензия принадлежит этой книге
+        if ($review->book_id !== $book->id) {
+            abort(404, 'Рецензію не знайдено');
+        }
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'review' => [
+                    'id' => $review->id,
+                    'content' => $review->content,
+                    'rating' => $review->rating,
+                    'review_type' => $review->review_type,
+                    'opinion_type' => $review->opinion_type,
+                    'book_type' => $review->book_type,
+                    'language' => $review->language,
+                    'contains_spoiler' => $review->contains_spoiler,
+                    'is_draft' => $review->is_draft,
+                    'book_slug' => $book->slug, // Добавляем slug книги для удобства
+                ]
+            ]);
+        }
+
+        return redirect()->back();
+    }
+
+    /**
      * Show a single review with its discussion thread
      */
     public function show(Book $book, $reviewIdentifier)
@@ -159,17 +237,20 @@ class ReviewController extends Controller
             ->where('book_id', $book->id)
             ->firstOrFail();
 
-        // Загружаем рецензию с автором и первыми ответами (только 2 уровня)
+        // Загружаем рецензию с автором и первыми ответами (только 2 уровня, исключая черновики)
         $review->load([
             'user',
             'book',
             'replies' => function ($query) {
-                $query->with([
-                    'user',
-                    'replies' => function ($query) {
-                        $query->with('user')->orderBy('created_at', 'desc');
-                    }
-                ])->orderBy('created_at', 'desc');
+                $query->where('is_draft', false)
+                    ->with([
+                        'user',
+                        'replies' => function ($query) {
+                            $query->where('is_draft', false)
+                                ->with('user')
+                                ->orderBy('created_at', 'desc');
+                        }
+                    ])->orderBy('created_at', 'desc');
             }
         ]);
 
@@ -208,8 +289,11 @@ class ReviewController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string|max:5000',
+            'content' => 'required|string|min:10|max:300',
             'parent_id' => 'nullable|exists:reviews,id'
+        ], [
+            'content.min' => 'Коментар повинен містити мінімум 10 символів.',
+            'content.max' => 'Коментар повинен містити максимум 300 символів.',
         ]);
 
         // Визначаємо, чи авторизований користувач
@@ -346,46 +430,179 @@ class ReviewController extends Controller
     }
 
     /**
+     * Show the form for editing a draft review (alternative page without modal)
+     */
+    public function editDraft(Book $book, Review $review)
+    {
+        try {
+            // Проверяем права доступа - только владелец может редактировать черновик
+            if ($review->user_id !== Auth::id()) {
+                abort(403, 'У вас немає прав для редагування цієї рецензії');
+            }
+
+            // Проверяем, что это черновик
+            if (!$review->is_draft) {
+                return redirect()->route('books.reviews.edit', [$book, $review]);
+            }
+
+            // Проверяем, что рецензия принадлежит этой книге
+            if ($review->book_id !== $book->id) {
+                abort(404, 'Рецензію не знайдено');
+            }
+
+            // Загружаем связь с книгой, если она не загружена
+            if (!$review->relationLoaded('book')) {
+                $review->load('book');
+            }
+
+            // Убеждаемся, что книга существует
+            if (!$book || !$book->exists) {
+                abort(404, 'Книгу не знайдено');
+            }
+
+            return view('profile.private.edit-draft-review', compact('book', 'review'));
+        } catch (\Exception $e) {
+            \Log::error('Error in editDraft: ' . $e->getMessage(), [
+                'book_id' => $book->id ?? null,
+                'review_id' => $review->id ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
      * Update the specified review
      */
     public function update(Request $request, Book $book, Review $review)
     {
         $this->authorize('update', $review);
         
-        $request->validate([
-            'content' => 'required|string|max:5000',
-            'rating' => 'nullable|integer|min:1|max:10',
+        // Определяем действие: publish или save
+        $action = $request->input('action');
+        $isDraft = ($action === 'save' || ($request->boolean('is_draft', false) && $action !== 'publish')) ? true : false;
+        
+        // Определяем минимальное и максимальное количество символов в зависимости от типа
+        $reviewType = $request->input('review_type', $review->review_type ?? 'review');
+        $minChars = ($reviewType === 'opinion') ? 100 : 800;
+        $maxChars = ($reviewType === 'opinion') ? 1000 : 15000;
+        
+        // Validate content length (text only, not HTML)
+        $contentText = strip_tags($request->input('content'));
+        $contentLength = mb_strlen($contentText);
+        
+        if ($contentLength < $minChars || $contentLength > $maxChars) {
+            $errorMessage = $reviewType === 'opinion' 
+                ? ($contentLength < $minChars 
+                    ? 'Відгук повинен містити мінімум 100 символів.' 
+                    : 'Відгук повинен містити максимум 1000 символів.')
+                : ($contentLength < $minChars 
+                    ? 'Рецензія повинна містити мінімум 800 символів.' 
+                    : 'Рецензія повинна містити максимум 15000 символів.');
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage
+                ], 422);
+            }
+            
+            return redirect()->back()->withErrors(['content' => $errorMessage])->withInput();
+        }
+        
+        $validationRules = [
+            'content' => 'required|string',
             'review_type' => 'nullable|in:review,opinion',
             'opinion_type' => 'nullable|in:positive,neutral,negative',
             'book_type' => 'nullable|in:paper,electronic,audio',
             'language' => 'nullable|in:uk,en,de,other',
             'contains_spoiler' => 'nullable|boolean',
-        ]);
+            'is_draft' => 'nullable|boolean',
+        ];
+        
+        // Если публикуем (не черновик), rating обязателен
+        if (!$isDraft) {
+            $validationRules['rating'] = 'required|integer|min:1|max:10';
+        } else {
+            $validationRules['rating'] = 'nullable|integer|min:1|max:10';
+        }
+        
+        $request->validate($validationRules);
 
-        $review->update([
-            'content' => $request->input('content'),
-            'rating' => $request->input('rating', $review->rating),
+        $wasDraft = $review->is_draft;
+        
+        // Sanitize HTML content
+        $content = $this->sanitizeHTML($request->input('content'));
+        
+        // Подготавливаем данные для обновления
+        $updateData = [
+            'content' => $content,
             'review_type' => $request->input('review_type', $review->review_type),
             'opinion_type' => $request->input('opinion_type', $review->opinion_type),
             'book_type' => $request->input('book_type', $review->book_type),
             'language' => $request->input('language', $review->language),
             'contains_spoiler' => $request->boolean('contains_spoiler', $review->contains_spoiler),
-        ]);
+            'is_draft' => $isDraft,
+        ];
+        
+        // Обрабатываем rating в зависимости от того, публикуем ли мы
+        if (!$isDraft) {
+            // При публикации rating обязателен (валидация уже проверила)
+            $updateData['rating'] = $request->input('rating');
+        } else {
+            // Для черновика rating опционален - используем переданное значение или оставляем старое
+            if ($request->has('rating') && $request->input('rating') !== null) {
+                $updateData['rating'] = $request->input('rating');
+            } else {
+                // Если rating не передан, оставляем старое значение
+                $updateData['rating'] = $review->rating;
+            }
+        }
+        
+        $review->update($updateData);
 
-        // Оновлюємо рейтинг книги если рейтинг изменился
-        if ($request->has('rating') && $request->input('rating') != $review->rating) {
+        // Если черновик был опубликован, обновляем рейтинги
+        if ($wasDraft && !$isDraft) {
+            // Синхронизируем рейтинг с BookReadingStatus
+            $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
+                [
+                    'book_id' => $book->getKey(),
+                    'user_id' => Auth::id(),
+                ],
+                [
+                    'status' => 'read',
+                    'finished_at' => now(),
+                ]
+            );
+
+            // Обновляем рейтинг в BookReadingStatus
+            if ($review->rating) {
+                $readingStatus->update(['rating' => $review->rating]);
+            }
+
+            // Обновляем средний рейтинг книги
             $book->updateRating();
+        } elseif (!$isDraft) {
+            // Оновлюємо рейтинг книги если рейтинг изменился
+            if ($request->has('rating') && $request->input('rating') != $review->rating) {
+                $book->updateRating();
+            }
         }
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Рецензію оновлено!',
+                'message' => $isDraft ? 'Чернетку оновлено!' : 'Рецензію оновлено!',
                 'review' => $review->fresh()->load('user')
             ]);
         }
 
-        return redirect()->back()->with('success', 'Рецензію оновлено!');
+        // Редирект в зависимости от действия
+        if ($isDraft) {
+            return redirect()->route('profile.show', ['tab' => 'drafts'])->with('success', 'Чернетку оновлено!');
+        } else {
+            return redirect()->route('books.show', $book->slug)->with('success', 'Рецензію оновлено!');
+        }
     }
 
     /**
@@ -497,5 +714,64 @@ class ReviewController extends Controller
             'success' => true,
             'message' => 'Коментар видалено!'
         ]);
+    }
+
+    /**
+     * Sanitize HTML content - remove dangerous tags and attributes
+     */
+    private function sanitizeHTML($html)
+    {
+        if (empty($html)) {
+            return $html;
+        }
+        
+        // Allowed tags
+        $allowedTags = '<p><br><strong><b><em><i><u><ul><ol><li><a><img>';
+        
+        // Strip all tags except allowed ones
+        $html = strip_tags($html, $allowedTags);
+        
+        // Remove all style attributes and event handlers using regex
+        $html = preg_replace('/\s*style\s*=\s*["\'][^"\']*["\']/i', '', $html);
+        $html = preg_replace('/\s*on\w+\s*=\s*["\'][^"\']*["\']/i', '', $html);
+        
+        // Validate and clean links
+        $html = preg_replace_callback('/<a\s+([^>]*)>(.*?)<\/a>/is', function($matches) {
+            $attrs = $matches[1];
+            $text = $matches[2];
+            
+            // Extract href
+            if (preg_match('/href\s*=\s*["\']([^"\']*)["\']/i', $attrs, $hrefMatch)) {
+                $href = $hrefMatch[1];
+                // Only allow http, https, or relative URLs
+                if (preg_match('/^(https?:\/\/|\/)/i', $href)) {
+                    return '<a href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '">' . $text . '</a>';
+                }
+            }
+            // If href is invalid, return just the text
+            return $text;
+        }, $html);
+        
+        // Validate and clean images
+        $html = preg_replace_callback('/<img\s+([^>]*)>/is', function($matches) {
+            $attrs = $matches[1];
+            
+            // Extract src
+            if (preg_match('/src\s*=\s*["\']([^"\']*)["\']/i', $attrs, $srcMatch)) {
+                $src = $srcMatch[1];
+                // Only allow http, https, relative URLs, or data URIs for images
+                if (preg_match('/^(https?:\/\/|\/|data:image)/i', $src)) {
+                    $alt = '';
+                    if (preg_match('/alt\s*=\s*["\']([^"\']*)["\']/i', $attrs, $altMatch)) {
+                        $alt = htmlspecialchars($altMatch[1], ENT_QUOTES, 'UTF-8');
+                    }
+                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . $alt . '">';
+                }
+            }
+            // If src is invalid, remove the image
+            return '';
+        }, $html);
+        
+        return $html;
     }
 }

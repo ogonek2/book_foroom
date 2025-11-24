@@ -3,19 +3,57 @@
      data-review-id="{{ $review->id }}">
     <!-- Review Header -->
     <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
         <div class="flex items-center space-x-4">
             @include('partials.user-mini-header', [
                 'user' => $review->isGuest() ? null : $review->user,
                 'timestamp' => $review->created_at->diffForHumans(),
                 'showGuest' => $review->isGuest()
             ])
+            </div>
+            
+            <!-- Review Meta Info -->
+            @if (!$review->isReply() && ($review->review_type || $review->book_type || $review->language))
+            <div class="flex items-center flex-wrap gap-2 py-2">
+                @if ($review->review_type)
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium text-white border
+                        {{ $review->review_type === 'review' ? 'bg-blue-500/60 dark:bg-blue-600/60 border-blue-400 dark:border-blue-500' : 'bg-purple-500/60 dark:bg-purple-600/60 border-purple-400 dark:border-purple-500' }}">
+                        {{ $review->review_type === 'review' ? 'Рецензія' : 'Відгук' }}
+                    </span>
+                @endif
+                @if ($review->book_type)
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-indigo-500/60 dark:bg-indigo-600/60 border border-indigo-400 dark:border-indigo-500 text-white">
+                        @if($review->book_type === 'paper')
+                            Паперова
+                        @elseif($review->book_type === 'electronic')
+                            Електронна
+                        @elseif($review->book_type === 'audio')
+                            Аудіо
+                        @endif
+                    </span>
+                @endif
+                @if ($review->language)
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/60 dark:bg-emerald-600/60 border border-emerald-400 dark:border-emerald-500 text-white">
+                        @if($review->language === 'uk')
+                            Українська
+                        @elseif($review->language === 'en')
+                            English
+                        @elseif($review->language === 'de')
+                            Deutsch
+                        @else
+                            {{ $review->language }}
+                        @endif
+                    </span>
+                @endif
+            </div>
+            @endif
         </div>
 
         <!-- Rating Stars -->
         @if ($review->rating && !$review->isReply())
             <div class="flex items-center space-x-2">
                 <span class="text-yellow-400 text-2xl"><i class="fas fa-star"></i></span>
-                <span class="ml-3 text-lg font-bold text-slate-700 dark:text-slate-300">{{ $review->rating }}/5</span>
+                <span class="ml-3 text-lg font-bold text-slate-700 dark:text-slate-300">{{ $review->rating }}/10</span>
             </div>
         @endif
     </div>
@@ -23,9 +61,9 @@
     <!-- Review Text (Truncated) -->
     <div class="mb-4">
         <p class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium line-clamp-3">
-            {{ Str::limit($review->content, 300) }}
+            {{ Str::limit(strip_tags($review->content), 300) }}
         </p>
-        @if(strlen($review->content) > 300)
+        @if(mb_strlen(strip_tags($review->content)) > 300)
             <p class="text-indigo-600 dark:text-indigo-400 text-sm font-medium mt-2">
                 Читати повністю →
             </p>

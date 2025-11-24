@@ -38,6 +38,7 @@ class ProfileController extends Controller
             'quotes' => 'profile.private.quotes',
             'collections' => 'profile.pages.collections', // Используем существующий шаблон для добірок
             'favorites' => 'profile.private.favorites',
+            'drafts' => 'profile.private.drafts',
         ];
         
         $view = $viewMap[$tab] ?? 'profile.private.overview';
@@ -79,6 +80,30 @@ class ProfileController extends Controller
             
             $data['favoriteQuotes'] = $favoriteQuotes;
             $data['favoriteReviews'] = $favoriteReviews;
+        }
+        
+        if ($tab === 'drafts') {
+            $draftReviews = \App\Models\Review::where('user_id', $user->id)
+                ->where('is_draft', true)
+                ->whereNull('parent_id')
+                ->with('book')
+                ->orderBy('updated_at', 'desc')
+                ->get();
+            
+            $draftQuotes = \App\Models\Quote::where('user_id', $user->id)
+                ->where('is_draft', true)
+                ->with('book')
+                ->orderBy('updated_at', 'desc')
+                ->get();
+            
+            $draftDiscussions = \App\Models\Discussion::where('user_id', $user->id)
+                ->where('is_draft', true)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+            
+            $data['draftReviews'] = $draftReviews;
+            $data['draftQuotes'] = $draftQuotes;
+            $data['draftDiscussions'] = $draftDiscussions;
         }
         
         return view($view, $data);

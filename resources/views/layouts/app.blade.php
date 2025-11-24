@@ -37,6 +37,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
         @stack('styles')
         
         <style>
@@ -311,6 +312,7 @@
         
         <script src="{{ mix('js/app.js') }}"></script>
         
+        <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
         @stack('scripts')
         
         <script>

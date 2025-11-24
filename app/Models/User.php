@@ -363,10 +363,10 @@ class User extends Authenticatable
         $score = 0;
 
         // Рецензии (основные, не ответы) - 10 баллов за каждую
-        $score += $this->reviews()->whereNull('parent_id')->count() * 10;
+        $score += $this->reviews()->whereNull('parent_id')->where('is_draft', false)->count() * 10;
 
-        // Цитаты (публичные) - 5 баллов за каждую
-        $score += $this->quotes()->where('is_public', true)->count() * 5;
+        // Цитаты (публичные, не черновики) - 5 баллов за каждую
+        $score += $this->quotes()->where('is_public', true)->where('is_draft', false)->count() * 5;
 
         // Публикации (опубликованные) - 15 баллов за каждую
         $score += $this->publications()->where('status', 'published')->count() * 15;
@@ -377,14 +377,14 @@ class User extends Authenticatable
         // Статусы книг (прочитано) - 3 балла за каждую
         $score += $this->readingStatuses()->where('status', 'read')->count() * 3;
 
-        // Обсуждения (активные) - 8 баллов за каждое
-        $score += $this->discussions()->where('status', 'active')->count() * 8;
+        // Обсуждения (активные, не черновики) - 8 баллов за каждое
+        $score += $this->discussions()->where('status', 'active')->where('is_draft', false)->count() * 8;
 
         // Комментарии к обсуждениям - 3 балла за каждый
         $score += $this->discussionReplies()->count() * 3;
 
-        // Комментарии к рецензиям - 2 балла за каждый
-        $score += $this->reviews()->whereNotNull('parent_id')->count() * 2;
+        // Комментарии к рецензиям - 2 балла за каждый (исключая черновики)
+        $score += $this->reviews()->whereNotNull('parent_id')->where('is_draft', false)->count() * 2;
 
         return min($score, 100); // Максимум 100 баллов
     }

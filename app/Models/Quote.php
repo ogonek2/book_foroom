@@ -20,6 +20,7 @@ class Quote extends Model
         'moderated_at',
         'moderated_by',
         'moderation_reason',
+        'is_draft',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class Quote extends Model
         return [
             'is_public' => 'boolean',
             'moderated_at' => 'datetime',
+            'is_draft' => 'boolean',
         ];
     }
 

@@ -25,6 +25,7 @@ class Discussion extends Model
         'moderated_at',
         'moderated_by',
         'moderation_reason',
+        'is_draft',
     ];
 
     protected $casts = [
@@ -35,6 +36,7 @@ class Discussion extends Model
         'likes_count' => 'integer',
         'last_activity_at' => 'datetime',
         'moderated_at' => 'datetime',
+        'is_draft' => 'boolean',
     ];
 
     protected static function boot()

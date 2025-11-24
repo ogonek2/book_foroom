@@ -24,14 +24,16 @@ class DiscussionController extends Controller
         $discussionsQuery = Discussion::with(['user'])
             ->withCount(['replies', 'likes'])
             ->where('status', 'active')
-            ->whereNotNull('user_id'); // Исключаем обсуждения без пользователя
+            ->whereNotNull('user_id') // Исключаем обсуждения без пользователя
+            ->where('is_draft', false); // Исключаем черновики
 
         // Загружаем рецензии
         $reviewsQuery = \App\Models\Review::with(['user', 'book'])
             ->withCount(['replies', 'likes'])
             ->where('status', 'active')
             ->whereNull('parent_id') // Только основные рецензии, не ответы
-            ->whereNotNull('user_id'); // Исключаем рецензии без пользователя
+            ->whereNotNull('user_id') // Исключаем рецензии без пользователя
+            ->where('is_draft', false); // Исключаем черновики
 
         // Поиск
         if ($request->has('search') && $request->search) {
@@ -181,9 +183,16 @@ class DiscussionController extends Controller
      */
     public function store(Request $request)
     {
+        $isDraft = $request->boolean('is_draft', false);
+        
         $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|min:10',
+            'title' => 'required|string|max:50',
+            'content' => 'required|string|min:300|max:3500',
+            'is_draft' => 'nullable|boolean',
+        ], [
+            'title.max' => 'Назва обговорення повинна містити максимум 50 символів.',
+            'content.min' => 'Текст обговорення повинен містити мінімум 300 символів.',
+            'content.max' => 'Текст обговорення повинен містити максимум 3500 символів.',
         ]);
 
         $discussion = Discussion::create([
@@ -191,10 +200,16 @@ class DiscussionController extends Controller
             'content' => $request->content,
             'user_id' => Auth::id(),
             'status' => 'active',
+            'is_draft' => $isDraft,
         ]);
 
+        if ($isDraft) {
+            return redirect()->route('profile.show', ['tab' => 'drafts'])
+                ->with('success', 'Чернетку збережено!');
+        }
+
         return redirect()->route('discussions.show', $discussion)
-            ->with('success', 'Обсуждение успешно создано!');
+            ->with('success', 'Обговорення успішно створено!');
     }
 
     /**
@@ -353,15 +368,37 @@ class DiscussionController extends Controller
             abort(403, 'У вас нет прав для редактирования этого обсуждения');
         }
 
+        $isDraft = $request->boolean('is_draft', false);
+        
         $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|min:10',
+            'title' => 'required|string|max:50',
+            'content' => 'required|string|min:300|max:3500',
+            'is_draft' => 'nullable|boolean',
+        ], [
+            'title.max' => 'Назва обговорення повинна містити максимум 50 символів.',
+            'content.min' => 'Текст обговорення повинен містити мінімум 300 символів.',
+            'content.max' => 'Текст обговорення повинен містити максимум 3500 символів.',
         ]);
 
-        $discussion->update($request->only(['title', 'content']));
+        $wasDraft = $discussion->is_draft;
+        $discussion->update([
+            'title' => $request->title,
+            'content' => $request->content,
+            'is_draft' => $isDraft,
+        ]);
+
+        if ($isDraft) {
+            return redirect()->route('profile.show', ['tab' => 'drafts'])
+                ->with('success', 'Чернетку оновлено!');
+        }
+
+        if ($wasDraft && !$isDraft) {
+            return redirect()->route('discussions.show', $discussion)
+                ->with('success', 'Обговорення опубліковано!');
+        }
 
         return redirect()->route('discussions.show', $discussion)
-            ->with('success', 'Обсуждение успешно обновлено!');
+            ->with('success', 'Обговорення успішно оновлено!');
     }
 
     /**
@@ -422,8 +459,11 @@ class DiscussionController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string|min:1',
+            'content' => 'required|string|min:10|max:300',
             'parent_id' => 'nullable|exists:discussion_replies,id',
+        ], [
+            'content.min' => 'Коментар повинен містити мінімум 10 символів.',
+            'content.max' => 'Коментар повинен містити максимум 300 символів.',
         ]);
 
         $reply = DiscussionReply::create([

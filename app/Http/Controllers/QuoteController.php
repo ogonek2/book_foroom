@@ -14,10 +14,16 @@ class QuoteController extends Controller
      */
     public function store(Request $request, Book $book)
     {
+        $isDraft = $request->boolean('is_draft', false);
+        
         $request->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'required|string|min:20|max:500',
             'page_number' => 'nullable|integer|min:1',
             'is_public' => 'boolean',
+            'is_draft' => 'nullable|boolean',
+        ], [
+            'content.min' => 'Цитата повинна містити мінімум 20 символів.',
+            'content.max' => 'Цитата повинна містити максимум 500 символів.',
         ]);
 
         $quote = Quote::create([
@@ -27,6 +33,7 @@ class QuoteController extends Controller
             'book_id' => $book->id,
             'user_id' => Auth::id(),
             'status' => 'active',
+            'is_draft' => $isDraft,
         ]);
 
         // Загружаем связанные данные
@@ -35,7 +42,7 @@ class QuoteController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Цитату додано!',
+                'message' => $isDraft ? 'Чернетку збережено!' : 'Цитату додано!',
                 'quote' => [
                     'id' => $quote->id,
                     'content' => $quote->content,
@@ -55,7 +62,7 @@ class QuoteController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Цитату додано!');
+        return redirect()->back()->with('success', $isDraft ? 'Чернетку збережено!' : 'Цитату додано!');
     }
 
     /**
@@ -92,28 +99,72 @@ class QuoteController extends Controller
     }
 
     /**
+     * Get quote data (including drafts) for editing
+     */
+    public function getQuoteData(Book $book, Quote $quote)
+    {
+        // Проверяем права доступа - только владелец может редактировать черновик
+        if ($quote->user_id !== Auth::id()) {
+            abort(403, 'У вас немає прав для редагування цієї цитати');
+        }
+
+        // Проверяем, что цитата принадлежит этой книге
+        if ($quote->book_id !== $book->id) {
+            abort(404, 'Цитату не знайдено');
+        }
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'quote' => [
+                    'id' => $quote->id,
+                    'content' => $quote->content,
+                    'page_number' => $quote->page_number,
+                    'is_public' => $quote->is_public,
+                    'is_draft' => $quote->is_draft,
+                    'book_slug' => $book->slug, // Добавляем slug книги для удобства
+                ]
+            ]);
+        }
+
+        return redirect()->back();
+    }
+
+    /**
      * Update a quote
      */
     public function update(Request $request, Book $book, Quote $quote)
     {
         // Check authorization
         if ($quote->user_id !== Auth::id()) {
+            if ($request->expectsJson()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Ви не маєте прав для редагування цієї цитати.'
             ], 403);
+            }
+            abort(403, 'Ви не маєте прав для редагування цієї цитати.');
         }
 
+        // Определяем действие: publish или save
+        $action = $request->input('action');
+        $isDraft = ($action === 'save' || ($request->boolean('is_draft', false) && $action !== 'publish')) ? true : false;
+        
         $request->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'required|string|min:20|max:500',
             'page_number' => 'nullable|integer|min:1',
             'is_public' => 'boolean',
+            'is_draft' => 'nullable|boolean',
+        ], [
+            'content.min' => 'Цитата повинна містити мінімум 20 символів.',
+            'content.max' => 'Цитата повинна містити максимум 500 символів.',
         ]);
 
         $quote->update([
             'content' => $request->input('content'),
             'page_number' => $request->input('page_number'),
             'is_public' => $request->input('is_public', true),
+            'is_draft' => $isDraft,
         ]);
 
         // Загружаем связанные данные
@@ -122,7 +173,7 @@ class QuoteController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Цитату оновлено!',
+                'message' => $isDraft ? 'Чернетку оновлено!' : 'Цитату оновлено!',
                 'quote' => [
                     'id' => $quote->id,
                     'content' => $quote->content,
@@ -142,7 +193,12 @@ class QuoteController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Цитату оновлено!');
+        // Редирект в зависимости от действия
+        if ($isDraft) {
+            return redirect()->route('profile.show', ['tab' => 'drafts'])->with('success', 'Чернетку оновлено!');
+        } else {
+            return redirect()->route('books.show', $book->slug)->with('success', 'Цитату оновлено!');
+        }
     }
 
     /**
@@ -201,5 +257,47 @@ class QuoteController extends Controller
             'is_favorited' => $isFavorited,
             'message' => $isFavorited ? 'Цитату додано до избранного!' : 'Цитату видалено з избранного!'
         ]);
+    }
+
+    /**
+     * Show the form for editing a draft quote (alternative page without modal)
+     */
+    public function editDraft(Book $book, Quote $quote)
+    {
+        try {
+            // Проверяем права доступа - только владелец может редактировать черновик
+            if ($quote->user_id !== Auth::id()) {
+                abort(403, 'У вас немає прав для редагування цієї цитати');
+            }
+
+            // Проверяем, что это черновик
+            if (!$quote->is_draft) {
+                return redirect()->route('books.show', $book);
+            }
+
+            // Проверяем, что цитата принадлежит этой книге
+            if ($quote->book_id !== $book->id) {
+                abort(404, 'Цитату не знайдено');
+            }
+
+            // Загружаем связь с книгой, если она не загружена
+            if (!$quote->relationLoaded('book')) {
+                $quote->load('book');
+            }
+
+            // Убеждаемся, что книга существует
+            if (!$book || !$book->exists) {
+                abort(404, 'Книгу не знайдено');
+            }
+
+            return view('profile.private.edit-draft-quote', compact('book', 'quote'));
+        } catch (\Exception $e) {
+            \Log::error('Error in editDraft: ' . $e->getMessage(), [
+                'book_id' => $book->id ?? null,
+                'quote_id' => $quote->id ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 }

@@ -15,7 +15,10 @@ class FactController extends Controller
     public function store(Request $request, Book $book)
     {
         $request->validate([
-            'content' => 'required|string|max:1000|min:10',
+            'content' => 'required|string|min:50|max:1000',
+        ], [
+            'content.min' => 'Цікавий факт повинен містити мінімум 50 символів.',
+            'content.max' => 'Цікавий факт повинен містити максимум 1000 символів.',
         ]);
 
         $fact = Fact::create([
@@ -97,7 +100,10 @@ class FactController extends Controller
         $this->authorize('update', $fact);
 
         $request->validate([
-            'content' => 'required|string|max:1000|min:10',
+            'content' => 'required|string|min:50|max:1000',
+        ], [
+            'content.min' => 'Цікавий факт повинен містити мінімум 50 символів.',
+            'content.max' => 'Цікавий факт повинен містити максимум 1000 символів.',
         ]);
 
         $fact->update([

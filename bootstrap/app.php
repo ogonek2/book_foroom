@@ -34,5 +34,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Отключаем Phiki при отображении ошибок, чтобы избежать FailedToInitializePatternSearchException
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            // Если это ошибка Phiki, просто возвращаем простой ответ без подсветки синтаксиса
+            if (str_contains($e->getMessage(), 'FailedToInitializePatternSearchException') || 
+                $e instanceof \Phiki\Exceptions\FailedToInitializePatternSearchException) {
+                return response()->view('errors.500', [
+                    'message' => 'Помилка при обробці запиту. Будь ласка, спробуйте пізніше.',
+                ], 500);
+            }
+        });
     })->create();

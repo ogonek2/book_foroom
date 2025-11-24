@@ -43,6 +43,8 @@ Route::prefix('books')->name('books.')->group(function () {
         
         // Редактирование и удаление рецензий
         Route::get('/{review}/edit', [ReviewController::class, 'edit'])->name('edit')->middleware('auth');
+        Route::get('/{review}/edit-draft', [ReviewController::class, 'editDraft'])->name('edit-draft')->middleware('auth');
+        Route::get('/{review}/data', [ReviewController::class, 'getReviewData'])->name('data')->middleware('auth');
         Route::put('/{review}', [ReviewController::class, 'update'])->name('update')->middleware('auth');
         Route::delete('/{review}', [ReviewController::class, 'destroy'])->name('destroy')->middleware('auth');
     });
@@ -52,6 +54,8 @@ Route::prefix('books')->name('books.')->group(function () {
         Route::post('/', [QuoteController::class, 'store'])->name('store')->middleware('auth');
         Route::post('/{quote}/like', [QuoteController::class, 'toggleLike'])->name('like')->middleware('auth');
         Route::post('/{quote}/favorite', [QuoteController::class, 'toggleFavorite'])->name('favorite')->middleware('auth');
+        Route::get('/{quote}/data', [QuoteController::class, 'getQuoteData'])->name('data')->middleware('auth');
+        Route::get('/{quote}/edit-draft', [QuoteController::class, 'editDraft'])->name('edit-draft')->middleware('auth');
         Route::put('/{quote}', [QuoteController::class, 'update'])->name('update')->middleware('auth');
         Route::delete('/{quote}', [QuoteController::class, 'destroy'])->name('destroy')->middleware('auth');
     });

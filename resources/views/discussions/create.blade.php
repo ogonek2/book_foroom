@@ -18,12 +18,20 @@
                 <!-- Title -->
                 <div>
                     <label for="title"
-                        class="block text-light-text-primary dark:text-dark-text-primary font-medium mb-3">Заголовок
-                        обсуждения</label>
+                        class="block text-light-text-primary dark:text-dark-text-primary font-medium mb-3">
+                        Заголовок обсуждения
+                        <span class="text-xs font-normal text-light-text-tertiary dark:text-dark-text-tertiary ml-2" id="title-counter">
+                            (<span id="title-length">{{ mb_strlen(old('title', '')) }}</span> / 
+                            <span id="title-max">50</span> символів)
+                        </span>
+                    </label>
                     <input type="text" id="title" name="title" value="{{ old('title') }}"
                         placeholder="Введите заголовок обсуждения..."
                         class="w-full px-4 py-3 bg-light-bg-secondary dark:bg-gray-700 border border-light-border dark:border-dark-border rounded-xl text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-colors @error('title') border-red-500 @enderror"
                         required>
+                    <div class="mt-1 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                        Максимум: 50 символів
+                    </div>
                     @error('title')
                         <p class="mt-2 text-red-500 dark:text-red-400 text-sm">{{ $message }}</p>
                     @enderror
@@ -32,16 +40,22 @@
                 <!-- Content -->
                 <div>
                     <label for="content"
-                        class="block text-light-text-primary dark:text-dark-text-primary font-medium mb-3">Зміст
-                        обговорення</label>
+                        class="block text-light-text-primary dark:text-dark-text-primary font-medium mb-3">
+                        Зміст обговорення
+                        <span class="text-xs font-normal text-light-text-tertiary dark:text-dark-text-tertiary ml-2" id="content-counter-discussion">
+                            (<span id="content-length-discussion">0</span> / 
+                            <span id="content-max-discussion">3500</span> символів)
+                        </span>
+                    </label>
                     <textarea id="content" name="content" style="display: none;"
-                        placeholder="Опишите тему для обсуждения. Будьте конкретными и интересными...">{{ old('content') }}</textarea>
                         placeholder="Опишіть тему для обговорення. Будьте конкретними і цікавими...">{{ old('content') }}</textarea>
                     <div id="quill-editor"></div>
                     @error('content')
                         <p class="mt-2 text-red-500 dark:text-red-400 text-sm">{{ $message }}</p>
                     @enderror
-                    <p class="mt-2 text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Мінімум 10 символів</p>
+                    <div class="mt-2 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                        Мінімум: 300 символів, Максимум: 3500 символів
+                    </div>
                 </div>
 
                 <!-- Guidelines -->
@@ -68,6 +82,11 @@
                         <button type="button" onclick="history.back()"
                             class="px-6 py-3 bg-gray-500 dark:bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors">
                             Скасувати
+                        </button>
+                        <button type="button" onclick="saveAsDraft()"
+                            class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <i class="fas fa-save mr-2"></i>
+                            Зберегти чернетку
                         </button>
                         <button type="submit"
                             class="bg-gradient-to-r from-brand-500 to-accent-500 text-white px-8 py-3 rounded-xl font-bold hover:from-brand-600 hover:to-accent-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
@@ -168,13 +187,63 @@
                     },
                 });
                 
+                // Character counter for title
+                const titleInput = document.getElementById('title');
+                const titleLength = document.getElementById('title-length');
+                
+                function updateTitleCounter() {
+                    if (titleInput && titleLength) {
+                        const length = titleInput.value.length;
+                        titleLength.textContent = length;
+                        const max = 50;
+                        
+                        if (length > max) {
+                            titleLength.classList.add('text-red-500', 'font-semibold');
+                            titleLength.classList.remove('text-light-text-tertiary');
+                        } else {
+                            titleLength.classList.remove('text-red-500', 'font-semibold');
+                            titleLength.classList.add('text-light-text-tertiary');
+                        }
+                    }
+                }
+                
+                if (titleInput) {
+                    updateTitleCounter();
+                    titleInput.addEventListener('input', updateTitleCounter);
+                }
+                
+                // Character counter for content
+                const contentLengthEl = document.getElementById('content-length-discussion');
+                
+                function updateContentCounter() {
+                    if (contentLengthEl) {
+                        const text = quill.getText();
+                        const length = text.length;
+                        contentLengthEl.textContent = length;
+                        const min = 300;
+                        const max = 3500;
+                        
+                        if (length < min || length > max) {
+                            contentLengthEl.classList.add('text-red-500', 'font-semibold');
+                            contentLengthEl.classList.remove('text-light-text-tertiary');
+                        } else {
+                            contentLengthEl.classList.remove('text-red-500', 'font-semibold');
+                            contentLengthEl.classList.add('text-light-text-tertiary');
+                        }
+                    }
+                }
+                
                 // Update hidden textarea when content changes
                 quill.on('text-change', function() {
                     const contentInput = document.querySelector('textarea[name="content"]');
                     if (contentInput) {
                         contentInput.value = quill.root.innerHTML;
                     }
+                    updateContentCounter();
                 });
+                
+                // Initial counter update
+                updateContentCounter();
                 
                 // Update hidden textarea when form is submitted (backup)
                 const form = document.querySelector('form');
@@ -192,6 +261,29 @@
                 if (initialContent) {
                     quill.root.innerHTML = initialContent;
                 }
+                
+                // Save as draft function
+                window.saveAsDraft = function() {
+                    const form = document.querySelector('form');
+                    const contentInput = document.querySelector('textarea[name="content"]');
+                    if (contentInput) {
+                        contentInput.value = quill.root.innerHTML;
+                    }
+                    
+                    // Create hidden input for is_draft
+                    let draftInput = document.querySelector('input[name="is_draft"]');
+                    if (!draftInput) {
+                        draftInput = document.createElement('input');
+                        draftInput.type = 'hidden';
+                        draftInput.name = 'is_draft';
+                        draftInput.value = '1';
+                        form.appendChild(draftInput);
+                    } else {
+                        draftInput.value = '1';
+                    }
+                    
+                    form.submit();
+                };
             });
         </script>
     @endpush

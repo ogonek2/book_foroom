@@ -139,10 +139,11 @@ class BookController extends Controller
         if (auth()->check()) {
             $currentReadingStatus = $book->getReadingStatusForUser(auth()->id());
             
-            // Get user's existing review for this book
+            // Get user's existing review for this book (excluding drafts)
             $userReview = $book->reviews()
                 ->where('user_id', auth()->id())
                 ->whereNull('parent_id') // Only main reviews, not comments
+                ->where('is_draft', false) // Exclude drafts
                 ->first();
             
             // Get user's libraries
@@ -160,24 +161,38 @@ class BookController extends Controller
             }
         }
         
-        // Get main reviews (not replies) with nested replies
+        // Get main reviews (not replies) with nested replies (excluding drafts)
         $reviews = $book->reviews()
             ->whereNull('parent_id')
+            ->where('is_draft', false) // Exclude drafts
             ->with([
                 'user', 
+                'replies' => function($query) {
+                    $query->where('is_draft', false); // Exclude draft replies
+                },
                 'replies.user',
+                'replies.replies' => function($query) {
+                    $query->where('is_draft', false);
+                },
                 'replies.replies.user',
+                'replies.replies.replies' => function($query) {
+                    $query->where('is_draft', false);
+                },
                 'replies.replies.replies.user',
+                'replies.replies.replies.replies' => function($query) {
+                    $query->where('is_draft', false);
+                },
                 'replies.replies.replies.replies.user' // Добавляем четвертый уровень
             ])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        // Get quotes for this book
+        // Get quotes for this book (excluding drafts)
         $quotes = $book->quotes()
             ->with('user')
             ->where('status', 'active')
             ->where('is_public', true)
+            ->where('is_draft', false) // Exclude drafts
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
@@ -280,10 +295,11 @@ class BookController extends Controller
             // Обновляем рейтинг
             $readingStatus->update(['rating' => $rating]);
             
-            // Синхронизируем с рецензией, если она существует
+            // Синхронизируем с рецензией, если она существует (excluding drafts)
             $existingReview = \App\Models\Review::where('book_id', $book->id)
                 ->where('user_id', $userId)
                 ->whereNull('parent_id')
+                ->where('is_draft', false) // Exclude drafts
                 ->first();
                 
             if ($existingReview) {

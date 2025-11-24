@@ -188,6 +188,10 @@
                                     class="px-4 py-2 {{ $currentTab === 'favorites' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
                                     Избранные
                                 </a>
+                                <a href="{{ route('profile.show') }}?tab=drafts"
+                                    class="px-4 py-2 {{ $currentTab === 'drafts' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
+                                    Чернетки
+                                </a>
                             </div>
 
                             <!-- Content Area -->

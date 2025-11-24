@@ -24,6 +24,7 @@ class Review extends Model
         'book_type',
         'language',
         'contains_spoiler',
+        'is_draft',
     ];
 
     protected $casts = [
@@ -31,6 +32,7 @@ class Review extends Model
         'replies_count' => 'integer',
         'moderated_at' => 'datetime',
         'contains_spoiler' => 'boolean',
+        'is_draft' => 'boolean',
     ];
 
     public function book(): BelongsTo
@@ -50,7 +52,9 @@ class Review extends Model
 
     public function replies(): HasMany
     {
-        return $this->hasMany(Review::class, 'parent_id')->orderBy('created_at', 'desc');
+        return $this->hasMany(Review::class, 'parent_id')
+            ->where('is_draft', false)
+            ->orderBy('created_at', 'desc');
     }
 
     /**
@@ -59,6 +63,7 @@ class Review extends Model
     public function repliesWithNested(): HasMany
     {
         return $this->hasMany(Review::class, 'parent_id')
+            ->where('is_draft', false)
             ->with(['user', 'repliesWithNested'])
             ->orderBy('created_at', 'desc');
     }
@@ -177,12 +182,13 @@ class Review extends Model
             }
         });
 
-        // Валидация: один пользователь может оставить только одну основную рецензию на книгу
+        // Валидация: один пользователь может оставить только одну основную рецензию на книгу (исключая черновики)
         static::creating(function ($review) {
-            if ($review->user_id && is_null($review->parent_id)) {
+            if ($review->user_id && is_null($review->parent_id) && !$review->is_draft) {
                 $existingReview = static::where('book_id', $review->book_id)
                     ->where('user_id', $review->user_id)
                     ->whereNull('parent_id')
+                    ->where('is_draft', false)
                     ->first();
                 
                 if ($existingReview) {

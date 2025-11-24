@@ -62,7 +62,7 @@
 .post-meta {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 8px;
     font-size: 0.875rem;
     color: hsl(var(--muted-foreground));
 }
@@ -1359,19 +1359,51 @@
                     ])
                 </div>
                 <div class="post-meta">
-                    <div class="rating-stars">
-                        @for($i = 1; $i <= 5; $i++)
-                            <svg class="star {{ $i <= $review->rating ? '' : 'empty' }}" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                            </svg>
-                        @endfor
-                    </div>
-                    <span>{{ $review->rating }}/5</span>
+                    <span class="text-yellow-400 text-2xl"><i class="fas fa-star"></i></span>
+                    <span>{{ $review->rating }}/10</span>
                 </div>
             </div>
             
+            <!-- Review Meta Info -->
+            @if ($review->review_type || $review->book_type || $review->language)
+            <div class="py-2">
+                <div class="flex items-center flex-wrap gap-2">
+                    @if ($review->review_type)
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium text-white border
+                            {{ $review->review_type === 'review' ? 'bg-blue-500/60 dark:bg-blue-600/60 border-blue-400 dark:border-blue-500' : 'bg-purple-500/60 dark:bg-purple-600/60 border-purple-400 dark:border-purple-500' }}">
+                            {{ $review->review_type === 'review' ? 'Рецензія' : 'Відгук' }}
+                        </span>
+                    @endif
+                    @if ($review->book_type)
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-indigo-500/60 dark:bg-indigo-600/60 border border-indigo-400 dark:border-indigo-500 text-white">
+                            @if($review->book_type === 'paper')
+                                Паперова
+                            @elseif($review->book_type === 'electronic')
+                                Електронна
+                            @elseif($review->book_type === 'audio')
+                                Аудіо
+                            @endif
+                        </span>
+                    @endif
+                    @if ($review->language)
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/60 dark:bg-emerald-600/60 border border-emerald-400 dark:border-emerald-500 text-white">
+                            @if($review->language === 'uk')
+                                Українська
+                            @elseif($review->language === 'en')
+                                English
+                            @elseif($review->language === 'de')
+                                Deutsch
+                            @else
+                                {{ $review->language }}
+                            @endif
+                        </span>
+                    @endif
+                </div>
+            </div>
+            @endif
+            
             <div class="post-content">
-                {{ $review->content }}
+                {!! $review->content !!}
             </div>
             
             <div class="post-actions">

@@ -234,8 +234,10 @@ class Book extends Model
             ->whereNotNull('rating')
             ->avg('rating');
         
-        // Получаем количество рецензий (не ответов)
-        $mainReviews = $this->reviews()->whereNull('parent_id');
+        // Получаем количество рецензий (не ответов, не черновиков)
+        $mainReviews = $this->reviews()
+            ->whereNull('parent_id')
+            ->where('is_draft', false);
         
         $this->update([
             'rating' => $avgRating ? round($avgRating, 2) : 0, // Рейтинги уже в 10-балльной системе

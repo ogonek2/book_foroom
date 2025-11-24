@@ -9,14 +9,6 @@
                             <span class="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Foxy</span>
                         </a>
                     </div>
-
-                    <!-- Mobile Burger Menu Button -->
-                    <button id="mobile-menu-button" class="md:hidden ml-4 p-2 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary rounded-lg transition-all duration-200">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-
                     <!-- Navigation Links -->
                     <div class="hidden md:ml-8 md:flex md:space-x-1">
                         <a href="{{ route('books.index') }}" class="{{ request()->routeIs('books.*') ? 'text-white px-3 py-2 text-sm font-medium rounded-lg' : 'text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-4 py-2 text-sm font-medium rounded-lg hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary' }} transition-all duration-200" style="{{ request()->routeIs('books.*') ? 'background-color: #F97316;' : '' }}">
@@ -35,21 +27,20 @@
                 </div>
 
                 <!-- Search Bar -->
-                <div class="flex-1 max-w-lg mx-8 hidden lg:block" style="display: flex; flex-direction: column; justify-content: center;">
+                <div class="hidden flex-1 max-w-lg mx-8 md:flex" style="flex-direction: column; justify-content: center;">
                     <div id="nav-search-app">
                         <book-search :initial-value="'{{ request('q') }}'" placeholder="Пошук книг..."></book-search>
                     </div>
                 </div>
 
-                <!-- Mobile Search Button -->
-                <button id="mobile-search-button" class="md:hidden p-2 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary rounded-lg transition-all duration-200">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </button>
-
                 <!-- Right side -->
                 <div class="flex items-center space-x-3">
+                     <!-- Mobile Search Button -->
+                    <button id="mobile-search-button" class="md:hidden p-2 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary rounded-lg transition-all duration-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
                     <!-- Theme Toggle -->
                     <button id="theme-toggle" class="p-2.5 text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary rounded-lg transition-all duration-200">
                         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -69,7 +60,7 @@
 
                     @auth
                         <!-- User Menu -->
-                        <div class="relative" x-data="{ open: false }">
+                        <div class="relative hidden md:block" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary p-2 transition-all duration-200">
                                 @if(auth()->user()->avatar)
                                     <img src="{{ auth()->user()->avatar }}" 
@@ -100,6 +91,13 @@
                         <a href="{{ route('login') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-3 py-2 text-sm font-medium transition-colors duration-200">Увійти</a>
                         <a href="{{ route('register') }}" class="bg-gradient-to-r from-brand-500 to-accent-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-200 shadow-sm hover:shadow-md">Реєстрація</a>
                     @endauth
+
+                    <!-- Mobile Burger Menu Button -->
+                    <button id="mobile-menu-button" class="md:hidden ml-4 p-2 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary rounded-lg transition-all duration-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>

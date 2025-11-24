@@ -18,6 +18,23 @@ mix.js('resources/js/app.js', 'public/js')
             '@': path.resolve(__dirname, 'resources/js'),
          },
       },
+      module: {
+         rules: [
+            {
+               test: /\.s[ac]ss$/i,
+               use: [
+                  {
+                     loader: 'sass-loader',
+                     options: {
+                        sassOptions: {
+                           silenceDeprecations: ['legacy-js-api'],
+                        },
+                     },
+                  },
+               ],
+            },
+         ],
+      },
    })
    .version()
    .sourceMaps();

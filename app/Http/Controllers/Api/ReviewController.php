@@ -15,6 +15,7 @@ class ReviewController extends Controller
     public function getReplies(Request $request, Review $review)
     {
         $replies = $review->replies()
+            ->where('is_draft', false) // Exclude drafts
             ->with('user')
             ->orderBy('created_at', 'asc')
             ->paginate(10);

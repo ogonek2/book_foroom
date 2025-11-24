@@ -31,7 +31,7 @@ class UserController extends Controller
         $stats = [
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
             'publications_count' => $user->publications()->where('status', 'published')->count(),
-            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
             'library_count' => $user->savedBooks()->count(),
         ];
 
@@ -246,7 +246,7 @@ class UserController extends Controller
         // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
-            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
         ];
         
@@ -344,7 +344,7 @@ class UserController extends Controller
         // Загружаем данные для статистики
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
-            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
             'read_count' => $user->readingStatuses()->where('status', 'read')->count(),
             'reading_count' => $user->readingStatuses()->where('status', 'reading')->count(),
@@ -386,7 +386,7 @@ class UserController extends Controller
         // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
-            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
         ];
         
@@ -446,7 +446,7 @@ class UserController extends Controller
         // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
-            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
         ];
         
@@ -506,7 +506,7 @@ class UserController extends Controller
         // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
-            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
         ];
         
@@ -566,7 +566,7 @@ class UserController extends Controller
         // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
-            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
         ];
         
@@ -651,7 +651,7 @@ class UserController extends Controller
         // Загружаем данные для статистики с учетом настроек приватности
         $stats = [
             'discussions_count' => $user->discussions()->where('status', 'active')->count(),
-            'reviews_count' => $user->reviews()->whereNull('parent_id')->count(),
+            'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
             'quotes_count' => $user->quotes()->where('is_public', true)->count(),
         ];
         
