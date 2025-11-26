@@ -3,17 +3,29 @@
 @section('title', 'Автори - Книжковий форум')
 
 @section('main')
-    <div class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300">
+    <div id="authors-page" class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300" v-cloak>
         <!-- Header -->
         <div class="mb-2">
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Автори</h1>
-            <p class="text-gray-600 dark:text-gray-400">Знайдіть цікавих авторів</p>
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Автори</h1>
+                    <p class="text-gray-600 dark:text-gray-400">Знайдіть цікавих авторів</p>
+                </div>
+                <!-- Mobile Filter Button -->
+                <button @@click="showMobileFilters = true" 
+                    class="lg:hidden flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-colors shadow-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    <span>Фільтри</span>
+                </button>
+            </div>
         </div>
         <!-- Main Content -->
         <div class="max-w-8xl mx-auto py-8">
             <div class="flex flex-col lg:flex-row gap-8">
-                <!-- Sticky Sidebar -->
-                <div class="lg:w-80 flex-shrink-0">
+                <!-- Sticky Sidebar (Desktop) -->
+                <div class="hidden lg:block lg:w-80 flex-shrink-0">
                     <div class="sticky top-24 max-h-screen overflow-y-auto">
                         <!-- Unified Sidebar Container -->
                         <div
@@ -57,7 +69,7 @@
                 <!-- Authors Grid -->
                 <div class="flex-1 min-w-0">
                     @if ($authors->count() > 0)
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                             @foreach ($authors as $author)
                                 <div
                                     class="group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-xs border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-xl transition-all duration-300">
@@ -147,5 +159,116 @@
                 </div>
             </div>
         </div>
+
+        <!-- Mobile Filters Sidebar -->
+        <transition name="fade">
+            <div v-if="showMobileFilters" 
+                class="lg:hidden fixed inset-0 z-50 overflow-hidden"
+                @@click.self="showMobileFilters = false">
+                <!-- Overlay -->
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                    @@click="showMobileFilters = false"></div>
+                
+                <!-- Sidebar -->
+                <transition name="slide-left">
+                    <div v-if="showMobileFilters"
+                        class="absolute right-0 top-0 h-full w-full max-w-sm bg-white dark:bg-gray-800 shadow-2xl overflow-y-auto">
+                        <!-- Header -->
+                        <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Фільтри</h2>
+                            <button @@click="showMobileFilters = false"
+                                class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Filters Content -->
+                        <div class="p-6 space-y-6">
+                            <!-- Search Section -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Пошук</label>
+                                <form method="GET" action="{{ route('authors.index') }}">
+                                    <div class="relative">
+                                        <input type="text" name="search" value="{{ request('search') }}"
+                                            placeholder="Назва, автор..."
+                                            class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Alphabet Filter Section -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Фільтр по прізвищу</label>
+                                <div class="grid grid-cols-6 gap-2">
+                                    <a href="{{ route('authors.index', request()->except('letter')) }}"
+                                        class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ !request('letter') ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
+                                        Усі
+                                    </a>
+                                    @foreach ($letters as $letter)
+                                        <a href="{{ route('authors.index', array_merge(request()->except('letter'), ['letter' => $letter])) }}"
+                                            class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ request('letter') == $letter ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
+                                            {{ $letter }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- Apply Button -->
+                            <div class="sticky bottom-0 pt-4 pb-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 -mx-6 px-6">
+                                <button @@click="showMobileFilters = false"
+                                    class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-colors shadow-lg">
+                                    Застосувати фільтри
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </transition>
+            </div>
+        </transition>
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.Vue) {
+                new Vue({
+                    el: '#authors-page',
+                    data: {
+                        showMobileFilters: false
+                    }
+                });
+            }
+        });
+    </script>
+    @endpush
+
+    @push('styles')
+    <style>
+        .slide-left-enter-active {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide-left-leave-active {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide-left-enter {
+            transform: translateX(100%);
+        }
+
+        .slide-left-enter-to {
+            transform: translateX(0);
+        }
+
+        .slide-left-leave {
+            transform: translateX(0);
+        }
+
+        .slide-left-leave-to {
+            transform: translateX(100%);
+        }
+    </style>
+    @endpush
 @endsection

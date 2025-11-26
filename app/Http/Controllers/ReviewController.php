@@ -13,6 +13,36 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class ReviewController extends Controller
 {
     use AuthorizesRequests;
+    
+    /**
+     * Show the form for creating a new review
+     */
+    public function create(Book $book)
+    {
+        // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
+        $existingReview = Review::where('book_id', $book->getKey())
+            ->where('user_id', Auth::id())
+            ->whereNull('parent_id')
+            ->where('is_draft', false)
+            ->first();
+
+        if ($existingReview) {
+            return redirect()->route('books.reviews.show', [$book, $existingReview])
+                ->with('info', 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
+        }
+
+        // Получаем статистику книги
+        $ratingDistribution = $book->getRatingDistribution();
+        $readingStats = $book->getReadingStats();
+        $userRating = $book->getUserRating(Auth::id());
+        
+        // Загружаем связь с автором
+        $book->load('author');
+        $authorModel = $book->getRelation('author');
+
+        return view('reviews.create', compact('book', 'ratingDistribution', 'readingStats', 'userRating', 'authorModel'));
+    }
+    
     /**
      * Store a new review (для авторизованих користувачів)
      */

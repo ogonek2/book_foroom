@@ -1112,7 +1112,6 @@
 
 @media (max-width: 768px) {
     .forum-container {
-        padding: 0 0.5rem;
         grid-template-columns: 1fr;
         gap: 1rem;
     }
@@ -1123,7 +1122,6 @@
     }
     
     .post-header {
-        flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
     }
@@ -1344,6 +1342,16 @@
 
 @section('main')
 <div class="min-h-screen bg-background">
+    <!-- Navigation Button -->
+    <div class="my-4">
+        <a href="{{ route('books.show', $book) }}" 
+            class="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 transition-colors text-left block">
+            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Назад до книги
+        </a>
+    </div>
     <div class="forum-container">
         <!-- Main Content -->
         <div class="forum-content">
@@ -1363,6 +1371,7 @@
                     <span>{{ $review->rating }}/10</span>
                 </div>
             </div>
+            
             
             <!-- Review Meta Info -->
             @if ($review->review_type || $review->book_type || $review->language)
@@ -1481,23 +1490,13 @@
         </div>
 
         <!-- Sticky Book Sidebar -->
-        <div class="book-sidebar">
+        <div class="book-sidebar flex flex-row lg:flex-col items-center lg:items-start gap-4">
             <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}" 
                  alt="{{ $book->title }}" 
-                 class="book-cover">
+                 class="h-[150px] lg:h-full object-cover rounded-lg aspect-[2/3]">
             <div class="book-details">
                 <h1>{{ $book->title }}</h1>
                 <p>{{ $book->author }}</p>
-                <!-- Navigation Button -->
-                <div class="mt-4">
-                    <a href="{{ route('books.show', $book) }}" 
-                       class="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 transition-colors text-center block">
-                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                        </svg>
-                        Назад до книги
-                    </a>
-                </div>
             </div>
         </div>
     </div>

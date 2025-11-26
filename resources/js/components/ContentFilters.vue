@@ -1,11 +1,14 @@
 <template>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-6">
+    <div :class="mobile ? '' : 'bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700'">
+        <h3 v-if="!mobile" class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-6">
             Фільтр
         </h3>
 
         <!-- Filter Buttons -->
-        <div class="space-y-3 mb-8">
+        <div :class="mobile ? 'space-y-3 mb-6' : 'space-y-3 mb-8'">
+            <label v-if="mobile" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                Тип контенту
+            </label>
             <button v-for="filter in filters" :key="filter.value"
                     @click="setFilter(filter.value)"
                     :class="[
@@ -19,7 +22,7 @@
         </div>
 
         <!-- Sorting -->
-        <div class="mb-8">
+        <div :class="mobile ? 'mb-6' : 'mb-8'">
             <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3">
                 Сортування
             </label>
@@ -33,14 +36,14 @@
             </select>
         </div>
 
-        <!-- Apply Filters Button -->
-        <button @click="applyFilters"
+        <!-- Apply Filters Button (only for desktop) -->
+        <button v-if="!mobile" @click="applyFilters"
                 class="w-full bg-gradient-to-r from-brand-500 to-accent-500 text-white px-4 py-3 rounded-lg font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-300">
             Застосувати фільтри
         </button>
 
         <!-- Reset Filters -->
-        <button @click="resetFilters"
+        <button v-if="!mobile" @click="resetFilters"
                 class="w-full mt-3 bg-gray-100 dark:bg-gray-700 text-light-text-primary dark:text-dark-text-primary px-4 py-2 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             Скинути
         </button>
@@ -58,6 +61,10 @@ export default {
         sortBy: {
             type: String,
             default: 'newest'
+        },
+        mobile: {
+            type: Boolean,
+            default: false
         }
     },
     data() {

@@ -11,11 +11,17 @@
                     </div>
                     <div v-if="!hideHeader">
                         <div v-if="isAuthenticated && !hideAddButton">
-                            <button v-if="!userReview" @click="openReviewModal"
+                            <a v-if="!userReview" :href="`/books/${bookSlug}/reviews/create`"
+                                class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 inline-block">
+                                <i class="fas fa-plus mr-2"></i>
+                                Написати рецензію
+                            </a>
+                            <!-- Temporarily commented out modal button for testing -->
+                            <!-- <button v-if="!userReview" @click="openReviewModal"
                                 class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
                                 <i class="fas fa-plus mr-2"></i>
                                 Написати рецензію
-                            </button>
+                            </button> -->
                         </div>
                     </div>
                 </div>

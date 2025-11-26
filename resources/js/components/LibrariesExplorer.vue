@@ -1,48 +1,53 @@
 <template>
     <div class="min-h-screen from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        <div class="mx-auto py-8">
+        <div class="mx-auto py-4">
             <!-- Header -->
             <div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-2">Добірки</h1>
-                    <p class="text-lg text-slate-600 dark:text-slate-400">Знайдіть цікаві добірки книг або створіть власну</p>
+                    <p class="text-lg text-slate-600 dark:text-slate-400">Знайдіть цікаві добірки книг або створіть
+                        власну</p>
                 </div>
-                <button
-                    v-if="isAuthenticated"
-                    @click="goToCreate"
-                    class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
+            </div>
+            <div class="flex items-center gap-3 mb-4">
+                <!-- Mobile Filter Button -->
+                <button @click="showMobileFilters = true"
+                    class="lg:hidden flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-colors shadow-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    <span>Фільтри</span>
+                </button>
+                <button v-if="isAuthenticated" @click="goToCreate"
+                    class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-2 rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
                     <span class="flex items-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
                         <span>Додати</span>
                     </span>
                 </button>
             </div>
-
             <div class="flex flex-col lg:flex-row gap-8">
-                <!-- Sidebar -->
-                <div class="lg:w-1/4">
-                    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6">
+                <!-- Sidebar (Desktop) -->
+                <div class="hidden lg:block lg:w-1/4">
+                    <div
+                        class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6">
                         <div class="mb-6">
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Пошук</label>
-                            <input
-                                type="text"
-                                v-model="filters.search"
-                                @input="handleSearchInput"
+                            <label
+                                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Пошук</label>
+                            <input type="text" v-model="filters.search" @input="handleSearchInput"
                                 class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white transition-all duration-200"
-                                placeholder="Пошук добірок..."
-                            >
+                                placeholder="Пошук добірок...">
                         </div>
 
                         <div class="mb-6">
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Категорії</label>
-                            <select
-                                v-model="filters.category"
-                                @change="applyFilters"
-                                class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                            >
+                            <label
+                                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Категорії</label>
+                            <select v-model="filters.category" @change="applyFilters"
+                                class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
                                 <option value="">Усі</option>
                                 <option value="fiction">Художня література</option>
                                 <option value="non-fiction">Нехудожня література</option>
@@ -52,12 +57,10 @@
                         </div>
 
                         <div class="mb-6">
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Сортування</label>
-                            <select
-                                v-model="filters.sort"
-                                @change="applyFilters"
-                                class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-                            >
+                            <label
+                                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Сортування</label>
+                            <select v-model="filters.sort" @change="applyFilters"
+                                class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
                                 <option value="popular">Популярні</option>
                                 <option value="newest">Найновіші</option>
                                 <option value="oldest">Найстаріші</option>
@@ -66,10 +69,8 @@
                             </select>
                         </div>
 
-                        <button
-                            @click="resetFilters"
-                            class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 px-6 rounded-xl font-bold hover:from-pink-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105"
-                        >
+                        <button @click="resetFilters"
+                            class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 px-6 rounded-xl font-bold hover:from-pink-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105">
                             Скинути фільтри
                         </button>
                     </div>
@@ -77,9 +78,12 @@
 
                 <!-- Main content -->
                 <div class="lg:w-3/4">
-                    <div v-if="loading" class="py-16 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                        <svg class="animate-spin h-8 w-8 mr-3 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <div v-if="loading"
+                        class="py-16 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                        <svg class="animate-spin h-8 w-8 mr-3 text-orange-500" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                         </svg>
                         Завантаження добірок...
@@ -87,67 +91,129 @@
 
                     <template v-else>
                         <div v-if="hasLibraries" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <library-collection
-                                v-for="library in libraries"
-                                :key="library.id"
-                                :library="library"
-                                :is-authenticated="isAuthenticated"
-                                :is-liked="library.is_liked"
-                                :is-saved="library.is_saved"
-                                :likes-count="library.likes_count"
-                                @notification="showNotification"
-                                @liked="handleLiked"
-                                @saved="handleSaved"
-                            ></library-collection>
+                            <library-collection v-for="library in libraries" :key="library.id" :library="library"
+                                :is-authenticated="isAuthenticated" :is-liked="library.is_liked"
+                                :is-saved="library.is_saved" :likes-count="library.likes_count"
+                                @notification="showNotification" @liked="handleLiked"
+                                @saved="handleSaved"></library-collection>
                         </div>
                         <div v-else class="text-center py-12">
                             <div class="text-slate-400 dark:text-slate-500 text-6xl mb-4">
                                 <svg class="w-24 h-24 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd"
+                                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </div>
                             <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Добірки не знайдено</h3>
-                            <p class="text-slate-600 dark:text-slate-400 mb-6">Спробуйте змінити фільтри або створити першу добірку</p>
-                            <button
-                                v-if="isAuthenticated"
-                                @click="goToCreate"
-                                class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300"
-                            >
+                            <p class="text-slate-600 dark:text-slate-400 mb-6">Спробуйте змінити фільтри або створити
+                                першу добірку</p>
+                            <button v-if="isAuthenticated" @click="goToCreate"
+                                class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300">
                                 Створити добірку
                             </button>
                         </div>
                     </template>
 
-                    <div
-                        v-if="!loading && hasLibraries && meta && meta.last_page > 1"
-                        class="mt-8 flex items-center justify-center space-x-2"
-                    >
+                    <div v-if="!loading && hasLibraries && meta && meta.last_page > 1"
+                        class="mt-8 flex items-center justify-center space-x-2">
                         <button
                             class="px-3 py-2 text-sm rounded-lg bg-light-bg-secondary dark:bg-dark-bg-secondary text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary disabled:opacity-50"
-                            :disabled="meta.current_page <= 1"
-                            @click="goToPage(meta.current_page - 1)"
-                        >
+                            :disabled="meta.current_page <= 1" @click="goToPage(meta.current_page - 1)">
                             Попередня
                         </button>
-                        <button
-                            v-for="page in pages"
-                            :key="page"
-                            class="px-3 py-2 text-sm rounded-lg"
+                        <button v-for="page in pages" :key="page" class="px-3 py-2 text-sm rounded-lg"
                             :class="page === meta.current_page ? 'bg-brand-500 text-white' : 'bg-light-bg-secondary dark:bg-dark-bg-secondary text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary'"
-                            @click="goToPage(page)"
-                        >
+                            @click="goToPage(page)">
                             {{ page }}
                         </button>
                         <button
                             class="px-3 py-2 text-sm rounded-lg bg-light-bg-secondary dark:bg-dark-bg-secondary text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary disabled:opacity-50"
-                            :disabled="meta.current_page >= meta.last_page"
-                            @click="goToPage(meta.current_page + 1)"
-                        >
+                            :disabled="meta.current_page >= meta.last_page" @click="goToPage(meta.current_page + 1)">
                             Наступна
                         </button>
                     </div>
                 </div>
             </div>
+
+            <!-- Mobile Filters Sidebar -->
+            <transition name="fade">
+                <div v-if="showMobileFilters" class="lg:hidden fixed inset-0 z-50 overflow-hidden"
+                    @click.self="showMobileFilters = false">
+                    <!-- Overlay -->
+                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showMobileFilters = false"></div>
+
+                    <!-- Sidebar -->
+                    <transition name="slide-left">
+                        <div v-if="showMobileFilters"
+                            class="absolute right-0 top-0 h-full w-full max-w-sm bg-white dark:bg-slate-800 shadow-2xl overflow-y-auto">
+                            <!-- Header -->
+                            <div
+                                class="sticky top-0 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
+                                <h2 class="text-xl font-bold text-slate-900 dark:text-white">Фільтри</h2>
+                                <button @click="showMobileFilters = false"
+                                    class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Filters Content -->
+                            <div class="p-6 space-y-6">
+                                <div class="mb-6">
+                                    <label
+                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Пошук</label>
+                                    <input type="text" v-model="filters.search" @input="handleSearchInput"
+                                        class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white transition-all duration-200"
+                                        placeholder="Пошук добірок...">
+                                </div>
+
+                                <div class="mb-6">
+                                    <label
+                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Категорії</label>
+                                    <select v-model="filters.category" @change="applyFilters"
+                                        class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
+                                        <option value="">Усі</option>
+                                        <option value="fiction">Художня література</option>
+                                        <option value="non-fiction">Нехудожня література</option>
+                                        <option value="science">Наукова література</option>
+                                        <option value="history">Історична література</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-6">
+                                    <label
+                                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Сортування</label>
+                                    <select v-model="filters.sort" @change="applyFilters"
+                                        class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
+                                        <option value="popular">Популярні</option>
+                                        <option value="newest">Найновіші</option>
+                                        <option value="oldest">Найстаріші</option>
+                                        <option value="name">За назвою</option>
+                                        <option value="books_count">За кількістю книг</option>
+                                    </select>
+                                </div>
+
+                                <button @click="resetFilters"
+                                    class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 px-6 rounded-xl font-bold hover:from-pink-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105">
+                                    Скинути фільтри
+                                </button>
+
+                                <!-- Apply Button -->
+                                <div
+                                    class="sticky bottom-0 pt-4 pb-6 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-gray-700 -mx-6 px-6">
+                                    <button @click="showMobileFilters = false"
+                                        class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-colors shadow-lg">
+                                        Застосувати фільтри
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                </div>
+            </transition>
         </div>
     </div>
 </template>
@@ -198,6 +264,7 @@ export default {
             loading: false,
             error: null,
             searchTimer: null,
+            showMobileFilters: false,
         };
     },
     computed: {
@@ -349,3 +416,29 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.slide-left-enter-active {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-left-leave-active {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-left-enter {
+    transform: translateX(100%);
+}
+
+.slide-left-enter-to {
+    transform: translateX(0);
+}
+
+.slide-left-leave {
+    transform: translateX(0);
+}
+
+.slide-left-leave-to {
+    transform: translateX(100%);
+}
+</style>

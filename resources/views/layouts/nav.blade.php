@@ -1,5 +1,5 @@
 <!-- Navigation -->
-    <nav class="bg-light-bg dark:bg-dark-bg border-b border-light-border dark:border-dark-border sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transition-colors duration-300">
+    <nav id="main-nav" class="bg-light-bg dark:bg-dark-bg border-b border-light-border dark:border-dark-border sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transition-all duration-300 transform translate-y-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -104,8 +104,8 @@
     </nav>
 
     <!-- Mobile Bottom Menu -->
-    <div id="mobile-menu" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 ease-in-out md:hidden">
-        <div class="bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border shadow-2xl rounded-t-3xl max-h-[85vh] overflow-hidden flex flex-col">
+    <div id="mobile-menu" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 h-full max-h-[85vh] ease-in-out md:hidden">
+        <div class="bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border shadow-2xl rounded-t-3xl h-full overflow-hidden flex flex-col">
             <!-- Menu Header -->
             <div class="flex items-center justify-between p-4 border-b border-light-border dark:border-dark-border">
                 <h2 class="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">Меню</h2>
@@ -219,6 +219,44 @@
 
     @push('scripts')
     <script>
+        // Navigation Hide/Show on Scroll
+        (function() {
+            let lastScrollTop = 0;
+            let scrollThreshold = 10; // Минимальное расстояние скролла для срабатывания
+            let ticking = false;
+            const nav = document.getElementById('main-nav');
+
+            function handleScroll() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Игнорируем небольшие изменения скролла
+                if (Math.abs(scrollTop - lastScrollTop) < scrollThreshold) {
+                    ticking = false;
+                    return;
+                }
+
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // Скролл вниз - скрываем навигатор
+                    nav.classList.add('-translate-y-full');
+                    nav.classList.remove('translate-y-0');
+                } else if (scrollTop < lastScrollTop) {
+                    // Скролл вверх - показываем навигатор
+                    nav.classList.remove('-translate-y-full');
+                    nav.classList.add('translate-y-0');
+                }
+
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+                ticking = false;
+            }
+
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    window.requestAnimationFrame(handleScroll);
+                    ticking = true;
+                }
+            }, { passive: true });
+        })();
+
         // Mobile Menu Management
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');

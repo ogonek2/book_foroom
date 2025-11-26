@@ -14,19 +14,13 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatDate(library.created_at) }}</p>
                 </div>
             </div>
-            <!-- Menu button -->
-            <button @click.stop="toggleMenu" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                </svg>
-            </button>
         </div>
 
         <!-- Library title -->
-        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3 line-clamp-2">{{ library.name }}</h3>
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3 line-clamp-1">{{ library.name }}</h3>
 
         <!-- Library description -->
-        <p v-if="library.description" class="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">{{ library.description }}</p>
+        <!-- <p v-if="library.description" class="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">{{ library.description }}</p> -->
 
         <!-- Books preview -->
         <div class="mb-4">
@@ -35,7 +29,7 @@
                 <div v-if="library.books && library.books.length > 0" class="flex-shrink-0" style="width: 32%">
                     <img :src="library.books[0].cover_image || defaultCover"
                          :alt="library.books[0].title"
-                         class="object-cover rounded-lg shadow-md" style="aspect-ratio: 2 / 3;">
+                         class="object-cover rounded-lg shadow-md w-full h-[180px]" style="aspect-ratio: 2 / 3;">
                 </div>
                 <div v-else class="bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
                     <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -47,7 +41,7 @@
                 <div v-if="library.books && library.books.length > 1" class="flex-shrink-0"  style="width: 32%">
                     <img :src="library.books[1].cover_image || defaultCover"
                          :alt="library.books[1].title"
-                         class="object-cover rounded-lg shadow-md" style="aspect-ratio: 2 / 3;">
+                         class="object-cover rounded-lg shadow-md w-full h-[180px]" style="aspect-ratio: 2 / 3;">
                 </div>
                 <div v-else class="bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
                     <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -60,7 +54,7 @@
                      class="w-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center backdrop-blur-sm"  style="width: 32%">
                     <span class="text-white font-bold text-sm">+{{ library.books_count - 2 }}</span>
                 </div>
-                <div v-else class="w-16 bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                <div v-else class="w-16 bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center" style="width: 32%">
                     <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
                     </svg>

@@ -21,6 +21,8 @@ Route::prefix('books')->name('books.')->group(function () {
     
     // Маршруты для рецензий
     Route::prefix('{book:slug}/reviews')->name('reviews.')->group(function () {
+        // Форма создания рецензии
+        Route::get('/create', [ReviewController::class, 'create'])->name('create')->middleware('auth');
         // Создание рецензий
         Route::post('/', [ReviewController::class, 'store'])->name('store')->middleware('auth');
         Route::post('/guest', [ReviewController::class, 'guestStore'])->name('guest-store');
