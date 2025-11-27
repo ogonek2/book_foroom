@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
+    <div class="lg:bg-white/80 lg:dark:bg-slate-800/80 lg:backdrop-blur-xl rounded-3xl lg:shadow-xl lg:border border-white/20 dark:border-slate-700/30 lg:p-8">
         <div class="flex items-center justify-between mb-6">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 Порівняйте ціни
@@ -8,8 +8,8 @@
 
         <div v-if="prices && prices.length > 0" class="space-y-4">
             <div v-for="price in sortedPrices" :key="price.id" 
-                 class="bg-white/80 dark:bg-slate-800/80 rounded-xl p-6 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-200">
-                <div class="flex items-center justify-between">
+                 class="bg-white/80 dark:bg-slate-800/80 rounded-xl p-4 lg:p-6 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all duration-200">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center justify-between">
                     <!-- Store Info -->
                     <div class="flex items-center space-x-4">
                         <!-- Store Logo -->
@@ -36,9 +36,9 @@
                     </div>
 
                     <!-- Price and Link -->
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center justify-between lg:justify-start space-x-4">
                         <!-- Price -->
-                        <div class="text-right">
+                        <div class="text-left lg:text-right">
                             <div class="text-2xl font-bold text-gray-900 dark:text-white">
                                 {{ price.formatted_price }}
                             </div>

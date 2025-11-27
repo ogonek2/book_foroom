@@ -1,6 +1,6 @@
 <template>
-    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
-        <div class="flex items-center justify-between mb-6">
+    <div class="lg:bg-white/80 lg:dark:bg-slate-800/80 lg:backdrop-blur-xl rounded-3xl lg:shadow-xl lg:border border-white/20 dark:border-slate-700/30 lg:p-8">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center justify-between mb-6">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 Цитати
             </h3>

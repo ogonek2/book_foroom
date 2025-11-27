@@ -1,8 +1,45 @@
 <template>
     <div>
+        <!-- Loading Skeletons -->
+        <div v-if="initialLoading && filteredContent.length === 0" class="space-y-4">
+            <div v-for="n in 5" :key="`skeleton-${n}`" 
+                 class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div class="animate-pulse">
+                    <!-- Header Skeleton -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 animate-shimmer"></div>
+                            <div>
+                                <div class="h-4 w-32 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer mb-2"></div>
+                                <div class="h-3 w-24 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer"></div>
+                            </div>
+                        </div>
+                        <div class="h-6 w-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer"></div>
+                    </div>
+                    
+                    <!-- Title Skeleton -->
+                    <div class="h-6 w-3/4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer mb-3"></div>
+                    
+                    <!-- Content Skeleton -->
+                    <div class="space-y-2 mb-4">
+                        <div class="h-4 w-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer"></div>
+                        <div class="h-4 w-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer"></div>
+                        <div class="h-4 w-5/6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer"></div>
+                    </div>
+                    
+                    <!-- Actions Skeleton -->
+                    <div class="flex items-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div class="h-5 w-16 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer"></div>
+                        <div class="h-5 w-16 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer"></div>
+                        <div class="h-5 w-16 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Content List -->
-        <div v-if="filteredContent.length > 0" class="space-y-4">
-            <div v-for="item in filteredContent" :key="`${item.type}-${item.id}`" 
+        <transition-group name="fade-in" tag="div" class="space-y-4" v-if="filteredContent.length > 0">
+            <div v-for="(item, index) in filteredContent" :key="`${item.type}-${item.id}-${index}`" 
                  class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
                 
                 <!-- Header with Avatar and Action -->
@@ -130,11 +167,57 @@
                         </report-button>
                     </div>
                 </div>
+
+                <div v-if="item.top_comment"
+                     class="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 dark:border-white/5 bg-slate-50/70 dark:bg-white/5 px-4 py-3 shadow-inner">
+                    <div class="flex-shrink-0">
+                        <template v-if="item.top_comment.user && item.top_comment.user.username">
+                            <a :href="profileUrl(item.top_comment.user.username)" class="inline-flex">
+                                <img v-if="userAvatar(item.top_comment.user)"
+                                     :src="userAvatar(item.top_comment.user)"
+                                     :alt="item.top_comment.user.name"
+                                     class="w-8 h-8 rounded-full ring-2 ring-white/60 dark:ring-white/10">
+                                <div v-else
+                                     class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-semibold">
+                                    {{ userInitial(item.top_comment.user) }}
+                                </div>
+                            </a>
+                        </template>
+                        <template v-else>
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-semibold">
+                                {{ userInitial(item.top_comment.user) }}
+                            </div>
+                        </template>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[11px] uppercase tracking-[0.18em] text-light-text-tertiary dark:text-dark-text-tertiary mb-1">
+                            Топ-коментар
+                        </p>
+                        <p class="text-sm font-medium text-light-text-primary dark:text-dark-text-primary truncate">
+                            <span v-if="item.top_comment.user && item.top_comment.user.username">
+                                <a :href="profileUrl(item.top_comment.user.username)"
+                                   class="text-brand-500 dark:text-brand-400 hover:underline mr-1">
+                                    {{ item.top_comment.user.name }}
+                                </a>
+                            </span>
+                            <span v-else class="mr-1">
+                                {{ item.top_comment.user?.name || 'Користувач' }}
+                            </span>
+                            <span class="text-light-text-tertiary dark:text-dark-text-tertiary font-normal">
+                                — “{{ item.top_comment.content }}”
+                            </span>
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-semibold text-pink-500 dark:text-pink-400">
+                        <i class="fas fa-heart mr-1"></i>
+                        {{ item.top_comment.likes_count || 0 }}
+                    </div>
+                </div>
             </div>
-        </div>
+        </transition-group>
 
         <!-- Empty State -->
-        <div v-else class="text-center py-16">
+        <div v-if="!initialLoading && !loading && filteredContent.length === 0" class="text-center py-16">
             <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 border border-gray-200 dark:border-gray-700 shadow-xl">
                 <svg class="w-24 h-24 mx-auto mb-6 text-light-text-tertiary dark:text-dark-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -148,20 +231,17 @@
             </div>
         </div>
 
-        <!-- Pagination -->
-        <div v-if="showPagination && totalPages > 1" class="mt-8 flex justify-center">
-            <nav class="flex items-center space-x-2">
-                <button v-for="page in visiblePages" :key="page"
-                        @click="goToPage(page)"
-                        :class="[
-                            'px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                            page === currentPage 
-                                ? 'bg-brand-500 text-white' 
-                                : 'bg-white dark:bg-gray-800 text-light-text-primary dark:text-dark-text-primary hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-                        ]">
-                    {{ page }}
-                </button>
-            </nav>
+        <!-- Loading Indicator -->
+        <div v-if="loading" class="mt-8 flex justify-center py-8">
+            <div class="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+                <span class="text-sm font-medium">Завантаження...</span>
+            </div>
+        </div>
+
+        <!-- End of Content -->
+        <div v-if="!hasMore && !loading && filteredContent.length > 0" class="mt-8 text-center py-8">
+            <p class="text-slate-500 dark:text-slate-400 text-sm">Всі записи завантажено</p>
         </div>
     </div>
 </template>
@@ -185,35 +265,94 @@ export default {
         sortBy: {
             type: String,
             default: 'newest'
-        },
-        currentPage: {
-            type: Number,
-            default: 1
-        },
-        perPage: {
-            type: Number,
-            default: 10
         }
     },
     data() {
         return {
             expandedItems: new Set(),
-            showPagination: true,
-            itemLikes: {} // Храним состояние лайков для каждого элемента
+            itemLikes: {}, // Храним состояние лайков для каждого элемента
+            allDiscussions: [],
+            allReviews: [],
+            currentPage: 1,
+            perPage: 15, // Количество элементов на странице
+            loading: false,
+            initialLoading: true, // Флаг для первой загрузки
+            hasMore: true,
+            cacheKey: 'discussions_content_cache',
+            scrollHandler: null
         };
     },
     mounted() {
-        console.log('UnifiedContentList mounted');
-        console.log('Discussions:', this.discussions);
-        console.log('Reviews:', this.reviews);
+        // Инициализируем данные из props
+        const hasPropsData = (this.discussions && this.discussions.length > 0) || (this.reviews && this.reviews.length > 0);
+        
+        if (this.discussions && this.discussions.length > 0) {
+            this.allDiscussions = [...this.discussions];
+        }
+        if (this.reviews && this.reviews.length > 0) {
+            this.allReviews = [...this.reviews];
+        }
+        
+        // Загружаем кешированные данные только если нет данных из props
+        // Если есть данные из props, кеш не загружаем, чтобы избежать дубликатов
+        if (!hasPropsData) {
+            this.loadCachedData();
+        }
+        
+        // Если есть данные из props или кеша, отключаем initialLoading
+        if (this.allDiscussions.length > 0 || this.allReviews.length > 0) {
+            this.initialLoading = false;
+        }
         
         // Инициализируем состояние лайков для всех элементов
         this.initializeLikes();
+        
+        // Загружаем следующую страницу, если есть еще данные
+        if (this.hasMore && (this.allDiscussions.length < this.perPage && this.allReviews.length < this.perPage)) {
+            this.currentPage = 2; // Начинаем со второй страницы, так как первая уже загружена
+            this.loadMore();
+        } else if (this.initialLoading) {
+            // Если нет данных, загружаем первую страницу
+            this.loadMore();
+        }
+        
+        // Добавляем обработчик скролла
+        this.setupScrollListener();
+    },
+    beforeUnmount() {
+        // Удаляем обработчик скролла
+        if (this.scrollHandler) {
+            window.removeEventListener('scroll', this.scrollHandler);
+        }
+    },
+    watch: {
+        activeFilter() {
+            // При изменении фильтра сбрасываем страницу и загружаем заново
+            this.currentPage = 1;
+            this.hasMore = true;
+            this.allDiscussions = [];
+            this.allReviews = [];
+            this.initialLoading = true;
+            // Очищаем кеш
+            localStorage.removeItem(this.cacheKey);
+            this.loadMore();
+        },
+        sortBy() {
+            // При изменении сортировки сбрасываем страницу и загружаем заново
+            this.currentPage = 1;
+            this.hasMore = true;
+            this.allDiscussions = [];
+            this.allReviews = [];
+            this.initialLoading = true;
+            // Очищаем кеш
+            localStorage.removeItem(this.cacheKey);
+            this.loadMore();
+        }
     },
     computed: {
         // Объединяем и нормализуем данные
         normalizedContent() {
-            const discussions = this.discussions.map(discussion => ({
+            const discussions = (this.allDiscussions.length > 0 ? this.allDiscussions : this.discussions).map(discussion => ({
                 id: discussion.id,
                 type: 'discussion',
                 title: discussion.title,
@@ -226,10 +365,11 @@ export default {
                 is_liked: this.getItemLiked(discussion.id, 'discussion'),
                 is_pinned: discussion.is_pinned,
                 is_closed: discussion.is_closed,
-                url: `/discussions/${discussion.id}`
+                url: `/discussions/${discussion.id}`,
+                top_comment: discussion.top_comment || null,
             }));
 
-            const reviews = this.reviews.map(review => ({
+            const reviews = (this.allReviews.length > 0 ? this.allReviews : this.reviews).map(review => ({
                 id: review.id,
                 type: 'review',
                 title: review.book?.title || 'Рецензія',
@@ -242,7 +382,8 @@ export default {
                 is_liked: this.getItemLiked(review.id, 'review'),
                 rating: review.rating,
                 book: review.book,
-                url: `/books/${review.book?.slug}/reviews/${review.id}`
+                url: `/books/${review.book?.slug}/reviews/${review.id}`,
+                top_comment: review.top_comment || null,
             }));
 
             return [...discussions, ...reviews].filter(item => item.user && item.user.id);
@@ -261,44 +402,10 @@ export default {
 
             // Сортируем
             content = this.sortContent(content);
-
-            // Пагинация
-            const start = (this.currentPage - 1) * this.perPage;
-            const end = start + this.perPage;
             
-            return content.slice(start, end);
+            return content;
         },
 
-        totalPages() {
-            let totalItems = this.normalizedContent.length;
-            
-            if (this.activeFilter === 'discussions') {
-                totalItems = this.discussions.length;
-            } else if (this.activeFilter === 'reviews') {
-                totalItems = this.reviews.length;
-            }
-
-            return Math.ceil(totalItems / this.perPage);
-        },
-
-        visiblePages() {
-            const pages = [];
-            const maxVisible = 5;
-            const half = Math.floor(maxVisible / 2);
-            
-            let start = Math.max(1, this.currentPage - half);
-            let end = Math.min(this.totalPages, start + maxVisible - 1);
-            
-            if (end - start < maxVisible - 1) {
-                start = Math.max(1, end - maxVisible + 1);
-            }
-            
-            for (let i = start; i <= end; i++) {
-                pages.push(i);
-            }
-            
-            return pages;
-        }
     },
     methods: {
         profileUrl(username) {
@@ -405,20 +512,16 @@ export default {
 
         toggleExpanded(item) {
             const key = `${item.type}-${item.id}`;
-            console.log('Toggle expanded for:', key, 'Current state:', this.expandedItems.has(key));
             if (this.expandedItems.has(key)) {
                 this.expandedItems.delete(key);
             } else {
                 this.expandedItems.add(key);
             }
-            console.log('New state:', this.expandedItems.has(key));
         },
 
         isExpanded(item) {
             const key = `${item.type}-${item.id}`;
-            const expanded = this.expandedItems.has(key);
-            console.log('Is expanded for:', key, expanded);
-            return expanded;
+            return this.expandedItems.has(key);
         },
 
         sortContent(content) {
@@ -585,8 +688,150 @@ export default {
             }
         },
 
-        goToPage(page) {
-            this.$emit('page-changed', page);
+        // Загрузка данных с сервера
+        async loadMore() {
+            if (this.loading || !this.hasMore) return;
+            
+            this.loading = true;
+            
+            try {
+                const params = new URLSearchParams({
+                    filter: this.activeFilter,
+                    sort: this.sortBy,
+                    page: this.currentPage,
+                    per_page: this.perPage
+                });
+                
+                const response = await fetch(`/discussions?${params.toString()}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load content');
+                }
+                
+                const data = await response.json();
+                
+                // Добавляем новые данные, избегая дубликатов
+                if (data.discussions && data.discussions.length > 0) {
+                    const existingIds = new Set(this.allDiscussions.map(d => d.id));
+                    const newDiscussions = data.discussions.filter(d => !existingIds.has(d.id));
+                    this.allDiscussions = [...this.allDiscussions, ...newDiscussions];
+                }
+                
+                if (data.reviews && data.reviews.length > 0) {
+                    const existingIds = new Set(this.allReviews.map(r => r.id));
+                    const newReviews = data.reviews.filter(r => !existingIds.has(r.id));
+                    this.allReviews = [...this.allReviews, ...newReviews];
+                }
+                
+                // Проверяем, есть ли еще данные
+                this.hasMore = data.has_more || false;
+                
+                // Кешируем данные
+                this.cacheData();
+                
+                // Увеличиваем страницу для следующей загрузки
+                if (this.hasMore) {
+                    this.currentPage++;
+                }
+                
+                // Отключаем флаг первой загрузки после получения данных
+                if (this.initialLoading) {
+                    this.initialLoading = false;
+                }
+                
+            } catch (error) {
+                console.error('Error loading content:', error);
+                this.hasMore = false;
+                this.initialLoading = false;
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        // Кеширование данных в localStorage
+        cacheData() {
+            try {
+                const cacheData = {
+                    discussions: this.allDiscussions,
+                    reviews: this.allReviews,
+                    filter: this.activeFilter,
+                    sortBy: this.sortBy,
+                    timestamp: Date.now()
+                };
+                
+                localStorage.setItem(this.cacheKey, JSON.stringify(cacheData));
+            } catch (error) {
+                console.error('Error caching data:', error);
+            }
+        },
+        
+        // Загрузка кешированных данных
+        loadCachedData() {
+            try {
+                const cached = localStorage.getItem(this.cacheKey);
+                if (!cached) return;
+                
+                const cacheData = JSON.parse(cached);
+                
+                // Проверяем, актуальны ли кешированные данные (не старше 1 часа)
+                const cacheAge = Date.now() - (cacheData.timestamp || 0);
+                const maxAge = 60 * 60 * 1000; // 1 час
+                
+                if (cacheAge > maxAge) {
+                    localStorage.removeItem(this.cacheKey);
+                    return;
+                }
+                
+                // Проверяем, совпадают ли фильтры
+                if (cacheData.filter === this.activeFilter && cacheData.sortBy === this.sortBy) {
+                    // Объединяем данные из кеша с данными из props, избегая дубликатов
+                    const cachedDiscussions = cacheData.discussions || [];
+                    const cachedReviews = cacheData.reviews || [];
+                    
+                    // Объединяем discussions без дубликатов
+                    const existingDiscussionIds = new Set(this.allDiscussions.map(d => d.id));
+                    const newDiscussions = cachedDiscussions.filter(d => !existingDiscussionIds.has(d.id));
+                    this.allDiscussions = [...this.allDiscussions, ...newDiscussions];
+                    
+                    // Объединяем reviews без дубликатов
+                    const existingReviewIds = new Set(this.allReviews.map(r => r.id));
+                    const newReviews = cachedReviews.filter(r => !existingReviewIds.has(r.id));
+                    this.allReviews = [...this.allReviews, ...newReviews];
+                    
+                    // Если есть кешированные данные, начинаем со следующей страницы
+                    if (this.allDiscussions.length > 0 || this.allReviews.length > 0) {
+                        this.currentPage = Math.floor((this.allDiscussions.length + this.allReviews.length) / this.perPage) + 1;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading cached data:', error);
+                localStorage.removeItem(this.cacheKey);
+            }
+        },
+        
+        // Настройка обработчика скролла
+        setupScrollListener() {
+            this.scrollHandler = this.handleScroll.bind(this);
+            window.addEventListener('scroll', this.scrollHandler, { passive: true });
+        },
+        
+        // Обработчик скролла для infinite scroll
+        handleScroll() {
+            if (this.loading || !this.hasMore) return;
+            
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            
+            // Загружаем следующую страницу, когда пользователь прокрутил на 80% страницы
+            if (scrollTop + windowHeight >= documentHeight * 0.8) {
+                this.loadMore();
+            }
         }
     }
 };
@@ -663,5 +908,64 @@ export default {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Shimmer animation for loading skeletons */
+@keyframes shimmer {
+    0% {
+        background-position: -2000px 0;
+    }
+    100% {
+        background-position: 2000px 0;
+    }
+}
+
+.animate-shimmer {
+    background-size: 2000px 100%;
+    animation: shimmer 2s infinite linear;
+    background-image: linear-gradient(
+        90deg,
+        var(--shimmer-start, #e5e7eb) 0%,
+        var(--shimmer-mid, #f3f4f6) 20%,
+        var(--shimmer-bright, #ffffff) 50%,
+        var(--shimmer-mid, #f3f4f6) 80%,
+        var(--shimmer-end, #e5e7eb) 100%
+    );
+}
+
+.dark .animate-shimmer {
+    --shimmer-start: #374151;
+    --shimmer-mid: #4b5563;
+    --shimmer-bright: #6b7280;
+    --shimmer-end: #374151;
+}
+
+/* Fade-in animation for content */
+.fade-in-enter-active {
+    transition: opacity 0.5s ease-in, transform 0.5s ease-in;
+}
+
+.fade-in-leave-active {
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.fade-in-enter-from {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.fade-in-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-in-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-in-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
 }
 </style>

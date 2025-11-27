@@ -15,6 +15,92 @@ class ReviewController extends Controller
     use AuthorizesRequests;
     
     /**
+     * Display reviews list for a book or redirect to the book page.
+     */
+    public function index(Request $request, Book $book)
+    {
+        $book->load(['categories', 'author']);
+
+        $reviewsQuery = $book->reviews()
+            ->whereNull('parent_id')
+            ->where('is_draft', false)
+            ->with(['user'])
+            ->orderByDesc('created_at');
+
+        if ($request->expectsJson()) {
+            $perPage = (int) $request->input('per_page', 10);
+            $perPage = max(1, min(50, $perPage));
+
+            return response()->json(
+                $reviewsQuery->paginate($perPage)
+            );
+        }
+
+        $reviews = $reviewsQuery->get();
+        $reviewsCount = $reviews->count();
+
+        $userReview = null;
+        if (Auth::check()) {
+            $userReview = $book->reviews()
+                ->where('user_id', Auth::id())
+                ->whereNull('parent_id')
+                ->where('is_draft', false)
+                ->first();
+        }
+
+        $isAuthenticated = Auth::check();
+        $currentUserId = Auth::id();
+
+        $reviewsData = $reviews->map(function ($review) use ($isAuthenticated, $currentUserId) {
+            return [
+                'id' => $review->id,
+                'content' => $review->content,
+                'rating' => $review->rating,
+                'created_at' => $review->created_at->toISOString(),
+                'user_id' => $review->user_id,
+                'is_guest' => $review->isGuest(),
+                'user' => $review->user
+                    ? [
+                        'id' => $review->user->id,
+                        'name' => $review->user->name,
+                        'username' => $review->user->username,
+                        'avatar_display' => $review->user->avatar_display ?? null,
+                    ]
+                    : null,
+                'is_liked' => $isAuthenticated ? $review->isLikedBy($currentUserId) : false,
+                'is_favorited' => $isAuthenticated ? $review->isFavoritedBy($currentUserId) : false,
+                'likes_count' => $review->likes_count ?? 0,
+                'replies_count' => $review->replies_count ?? 0,
+                'contains_spoiler' => $review->contains_spoiler ?? false,
+                'review_type' => $review->review_type ?? null,
+                'book_type' => $review->book_type ?? null,
+                'language' => $review->language ?? null,
+            ];
+        })->values()->toArray();
+
+        $userReviewData = $userReview ? [
+            'id' => $userReview->id,
+            'content' => $userReview->content,
+            'rating' => $userReview->rating,
+        ] : null;
+
+        $ratingDistribution = $book->getRatingDistribution();
+        $readingStats = $book->getReadingStats();
+
+        $authorModel = $book->getRelation('author');
+
+        return view('books.reviews', [
+            'book' => $book,
+            'authorModel' => $authorModel,
+            'reviewsData' => $reviewsData,
+            'reviewsCount' => $reviewsCount,
+            'userReviewData' => $userReviewData,
+            'ratingDistribution' => $ratingDistribution,
+            'readingStats' => $readingStats,
+        ]);
+    }
+    
+    /**
      * Show the form for creating a new review
      */
     public function create(Book $book)
@@ -270,7 +356,7 @@ class ReviewController extends Controller
         // Загружаем рецензию с автором и первыми ответами (только 2 уровня, исключая черновики)
         $review->load([
             'user',
-            'book',
+            'book.author',
             'replies' => function ($query) {
                 $query->where('is_draft', false)
                     ->with([
@@ -319,11 +405,11 @@ class ReviewController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string|min:10|max:300',
+            'content' => 'required|string|min:10|max:400',
             'parent_id' => 'nullable|exists:reviews,id'
         ], [
             'content.min' => 'Коментар повинен містити мінімум 10 символів.',
-            'content.max' => 'Коментар повинен містити максимум 300 символів.',
+            'content.max' => 'Коментар повинен містити максимум 400 символів.',
         ]);
 
         // Визначаємо, чи авторизований користувач

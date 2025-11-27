@@ -1,19 +1,20 @@
 <template>
     <div>
         <!-- Кнопка добавления в список чтения -->
-        <div v-if="currentStatus" class="flex items-center space-x-2">
-            <button @click="openReadingStatusModal"
-                :class="statusColors[currentStatus]"
-                class="flex-1 bg-gradient-to-r text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 transform shadow-lg hover:shadow-xl flex items-center justify-center">
-                {{ statusTexts[currentStatus] }}
-            </button>
-            <button @click="removeStatus"
-                class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-xl font-bold transition-all duration-300 transform shadow-lg hover:shadow-xl flex items-center justify-center"
-                title="Видалити статус">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                </svg>
-            </button>
+        <div v-if="currentStatus" class="w-full">
+            <div
+                class="flex items-center gap-2 rounded-2xl bg-slate-900/70 dark:bg-slate-800/80 border border-white/5 dark:border-slate-700/60 shadow-inner shadow-black/20">
+                <button @click="openReadingStatusModal"
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm uppercase tracking-wide transition-all duration-300 shadow-[0_15px_40px_-25px_rgba(147,51,234,0.9)] hover:scale-[1.01]"
+                    :class="statusColors[currentStatus] || statusColors.default">
+                    <span class="text-white">{{ statusTexts[currentStatus] }}</span>
+                </button>
+                <button @click="removeStatus"
+                    class="px-4 py-3 rounded-2xl bg-slate-900/70 dark:bg-slate-900/80 text-slate-200 hover:text-white hover:bg-slate-900 transition-all duration-200 flex items-center justify-center"
+                    title="Видалити статус">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
         <button @click="openReadingStatusModal" v-else
             class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform shadow-lg hover:shadow-xl">
@@ -132,10 +133,11 @@ export default {
                 'abandoned': 'Закинуто'
             },
             statusColors: {
-                'read': 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
-                'reading': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-                'want_to_read': 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
-                'abandoned': 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                default: 'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 hover:opacity-95',
+                read: 'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 hover:opacity-95',
+                reading: 'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 hover:opacity-95',
+                want_to_read: 'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 hover:opacity-95',
+                abandoned: 'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 hover:opacity-95'
             }
         }
     },

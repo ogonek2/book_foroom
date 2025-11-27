@@ -163,44 +163,6 @@
                 animation: slideInRight 0.5s ease-out;
             }
             
-            /* Loading state */
-            body:not(.loaded) {
-                overflow: hidden;
-            }
-            
-            body:not(.loaded)::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                z-index: 9999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            body:not(.loaded)::after {
-                content: '';
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                width: 50px;
-                height: 50px;
-                margin: -25px 0 0 -25px;
-                border: 3px solid rgba(255, 255, 255, 0.3);
-                border-top: 3px solid white;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                z-index: 10000;
-            }
-            
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
             
             /* Smooth scrolling */
             html {
@@ -314,13 +276,6 @@
         
         <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
         @stack('scripts')
-        
-        <script>
-            // Add loading animation
-            window.addEventListener('load', function() {
-                document.body.classList.add('loaded');
-            });
-        </script>
         <!-- Alpine.js for dropdowns -->
         <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 

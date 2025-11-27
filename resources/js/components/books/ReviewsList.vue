@@ -1,9 +1,8 @@
 <template>
     <div>
-        <div
-            class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30">
-            <div class="p-8 border-b border-slate-200/30 dark:border-slate-700/30">
-                <div class="flex items-center justify-between">
+        <div class="lg:bg-white/80 lg:dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl lg:shadow-xl lg:border border-white/20 dark:border-slate-700/30 reviews-list-container">
+            <div class="lg:p-8 border-b pb-4 lg:pb-0 border-slate-200/30 dark:border-slate-700/30 reviews-list-container-header">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center justify-between">
                     <div>
                         <h2 class="text-3xl font-black text-slate-900 dark:text-white">Рецензії</h2>
                         <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium" v-if="!hideHeader">Поділіться своєю думкою про книгу
@@ -12,7 +11,7 @@
                     <div v-if="!hideHeader">
                         <div v-if="isAuthenticated && !hideAddButton">
                             <a v-if="!userReview" :href="`/books/${bookSlug}/reviews/create`"
-                                class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 inline-block">
+                                class="bg-gradient-to-r \ from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 inline-block">
                                 <i class="fas fa-plus mr-2"></i>
                                 Написати рецензію
                             </a>
@@ -28,7 +27,7 @@
             </div>
 
             <!-- Reviews List -->
-            <div class="px-8 py-4">
+            <div class="lg:px-8 py-4">
                 <div v-if="localReviews.length > 0" class="space-y-8">
                     <div v-for="review in localReviews" :key="review.id"
                         class="review-item rounded-2xl bg-white dark:bg-slate-800 shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6 hover:shadow-xl transition-all duration-300 cursor-pointer"
@@ -234,10 +233,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="text-sm text-slate-500 dark:text-slate-400">
-                                {{ review.replies_count || 0 }} {{ review.replies_count == 1 ? 'відповідь' :
-                                    (review.replies_count < 5 ? 'відповіді' : 'відповідей') }} </div>
                             </div>
                         </div>
                     </div>
@@ -255,7 +250,6 @@
                             книгу</p>
                     </div>
                 </div>
-
             </div>
 
             <!-- Report Modal -->

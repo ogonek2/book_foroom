@@ -21,6 +21,8 @@ Route::prefix('books')->name('books.')->group(function () {
     
     // Маршруты для рецензий
     Route::prefix('{book:slug}/reviews')->name('reviews.')->group(function () {
+        // Список рецензий / редирект на страницу книги
+        Route::get('/', [ReviewController::class, 'index'])->name('index');
         // Форма создания рецензии
         Route::get('/create', [ReviewController::class, 'create'])->name('create')->middleware('auth');
         // Создание рецензий

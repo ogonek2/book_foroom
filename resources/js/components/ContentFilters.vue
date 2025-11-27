@@ -1,50 +1,65 @@
 <template>
-    <div :class="mobile ? '' : 'bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700'">
-        <h3 v-if="!mobile" class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-6">
-            Фільтр
+    <div :class="mobile ? '' : ''">
+        <h3 v-if="!mobile" class="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <i class="fas fa-filter text-purple-500"></i>
+            Фільтри
         </h3>
 
-        <!-- Filter Buttons -->
-        <div :class="mobile ? 'space-y-3 mb-6' : 'space-y-3 mb-8'">
-            <label v-if="mobile" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <!-- Filter Toggle Switch -->
+        <div :class="mobile ? 'space-y-4 mb-6' : 'space-y-5 mb-8'">
+            <label v-if="mobile" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 uppercase tracking-wide">
                 Тип контенту
             </label>
-            <button v-for="filter in filters" :key="filter.value"
-                    @click="setFilter(filter.value)"
-                    :class="[
-                        'w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                        activeFilter === filter.value
-                            ? 'bg-brand-500 text-white'
-                            : 'bg-gray-100 dark:bg-gray-700 text-light-text-primary dark:text-dark-text-primary hover:bg-gray-200 dark:hover:bg-gray-600'
-                    ]">
-                {{ filter.label }}
-            </button>
+            <label v-else class="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3 uppercase tracking-wide">
+                Тип контенту
+            </label>
+            
+            <!-- Toggle Switch Container -->
+            <div class="bg-slate-100 dark:bg-slate-800/60 rounded-2xl p-1.5 flex items-center gap-1.5">
+                <button v-for="filter in filters" :key="filter.value"
+                        @click="setFilter(filter.value)"
+                        :class="[
+                            'flex-1 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300',
+                            activeFilter === filter.value
+                                ? 'bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white shadow-lg shadow-purple-500/30'
+                                : 'bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                        ]">
+                    {{ filter.label }}
+                </button>
+            </div>
         </div>
 
         <!-- Sorting -->
         <div :class="mobile ? 'mb-6' : 'mb-8'">
-            <label class="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3">
+            <label class="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3 uppercase tracking-wide">
                 Сортування
             </label>
-            <select v-model="localSortBy" 
-                    @change="updateSorting"
-                    class="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
-                <option value="newest">Найновіші</option>
-                <option value="oldest">Найстаріші</option>
-                <option value="popular">Популярні</option>
-                <option value="trending">Трендові</option>
-            </select>
+            <div class="relative">
+                <select v-model="localSortBy" 
+                        @change="updateSorting"
+                        class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none cursor-pointer transition-all duration-200 hover:bg-slate-200 dark:hover:bg-slate-700">
+                    <option value="newest">Найновіші</option>
+                    <option value="oldest">Найстаріші</option>
+                    <option value="popular">Популярні</option>
+                    <option value="trending">Трендові</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                    <i class="fas fa-chevron-down text-slate-500 dark:text-slate-400 text-sm"></i>
+                </div>
+            </div>
         </div>
 
-        <!-- Apply Filters Button (only for desktop) -->
-        <button v-if="!mobile" @click="applyFilters"
-                class="w-full bg-gradient-to-r from-brand-500 to-accent-500 text-white px-4 py-3 rounded-lg font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-300">
-            Застосувати фільтри
-        </button>
+        <!-- Create Discussion Button (only for desktop) -->
+        <a v-if="!mobile && createDiscussionUrl" :href="createDiscussionUrl"
+           class="w-full bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white px-4 py-3 rounded-xl font-semibold hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 transition-all duration-300 transform hover:scale-[1.02] shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 mb-3">
+            <i class="fas fa-plus-circle"></i>
+            Створити тему
+        </a>
 
         <!-- Reset Filters -->
         <button v-if="!mobile" @click="resetFilters"
-                class="w-full mt-3 bg-gray-100 dark:bg-gray-700 text-light-text-primary dark:text-dark-text-primary px-4 py-2 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                class="w-full bg-slate-100 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 flex items-center justify-center gap-2">
+            <i class="fas fa-redo text-xs"></i>
             Скинути
         </button>
     </div>
@@ -65,6 +80,10 @@ export default {
         mobile: {
             type: Boolean,
             default: false
+        },
+        createDiscussionUrl: {
+            type: String,
+            default: null
         }
     },
     data() {
@@ -85,19 +104,10 @@ export default {
     methods: {
         setFilter(filterValue) {
             this.$emit('filter-changed', filterValue);
-            this.updateUrl();
         },
 
         updateSorting() {
             this.$emit('sort-changed', this.localSortBy);
-            this.updateUrl();
-        },
-
-        applyFilters() {
-            this.$emit('filters-applied', {
-                filter: this.activeFilter,
-                sort: this.localSortBy
-            });
         },
 
         resetFilters() {
@@ -137,3 +147,29 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+/* Custom select arrow styling */
+select {
+    background-image: none;
+}
+
+select::-ms-expand {
+    display: none;
+}
+
+/* Smooth transitions for toggle switch */
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects */
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+</style>

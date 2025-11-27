@@ -3,19 +3,35 @@
         <!-- Main Reply Form -->
         <div class="reply-form active">
             <div class="reply-form-content">
-                <h4 class="text-lg font-semibold mb-3">Ваша відповідь</h4>
+                <h4 class="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Ваша відповідь</h4>
                 <div class="reply-input-wrapper">
                     <textarea v-model="mainReplyContent" 
                               ref="mainReplyTextarea"
-                              rows="1" 
-                              class="reply-textarea"
+                              rows="1"
+                              :maxlength="maxLength"
+                              class="reply-textarea w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none"
+                              :class="{ 'border-red-300 dark:border-red-700 focus:ring-red-500': mainReplyContent.length >= maxLength }"
                               placeholder="Напишіть вашу відповідь..." 
+                              @focus="expandTextarea"
+                              @blur="collapseTextarea"
+                              @input="validateLength"
                               required></textarea>
-                    <div class="reply-buttons">
+                    <div class="flex items-center justify-between mt-2">
+                        <div class="text-xs text-slate-500 dark:text-slate-400" :class="{ 'text-red-500 dark:text-red-400': mainReplyContent.length >= maxLength }">
+                            {{ mainReplyContent.length }}/{{ maxLength }} символів
+                        </div>
+                    </div>
+                    <div class="reply-buttons mt-3 flex justify-end">
                         <button type="button" 
                                 @click="submitMainReply"
-                                :disabled="isMainReplySubmitting || !mainReplyContent.trim()"
-                                class="submit-btn">
+                                :disabled="isMainReplySubmitting || !mainReplyContent.trim() || mainReplyContent.length > maxLength"
+                                class="inline-flex items-center px-5 py-2 rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span v-if="isMainReplySubmitting" class="mr-2">
+                                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </span>
                             {{ isMainReplySubmitting ? 'Відправляємо...' : 'Відправити' }}
                         </button>
                     </div>
@@ -47,13 +63,11 @@
                           @like-toggled="handleLikeToggled"
                           @show-notification="showNotification" />
         </div>
-        <div v-else class="empty-state">
-            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-            </svg>
-            <h3 class="text-xl font-semibold mb-2">Поки немає відповідей</h3>
-            <p class="mb-4">Станьте першим, хто поділиться своєю думкою</p>
-        </div>
+            <div v-else class="text-center py-4">
+                <i class="fas fa-comments text-4xl mb-4 text-slate-400 dark:text-slate-500"></i>
+                <h3 class="text-xl font-semibold mb-2">Поки немає відповідей</h3>
+                <p class="mb-4">Станьте першим, хто поділиться своєю думкою</p>
+            </div>
         </div>
     </div>
 </template>
@@ -95,6 +109,7 @@ export default {
             totalRepliesCount: 0,
             mainReplyContent: '',
             isMainReplySubmitting: false,
+            maxLength: 400,
         };
     },
     computed: {
@@ -103,9 +118,28 @@ export default {
         }
     },
     methods: {
+        expandTextarea() {
+            if (this.$refs.mainReplyTextarea) {
+                this.$refs.mainReplyTextarea.rows = 3;
+            }
+        },
+        collapseTextarea() {
+            if (this.$refs.mainReplyTextarea && !this.mainReplyContent.trim()) {
+                this.$refs.mainReplyTextarea.rows = 1;
+            }
+        },
+        validateLength() {
+            if (this.mainReplyContent.length > this.maxLength) {
+                this.mainReplyContent = this.mainReplyContent.substring(0, this.maxLength);
+            }
+        },
         async submitMainReply() {
             if (!this.mainReplyContent.trim()) {
                 this.showNotification('Будь ласка, введіть текст відповіді.', 'error');
+                return;
+            }
+            if (this.mainReplyContent.length > this.maxLength) {
+                this.showNotification(`Відповідь не може перевищувати ${this.maxLength} символів.`, 'error');
                 return;
             }
             this.isMainReplySubmitting = true;
@@ -115,6 +149,9 @@ export default {
                 });
                 if (response.data.success) {
                     this.mainReplyContent = '';
+                    if (this.$refs.mainReplyTextarea) {
+                        this.$refs.mainReplyTextarea.rows = 1;
+                    }
                     this.handleReplyAdded(response.data.reply);
                     this.showNotification('Відповідь успішно додано!', 'success');
                 } else {
@@ -265,5 +302,30 @@ export default {
 </script>
 
 <style scoped>
-/* All styles are inherited from the parent page */
+.reply-form {
+    margin-bottom: 2rem;
+}
+
+.reply-form-content {
+    padding: 0;
+}
+
+.reply-input-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.reply-textarea {
+    min-height: 2.5rem;
+    line-height: 1.5;
+}
+
+.reply-textarea:focus {
+    min-height: 5rem;
+}
+
+.reply-buttons {
+    display: flex;
+    justify-content: flex-end;
+}
 </style>

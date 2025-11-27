@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Discussion;
 use App\Models\DiscussionReply;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class DiscussionController extends Controller
 {
@@ -84,9 +88,12 @@ class DiscussionController extends Controller
             $reviews = $reviewsQuery->paginate($perPage);
             $discussions = collect();
         } else {
-            // Получаем все данные
-            $discussions = $discussionsQuery->get();
-            $reviews = $reviewsQuery->get();
+            // Для обычного запроса (не API) загружаем только первую страницу для быстрой загрузки
+            // Остальные данные будут загружаться через API при скролле
+            // Загружаем немного больше для правильной сортировки объединенного списка
+            $limit = max($perPage, 20); // Минимум 20 элементов для сортировки
+            $discussions = $discussionsQuery->limit($limit)->get();
+            $reviews = $reviewsQuery->limit($limit)->get();
         }
 
         // Если нужна пагинация для объединенного списка
@@ -167,7 +174,168 @@ class DiscussionController extends Controller
                 : collect();
         }
 
-        return view('discussions.index', compact('discussions', 'reviews', 'filter', 'sortBy', 'pagination'));
+        $discussionsData = $this->prepareDiscussionPayload($discussions);
+        $reviewsData = $this->prepareReviewPayload($reviews);
+
+        // Если запрос ожидает JSON (API запрос)
+        if ($request->expectsJson() || $request->wantsJson()) {
+            $currentPage = (int) $request->get('page', 1);
+            $perPage = (int) $request->input('per_page', 15);
+            $perPage = max(1, min(50, $perPage));
+
+            // Для API возвращаем пагинированные данные
+            if ($filter === 'all') {
+                // Пересоздаем queries для получения всех данных
+                $allDiscussionsQuery = Discussion::with(['user'])
+                    ->withCount(['replies', 'likes'])
+                    ->where('status', 'active')
+                    ->whereNotNull('user_id')
+                    ->where('is_draft', false);
+                
+                $allReviewsQuery = \App\Models\Review::with(['user', 'book'])
+                    ->withCount(['replies', 'likes'])
+                    ->where('status', 'active')
+                    ->whereNull('parent_id')
+                    ->whereNotNull('user_id')
+                    ->where('is_draft', false);
+                
+                // Применяем поиск
+                if ($request->has('search') && $request->search) {
+                    $search = $request->search;
+                    $allDiscussionsQuery->where(function ($q) use ($search) {
+                        $q->where('title', 'like', "%{$search}%")
+                          ->orWhere('content', 'like', "%{$search}%");
+                    });
+                    $allReviewsQuery->where(function ($q) use ($search) {
+                        $q->where('content', 'like', "%{$search}%")
+                          ->orWhereHas('book', function ($bookQuery) use ($search) {
+                              $bookQuery->where('title', 'like', "%{$search}%");
+                          });
+                    });
+                }
+                
+                // Применяем сортировку
+                switch ($sortBy) {
+                    case 'newest':
+                        $allDiscussionsQuery->orderBy('created_at', 'desc');
+                        $allReviewsQuery->orderBy('created_at', 'desc');
+                        break;
+                    case 'oldest':
+                        $allDiscussionsQuery->orderBy('created_at', 'asc');
+                        $allReviewsQuery->orderBy('created_at', 'asc');
+                        break;
+                    case 'popular':
+                        $allDiscussionsQuery->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
+                        $allReviewsQuery->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
+                        break;
+                    case 'trending':
+                        $weekAgo = now()->subDays(7);
+                        $allDiscussionsQuery->where('updated_at', '>=', $weekAgo)
+                            ->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
+                        $allReviewsQuery->where('updated_at', '>=', $weekAgo)
+                            ->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
+                        break;
+                }
+                
+                // Получаем все данные
+                $allDiscussions = $allDiscussionsQuery->get();
+                $allReviews = $allReviewsQuery->get();
+                
+                $allContent = collect();
+                
+                foreach ($allDiscussions as $discussion) {
+                    $allContent->push([
+                        'type' => 'discussion',
+                        'id' => $discussion->id,
+                        'created_at' => $discussion->created_at,
+                        'updated_at' => $discussion->updated_at,
+                        'likes_count' => $discussion->likes_count ?? 0,
+                        'replies_count' => $discussion->replies_count ?? 0,
+                    ]);
+                }
+                
+                foreach ($allReviews as $review) {
+                    $allContent->push([
+                        'type' => 'review',
+                        'id' => $review->id,
+                        'created_at' => $review->created_at,
+                        'updated_at' => $review->updated_at,
+                        'likes_count' => $review->likes_count ?? 0,
+                        'replies_count' => $review->replies_count ?? 0,
+                    ]);
+                }
+
+                // Сортируем
+                switch ($sortBy) {
+                    case 'newest':
+                        $allContent = $allContent->sortByDesc('created_at');
+                        break;
+                    case 'oldest':
+                        $allContent = $allContent->sortBy('created_at');
+                        break;
+                    case 'popular':
+                    case 'trending':
+                        $allContent = $allContent->sortByDesc(function ($item) {
+                            return ($item['likes_count'] ?? 0) + ($item['replies_count'] ?? 0);
+                        });
+                        break;
+                }
+
+                $offset = ($currentPage - 1) * $perPage;
+                $paginatedContent = $allContent->slice($offset, $perPage)->values();
+                
+                $discussionIds = $paginatedContent->where('type', 'discussion')->pluck('id');
+                $reviewIds = $paginatedContent->where('type', 'review')->pluck('id');
+                
+                // Загружаем только нужные элементы из уже полученных коллекций
+                $discussions = $discussionIds->isNotEmpty() 
+                    ? $allDiscussions->whereIn('id', $discussionIds)->keyBy('id')
+                    : collect();
+                $reviews = $reviewIds->isNotEmpty() 
+                    ? $allReviews->whereIn('id', $reviewIds)->keyBy('id')
+                    : collect();
+                
+                $discussionsData = $this->prepareDiscussionPayload($discussions);
+                $reviewsData = $this->prepareReviewPayload($reviews);
+                
+                $totalItems = $allContent->count();
+                $hasMore = $totalItems > ($currentPage * $perPage);
+            } else {
+                // Для фильтрованных запросов используем пагинацию
+                if ($filter === 'discussions') {
+                    $paginated = $discussionsQuery->paginate($perPage, ['*'], 'page', $currentPage);
+                    $discussions = $paginated->items();
+                    $reviews = collect();
+                    $hasMore = $paginated->hasMorePages();
+                } else {
+                    $paginated = $reviewsQuery->paginate($perPage, ['*'], 'page', $currentPage);
+                    $reviews = $paginated->items();
+                    $discussions = collect();
+                    $hasMore = $paginated->hasMorePages();
+                }
+                
+                $discussionsData = $this->prepareDiscussionPayload($discussions);
+                $reviewsData = $this->prepareReviewPayload($reviews);
+            }
+
+            return response()->json([
+                'discussions' => $discussionsData,
+                'reviews' => $reviewsData,
+                'current_page' => $currentPage,
+                'per_page' => $perPage,
+                'has_more' => $hasMore ?? false,
+            ]);
+        }
+
+        return view('discussions.index', compact(
+            'discussions',
+            'reviews',
+            'filter',
+            'sortBy',
+            'pagination',
+            'discussionsData',
+            'reviewsData'
+        ));
     }
 
     /**
@@ -264,6 +432,132 @@ class DiscussionController extends Controller
         $replies = $replies->sortByDesc('created_at');
         
         return view('discussions.show', compact('discussion', 'replies'));
+    }
+
+    protected function prepareDiscussionPayload($items): array
+    {
+        $collection = $this->normalizeItems($items);
+
+        if ($collection->isEmpty()) {
+            return [];
+        }
+
+        $topComments = $this->getTopDiscussionComments($collection->pluck('id'));
+
+        return $collection->map(function ($discussion) use ($topComments) {
+            $discussionArray = $this->modelToArray($discussion);
+            $topComment = $topComments->get($discussionArray['id'] ?? null);
+            $discussionArray['top_comment'] = $this->formatTopComment($topComment);
+
+            return $discussionArray;
+        })->values()->toArray();
+    }
+
+    protected function prepareReviewPayload($items): array
+    {
+        $collection = $this->normalizeItems($items);
+
+        if ($collection->isEmpty()) {
+            return [];
+        }
+
+        $topComments = $this->getTopReviewComments($collection->pluck('id'));
+
+        return $collection->map(function ($review) use ($topComments) {
+            $reviewArray = $this->modelToArray($review);
+            $topComment = $topComments->get($reviewArray['id'] ?? null);
+            $reviewArray['top_comment'] = $this->formatTopComment($topComment);
+
+            return $reviewArray;
+        })->values()->toArray();
+    }
+
+    protected function getTopDiscussionComments(Collection $discussionIds): Collection
+    {
+        if ($discussionIds->isEmpty()) {
+            return collect();
+        }
+
+        $replies = DiscussionReply::with(['user'])
+            ->withCount(['likes as likes_total' => function ($query) {
+                $query->where('vote', 1);
+            }])
+            ->whereIn('discussion_id', $discussionIds)
+            ->whereNull('parent_id')
+            ->where('status', 'active')
+            ->orderByDesc('likes_total')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return $replies->groupBy('discussion_id')->map->first();
+    }
+
+    protected function getTopReviewComments(Collection $reviewIds): Collection
+    {
+        if ($reviewIds->isEmpty()) {
+            return collect();
+        }
+
+        $replies = \App\Models\Review::with(['user'])
+            ->withCount(['likes as likes_total' => function ($query) {
+                $query->where('vote', 1);
+            }])
+            ->whereIn('parent_id', $reviewIds)
+            ->where('status', 'active')
+            ->where('is_draft', false)
+            ->orderByDesc('likes_total')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return $replies->groupBy('parent_id')->map->first();
+    }
+
+    protected function normalizeItems($items): Collection
+    {
+        if ($items instanceof LengthAwarePaginator || $items instanceof Paginator) {
+            return collect($items->items());
+        }
+
+        if ($items instanceof Collection) {
+            return $items;
+        }
+
+        return collect($items ?? []);
+    }
+
+    protected function modelToArray($item): array
+    {
+        if (is_array($item)) {
+            return $item;
+        }
+
+        if (is_object($item) && method_exists($item, 'toArray')) {
+            return $item->toArray();
+        }
+
+        return (array) $item;
+    }
+
+    protected function formatTopComment($comment): ?array
+    {
+        if (!$comment) {
+            return null;
+        }
+
+        $user = $comment->user;
+
+        return [
+            'id' => $comment->id,
+            'content' => Str::limit(strip_tags($comment->content), 160),
+            'likes_count' => $comment->likes_total ?? $comment->likes_count ?? 0,
+            'created_at' => optional($comment->created_at)->toIso8601String(),
+            'user' => $user ? [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'avatar_display' => $user->avatar_display ?? null,
+            ] : null,
+        ];
     }
 
     /**

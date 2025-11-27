@@ -59,11 +59,11 @@
                     <div class="overflow-hidden">
                         <div>
                             <div class="flex flex-col md:flex-row gap-8">
-                                <div class="flex-shrink-0" style="width: 100%; max-width: 264px;">
+                                <div class="flex-shrink-0 w-full lg:max-w-[264px]">
                                     <div class="relative group">
                                         <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
                                             alt="{{ $book->title }}"
-                                            class="object-cover rounded-2xl shadow-2xl group-hover:shadow-3xl transition-all duration-500 group-hover:scale-105" style="aspect-ratio: 2 / 3;">
+                                            class="object-cover rounded-2xl shadow-2xl group-hover:shadow-3xl w-full lg:width-full" style="aspect-ratio: 2 / 3;">
                                     </div>
                                     <!-- Add Button -->
                                     <div class="mt-4 text-center space-y-3">
@@ -217,6 +217,14 @@
                             })
                             ->toArray();
                     @endphp
+
+                    <div class="flex justify-end mb-4">
+                        <a href="{{ route('books.reviews.index', $book) }}"
+                            class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                            Переглянути всі рецензії
+                            <i class="fas fa-arrow-right text-xs"></i>
+                        </a>
+                    </div>
 
                     <book-reviews-list :reviews="{{ json_encode($reviewsData) }}" book-slug="{{ $book->slug }}"
                         :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}"
