@@ -189,7 +189,7 @@
                     <!-- Reviews Section (Vue Component) -->
                     @php
                         $reviewsData = $reviews
-                            ->map(function ($review) {
+                            ->map(function ($review) use ($book) {
                                 return [
                                     'id' => $review->id,
                                     'content' => $review->content,
@@ -197,6 +197,7 @@
                                     'created_at' => $review->created_at->toISOString(),
                                     'user_id' => $review->user_id,
                                     'is_guest' => $review->isGuest(),
+                                    'book_slug' => $book->slug,
                                     'user' => $review->user
                                         ? [
                                             'id' => $review->user->id,
@@ -233,6 +234,7 @@
                                 'id' => $userReview->id,
                                 'content' => $userReview->content,
                                 'rating' => $userReview->rating,
+                                'book_slug' => $book->slug,
                             ])
                             : 'null' }}">
                     </book-reviews-list>

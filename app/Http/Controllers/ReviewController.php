@@ -51,7 +51,7 @@ class ReviewController extends Controller
         $isAuthenticated = Auth::check();
         $currentUserId = Auth::id();
 
-        $reviewsData = $reviews->map(function ($review) use ($isAuthenticated, $currentUserId) {
+        $reviewsData = $reviews->map(function ($review) use ($isAuthenticated, $currentUserId, $book) {
             return [
                 'id' => $review->id,
                 'content' => $review->content,
@@ -59,6 +59,7 @@ class ReviewController extends Controller
                 'created_at' => $review->created_at->toISOString(),
                 'user_id' => $review->user_id,
                 'is_guest' => $review->isGuest(),
+                'book_slug' => $book->slug,
                 'user' => $review->user
                     ? [
                         'id' => $review->user->id,
@@ -82,6 +83,7 @@ class ReviewController extends Controller
             'id' => $userReview->id,
             'content' => $userReview->content,
             'rating' => $userReview->rating,
+            'book_slug' => $book->slug,
         ] : null;
 
         $ratingDistribution = $book->getRatingDistribution();
@@ -142,8 +144,36 @@ class ReviewController extends Controller
         $maxChars = ($reviewType === 'opinion') ? 1000 : 15000;
         
         // Validate content length (text only, not HTML)
-        $contentText = strip_tags($request->input('content'));
-        $contentLength = mb_strlen($contentText);
+        $content = $request->input('content');
+        
+        if (empty($content)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Контент рецензії не може бути порожнім.'
+                ], 422);
+            }
+            return redirect()->back()->withErrors(['content' => 'Контент рецензії не може бути порожнім.'])->withInput();
+        }
+        
+        // Удаляем HTML-теги, но сохраняем переносы строк как пробелы
+        $contentText = strip_tags($content);
+        
+        // Удаляем HTML entities
+        $contentText = html_entity_decode($contentText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // Удаляем неразрывные пробелы и другие специальные символы
+        $contentText = str_replace(["\xc2\xa0", "\u{00A0}", "\u{2009}", "\u{200A}", "\u{202F}", "\u{205F}"], ' ', $contentText);
+        
+        // Нормализуем пробелы: заменяем множественные пробелы, переносы строк, табы на один пробел
+        // НО сохраняем пробелы между словами
+        $contentText = preg_replace('/[\s\n\r\t]+/u', ' ', $contentText);
+        
+        // Убираем пробелы в начале и конце
+        $contentText = trim($contentText);
+        
+        // Подсчитываем длину (используем mb_strlen для правильной работы с UTF-8)
+        $contentLength = mb_strlen($contentText, 'UTF-8');
         
         if ($contentLength < $minChars || $contentLength > $maxChars) {
             $errorMessage = $reviewType === 'opinion' 
@@ -157,7 +187,13 @@ class ReviewController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $errorMessage
+                    'message' => $errorMessage,
+                    'debug' => [
+                        'content_length' => $contentLength,
+                        'min_chars' => $minChars,
+                        'max_chars' => $maxChars,
+                        'review_type' => $reviewType
+                    ]
                 ], 422);
             }
             
@@ -542,7 +578,21 @@ class ReviewController extends Controller
     {
         $this->authorize('update', $review);
         
-        return view('reviews.edit', compact('book', 'review'));
+        // Проверяем, что рецензия принадлежит этой книге
+        if ($review->book_id !== $book->id) {
+            abort(404, 'Рецензію не знайдено');
+        }
+        
+        // Получаем статистику книги
+        $ratingDistribution = $book->getRatingDistribution();
+        $readingStats = $book->getReadingStats();
+        $userRating = $book->getUserRating(Auth::id());
+        
+        // Загружаем связь с автором
+        $book->load('author');
+        $authorModel = $book->getRelation('author');
+        
+        return view('reviews.create', compact('book', 'review', 'ratingDistribution', 'readingStats', 'userRating', 'authorModel'));
     }
 
     /**
@@ -604,7 +654,52 @@ class ReviewController extends Controller
         $maxChars = ($reviewType === 'opinion') ? 1000 : 15000;
         
         // Validate content length (text only, not HTML)
-        $contentText = strip_tags($request->input('content'));
+        $content = $request->input('content');
+        
+        // Логируем для отладки
+        \Log::info('Review update - content received', [
+            'content_length' => strlen($content ?? ''),
+            'content_preview' => substr($content ?? '', 0, 100),
+            'is_empty' => empty($content),
+            'is_null' => is_null($content),
+            'all_inputs' => array_keys($request->all()),
+            'request_method' => $request->method(),
+            'content_type' => $request->header('Content-Type')
+        ]);
+        
+        if (empty($content) || is_null($content)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Контент рецензії не може бути порожнім.',
+                    'debug' => [
+                        'content_received' => !empty($content),
+                        'content_length' => strlen($content ?? ''),
+                        'request_keys' => array_keys($request->all()),
+                        'form_data_keys' => array_keys($request->all())
+                    ]
+                ], 422);
+            }
+            return redirect()->back()->withErrors(['content' => 'Контент рецензії не може бути порожнім.'])->withInput();
+        }
+        
+        // Удаляем HTML-теги, но сохраняем переносы строк как пробелы
+        $contentText = strip_tags($content);
+        
+        // Удаляем HTML entities
+        $contentText = html_entity_decode($contentText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // Удаляем неразрывные пробелы и другие специальные символы
+        $contentText = str_replace(["\xc2\xa0", "\u{00A0}", "\u{2009}", "\u{200A}", "\u{202F}", "\u{205F}"], ' ', $contentText);
+        
+        // Нормализуем пробелы: заменяем множественные пробелы, переносы строк, табы на один пробел
+        // НО сохраняем пробелы между словами
+        $contentText = preg_replace('/[\s\n\r\t]+/u', ' ', $contentText);
+        
+        // Убираем пробелы в начале и конце
+        $contentText = trim($contentText);
+        
+        // Подсчитываем длину
         $contentLength = mb_strlen($contentText);
         
         if ($contentLength < $minChars || $contentLength > $maxChars) {
@@ -619,7 +714,13 @@ class ReviewController extends Controller
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $errorMessage
+                    'message' => $errorMessage,
+                    'debug' => [
+                        'content_length' => $contentLength,
+                        'min_chars' => $minChars,
+                        'max_chars' => $maxChars,
+                        'review_type' => $reviewType
+                    ]
                 ], 422);
             }
             
@@ -717,7 +818,7 @@ class ReviewController extends Controller
         if ($isDraft) {
             return redirect()->route('profile.show', ['tab' => 'drafts'])->with('success', 'Чернетку оновлено!');
         } else {
-            return redirect()->route('books.show', $book->slug)->with('success', 'Рецензію оновлено!');
+            return redirect()->route('books.reviews.show', [$book, $review])->with('success', 'Рецензію оновлено!');
         }
     }
 

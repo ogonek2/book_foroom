@@ -399,10 +399,8 @@ export default {
             this.activeMenu = this.activeMenu === reviewId ? null : reviewId;
         },
         editReview(review) {
-            // Открываем модальное окно редактирования с данными рецензии
-            if (window.modalApp && window.modalApp.showEditReviewModal) {
-                window.modalApp.showEditReviewModal(review);
-            }
+            // Перенаправляем на страницу редактирования
+            window.location.href = `/books/${review.book_slug || this.bookSlug}/reviews/${review.id}/edit`;
             this.activeMenu = null; // Закрываем меню
         },
         async deleteReview(reviewId) {
@@ -465,10 +463,8 @@ export default {
             }
         },
         editUserReview() {
-            // Открываем модальное окно редактирования с данными текущей рецензии
-            if (window.modalApp && window.modalApp.showEditReviewModal) {
-                window.modalApp.showEditReviewModal(this.userReview);
-            }
+            // Перенаправляем на страницу редактирования
+            window.location.href = `/books/${this.bookSlug}/reviews/${this.userReview.id}/edit`;
         },
         openReviewModal() {
             // Вызываем метод модального Vue приложения
