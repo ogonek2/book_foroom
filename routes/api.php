@@ -68,4 +68,32 @@ Route::middleware('web')->group(function () {
         Route::post('/', [ReportController::class, 'store'])->name('store');
         Route::get('/types', [ReportController::class, 'getTypes'])->name('types');
     });
+
+    // Маршруты для поиска пользователей (для упоминаний)
+    Route::get('/users/search', function (Request $request) {
+        $query = $request->get('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json(['users' => []]);
+        }
+
+        $users = \App\Models\User::where(function($q) use ($query) {
+                $q->where('username', 'like', "%{$query}%")
+                  ->orWhere('name', 'like', "%{$query}%");
+            })
+            ->select('id', 'username', 'name', 'avatar')
+            ->limit(10)
+            ->get()
+            ->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'name' => $user->name,
+                    'avatar' => $user->avatar,
+                    'avatar_display' => $user->avatar_display ?? null,
+                ];
+            });
+
+        return response()->json(['users' => $users]);
+    })->name('users.search');
 });

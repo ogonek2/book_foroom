@@ -35,6 +35,7 @@ import ReportButton from './components/ReportButton.vue';
 import FeaturedQuotesCarousel from './components/quotes/FeaturedQuotesCarousel.vue';
 import LibrariesExplorer from './components/LibrariesExplorer.vue';
 import BookSearch from './components/BookSearch.vue';
+import DiscussionEditor from './components/DiscussionEditor.vue';
 
 // Экспортируем Vue глобально для использования в Blade шаблонах
 window.Vue = Vue;
@@ -71,6 +72,7 @@ Vue.component('report-button', ReportButton);
 Vue.component('featured-quotes-carousel', FeaturedQuotesCarousel);
 Vue.component('libraries-explorer', LibrariesExplorer);
 Vue.component('book-search', BookSearch);
+Vue.component('discussion-editor', DiscussionEditor);
 
 // Импортируем Axios
 import axios from 'axios';

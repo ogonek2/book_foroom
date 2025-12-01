@@ -354,11 +354,11 @@ class DiscussionController extends Controller
         $isDraft = $request->boolean('is_draft', false);
         
         $request->validate([
-            'title' => 'required|string|max:50',
+            'title' => 'required|string|max:200',
             'content' => 'required|string|min:300|max:3500',
             'is_draft' => 'nullable|boolean',
         ], [
-            'title.max' => 'Назва обговорення повинна містити максимум 50 символів.',
+            'title.max' => 'Назва обговорення повинна містити максимум 200 символів.',
             'content.min' => 'Текст обговорення повинен містити мінімум 300 символів.',
             'content.max' => 'Текст обговорення повинен містити максимум 3500 символів.',
         ]);
@@ -371,6 +371,14 @@ class DiscussionController extends Controller
             'is_draft' => $isDraft,
         ]);
 
+        // Process hashtags
+        $this->processHashtags($discussion, $request->content);
+
+        // Process mentions
+        if (!$isDraft) {
+            $this->processMentions($discussion, $request->content);
+        }
+
         if ($isDraft) {
             return redirect()->route('profile.show', ['tab' => 'drafts'])
                 ->with('success', 'Чернетку збережено!');
@@ -378,6 +386,78 @@ class DiscussionController extends Controller
 
         return redirect()->route('discussions.show', $discussion)
             ->with('success', 'Обговорення успішно створено!');
+    }
+
+    /**
+     * Process hashtags from content
+     */
+    private function processHashtags(Discussion $discussion, string $content)
+    {
+        // Extract hashtags from content using regex - supports Cyrillic
+        // Pattern: # followed by letters (Latin/Cyrillic), numbers, and underscores
+        preg_match_all('/#([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_]+)/u', strip_tags($content), $matches);
+        
+        if (empty($matches[1])) {
+            return;
+        }
+
+        $hashtags = array_unique($matches[1]);
+        
+        foreach ($hashtags as $hashtagName) {
+            // Normalize hashtag (lowercase, remove special chars)
+            $hashtagName = mb_strtolower(trim($hashtagName), 'UTF-8');
+            if (empty($hashtagName)) {
+                continue;
+            }
+
+            // Find or create tag
+            $tag = \App\Models\Tag::firstOrCreate(
+                ['slug' => \Illuminate\Support\Str::slug($hashtagName)],
+                ['name' => $hashtagName]
+            );
+
+            // Attach tag to discussion
+            if (!$discussion->tags()->where('tags.id', $tag->id)->exists()) {
+                $discussion->tags()->attach($tag->id);
+                $tag->incrementUsage();
+            }
+        }
+    }
+
+    /**
+     * Process mentions from content
+     */
+    private function processMentions(Discussion $discussion, string $content)
+    {
+        // Extract mentions from content using regex - supports Cyrillic
+        // Pattern: @ followed by letters (Latin/Cyrillic), numbers, and underscores
+        preg_match_all('/@([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_]+)/u', strip_tags($content), $matches);
+        
+        if (empty($matches[1])) {
+            return;
+        }
+
+        $usernames = array_unique($matches[1]);
+        
+        foreach ($usernames as $username) {
+            $user = \App\Models\User::where('username', $username)->first();
+            
+            if ($user && $user->id !== $discussion->user_id) {
+                // Create mention record
+                \App\Models\DiscussionMention::firstOrCreate(
+                    [
+                        'discussion_id' => $discussion->id,
+                        'user_id' => $user->id,
+                    ],
+                    [
+                        'notified' => false,
+                    ]
+                );
+
+                // Create notification (if notification system exists)
+                // You can add notification creation here
+            }
+        }
     }
 
     /**

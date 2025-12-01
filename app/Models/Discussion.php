@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
@@ -92,6 +93,23 @@ class Discussion extends Model
     public function likes(): MorphMany
     {
         return $this->morphMany(Like::class, 'likeable');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'discussion_tag')->withTimestamps();
+    }
+
+    public function mentions(): HasMany
+    {
+        return $this->hasMany(DiscussionMention::class);
+    }
+
+    public function mentionedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'discussion_mentions', 'discussion_id', 'user_id')
+            ->withPivot('notified', 'notified_at')
+            ->withTimestamps();
     }
 
     public function getRouteKeyName()
