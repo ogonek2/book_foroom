@@ -546,6 +546,8 @@
                 // Form submission
                 const form = document.getElementById('discussion-form');
                 form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    
                     // Ensure content is updated
                     if (contentInput) {
                         const editorElement = document.querySelector('.tiptap-editor');
@@ -553,6 +555,33 @@
                             // Get HTML from editor
                             contentInput.value = editorApp.editorContent;
                         }
+                    }
+
+                    // Validate content length (plain text, not HTML)
+                    const editorElement = document.querySelector('.tiptap-editor');
+                    if (editorElement) {
+                        const text = editorElement.innerText || editorElement.textContent || '';
+                        const textLength = text.trim().length;
+                        const min = 300;
+                        const max = 3500;
+
+                        if (textLength < min) {
+                            alert(`Текст обговорення повинен містити мінімум ${min} символів. Зараз: ${textLength}`);
+                            return;
+                        }
+
+                        if (textLength > max) {
+                            alert(`Текст обговорення повинен містити максимум ${max} символів. Зараз: ${textLength}`);
+                            return;
+                        }
+                    }
+
+                    // Validate title
+                    const titleInput = document.getElementById('title');
+                    if (titleInput && !titleInput.value.trim()) {
+                        alert('Будь ласка, введіть заголовок обговорення');
+                        titleInput.focus();
+                        return;
                     }
 
                     // Add is_draft if needed
@@ -565,7 +594,16 @@
                             form.appendChild(draftInput);
                         }
                         draftInput.value = '1';
+                    } else {
+                        // Remove is_draft if publishing
+                        const draftInput = form.querySelector('input[name="is_draft"]');
+                        if (draftInput) {
+                            draftInput.remove();
+                        }
                     }
+
+                    // Submit the form
+                    form.submit();
                 });
             });
         </script>

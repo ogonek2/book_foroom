@@ -96,4 +96,26 @@ Route::middleware('web')->group(function () {
 
         return response()->json(['users' => $users]);
     })->name('users.search');
+
+    // Маршрут для загрузки изображений
+    Route::middleware(['auth'])->post('/images/upload', function (Request $request) {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $file = $request->file('image');
+        $url = \App\Helpers\CDNUploader::uploadFile($file, 'discussions');
+
+        if (!$url) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Не вдалося завантажити зображення.'
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'url' => $url
+        ]);
+    })->name('images.upload');
 });

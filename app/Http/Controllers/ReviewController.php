@@ -140,7 +140,7 @@ class ReviewController extends Controller
         
         // Определяем минимальное и максимальное количество символов в зависимости от типа
         $reviewType = $request->input('review_type', 'review');
-        $minChars = ($reviewType === 'opinion') ? 100 : 800;
+        $minChars = ($reviewType === 'opinion') ? 25 : 800;
         $maxChars = ($reviewType === 'opinion') ? 1000 : 15000;
         
         // Validate content length (text only, not HTML)
@@ -178,7 +178,7 @@ class ReviewController extends Controller
         if ($contentLength < $minChars || $contentLength > $maxChars) {
             $errorMessage = $reviewType === 'opinion' 
                 ? ($contentLength < $minChars 
-                    ? 'Відгук повинен містити мінімум 100 символів.' 
+                    ? 'Відгук повинен містити мінімум 25 символів.' 
                     : 'Відгук повинен містити максимум 1000 символів.')
                 : ($contentLength < $minChars 
                     ? 'Рецензія повинна містити мінімум 800 символів.' 
@@ -650,7 +650,7 @@ class ReviewController extends Controller
         
         // Определяем минимальное и максимальное количество символов в зависимости от типа
         $reviewType = $request->input('review_type', $review->review_type ?? 'review');
-        $minChars = ($reviewType === 'opinion') ? 100 : 800;
+        $minChars = ($reviewType === 'opinion') ? 25 : 800;
         $maxChars = ($reviewType === 'opinion') ? 1000 : 15000;
         
         // Validate content length (text only, not HTML)
@@ -705,7 +705,7 @@ class ReviewController extends Controller
         if ($contentLength < $minChars || $contentLength > $maxChars) {
             $errorMessage = $reviewType === 'opinion' 
                 ? ($contentLength < $minChars 
-                    ? 'Відгук повинен містити мінімум 100 символів.' 
+                    ? 'Відгук повинен містити мінімум 25 символів.' 
                     : 'Відгук повинен містити максимум 1000 символів.')
                 : ($contentLength < $minChars 
                     ? 'Рецензія повинна містити мінімум 800 символів.' 

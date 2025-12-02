@@ -579,7 +579,7 @@
             const reviewType = reviewTypeSelect.value;
             if (reviewType === 'opinion') {
                 contentMax.textContent = '1000';
-                contentMin.textContent = 'Мінімум: 100 символів';
+                contentMin.textContent = 'Мінімум: 25 символів';
             } else {
                 contentMax.textContent = '15000';
                 contentMin.textContent = 'Мінімум: 800 символів';
@@ -594,7 +594,7 @@
             contentLength.textContent = length;
             const reviewType = reviewTypeSelect.value;
             const max = reviewType === 'opinion' ? 1000 : 15000;
-            const min = reviewType === 'opinion' ? 100 : 800;
+            const min = reviewType === 'opinion' ? 25 : 800;
             
             if (length < min) {
                 contentLength.classList.add('text-red-500', 'font-semibold');

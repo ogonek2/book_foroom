@@ -355,13 +355,65 @@ class DiscussionController extends Controller
         
         $request->validate([
             'title' => 'required|string|max:200',
-            'content' => 'required|string|min:300|max:3500',
+            'content' => 'required|string',
             'is_draft' => 'nullable|boolean',
         ], [
             'title.max' => 'Назва обговорення повинна містити максимум 200 символів.',
-            'content.min' => 'Текст обговорення повинен містити мінімум 300 символів.',
-            'content.max' => 'Текст обговорення повинен містити максимум 3500 символів.',
         ]);
+
+        // Validate content length (text only, not HTML) - same as ReviewController
+        $content = $request->input('content');
+        
+        if (empty($content)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Контент обговорення не може бути порожнім.'
+                ], 422);
+            }
+            return redirect()->back()->withErrors(['content' => 'Контент обговорення не може бути порожнім.'])->withInput();
+        }
+        
+        // Удаляем HTML-теги, но сохраняем переносы строк как пробелы
+        $contentText = strip_tags($content);
+        
+        // Удаляем HTML entities
+        $contentText = html_entity_decode($contentText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // Удаляем неразрывные пробелы и другие специальные символы
+        $contentText = str_replace(["\xc2\xa0", "\u{00A0}", "\u{2009}", "\u{200A}", "\u{202F}", "\u{205F}"], ' ', $contentText);
+        
+        // Нормализуем пробелы: заменяем множественные пробелы, переносы строк, табы на один пробел
+        $contentText = preg_replace('/[\s\n\r\t]+/u', ' ', $contentText);
+        
+        // Убираем пробелы в начале и конце
+        $contentText = trim($contentText);
+        
+        // Подсчитываем длину (используем mb_strlen для правильной работы с UTF-8)
+        $contentLength = mb_strlen($contentText, 'UTF-8');
+        
+        $minChars = 300;
+        $maxChars = 3500;
+        
+        if ($contentLength < $minChars || $contentLength > $maxChars) {
+            $errorMessage = $contentLength < $minChars 
+                ? 'Текст обговорення повинен містити мінімум 300 символів.' 
+                : 'Текст обговорення повинен містити максимум 3500 символів.';
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'debug' => [
+                        'content_length' => $contentLength,
+                        'min_chars' => $minChars,
+                        'max_chars' => $maxChars,
+                    ]
+                ], 422);
+            }
+            
+            return redirect()->back()->withErrors(['content' => $errorMessage])->withInput();
+        }
 
         $discussion = Discussion::create([
             'title' => $request->title,
@@ -745,14 +797,66 @@ class DiscussionController extends Controller
         $isDraft = $request->boolean('is_draft', false);
         
         $request->validate([
-            'title' => 'required|string|max:50',
-            'content' => 'required|string|min:300|max:3500',
+            'title' => 'required|string|max:200',
+            'content' => 'required|string',
             'is_draft' => 'nullable|boolean',
         ], [
-            'title.max' => 'Назва обговорення повинна містити максимум 50 символів.',
-            'content.min' => 'Текст обговорення повинен містити мінімум 300 символів.',
-            'content.max' => 'Текст обговорення повинен містити максимум 3500 символів.',
+            'title.max' => 'Назва обговорення повинна містити максимум 200 символів.',
         ]);
+
+        // Validate content length (text only, not HTML) - same as store method
+        $content = $request->input('content');
+        
+        if (empty($content)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Контент обговорення не може бути порожнім.'
+                ], 422);
+            }
+            return redirect()->back()->withErrors(['content' => 'Контент обговорення не може бути порожнім.'])->withInput();
+        }
+        
+        // Удаляем HTML-теги, но сохраняем переносы строк как пробелы
+        $contentText = strip_tags($content);
+        
+        // Удаляем HTML entities
+        $contentText = html_entity_decode($contentText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // Удаляем неразрывные пробелы и другие специальные символы
+        $contentText = str_replace(["\xc2\xa0", "\u{00A0}", "\u{2009}", "\u{200A}", "\u{202F}", "\u{205F}"], ' ', $contentText);
+        
+        // Нормализуем пробелы: заменяем множественные пробелы, переносы строк, табы на один пробел
+        $contentText = preg_replace('/[\s\n\r\t]+/u', ' ', $contentText);
+        
+        // Убираем пробелы в начале и конце
+        $contentText = trim($contentText);
+        
+        // Подсчитываем длину (используем mb_strlen для правильной работы с UTF-8)
+        $contentLength = mb_strlen($contentText, 'UTF-8');
+        
+        $minChars = 300;
+        $maxChars = 3500;
+        
+        if ($contentLength < $minChars || $contentLength > $maxChars) {
+            $errorMessage = $contentLength < $minChars 
+                ? 'Текст обговорення повинен містити мінімум 300 символів.' 
+                : 'Текст обговорення повинен містити максимум 3500 символів.';
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                    'debug' => [
+                        'content_length' => $contentLength,
+                        'min_chars' => $minChars,
+                        'max_chars' => $maxChars,
+                    ]
+                ], 422);
+            }
+            
+            return redirect()->back()->withErrors(['content' => $errorMessage])->withInput();
+        }
 
         $wasDraft = $discussion->is_draft;
         $discussion->update([

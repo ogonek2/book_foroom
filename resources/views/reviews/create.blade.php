@@ -188,8 +188,7 @@
                                     <div
                                         class="flex justify-between items-center my-3 text-xs text-slate-500 dark:text-slate-400">
                                         <span>
-                                            Мінімум: <strong class="text-slate-700 dark:text-slate-300">@{{ minContentLength
-                                                }}</strong> символів
+                                            Мінімум: <strong class="text-slate-700 dark:text-slate-300">@{{ minContentLength }}</strong> символів
                                         </span>
                                         <span class="font-semibold"
                                             :class="getContentLengthClass() === 'error' ? 'text-red-500 dark:text-red-400' : getContentLengthClass() === 'warning' ? 'text-amber-500 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'">
@@ -215,7 +214,7 @@
                                 </div>
 
                                 <!-- Opinion Type -->
-                                <div class="mb-6" v-show="reviewType === 'opinion'">
+                                <div class="mb-6">
                                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Тип
                                         думки</label>
                                     <div class="grid grid-cols-3 gap-3">
@@ -285,48 +284,52 @@
                                 <!-- Form Actions -->
                                 <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
                                     <!-- Tab Switch -->
-                                    <div class="inline-flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 gap-1">
+                                    <div class="inline-flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 gap-1 mb-4">
                                         <button type="button" @@click="actionMode = 'draft'"
-                                            :disabled="isSubmitting || !content.trim()"
+                                            :disabled="isSubmitting"
                                             :class="['flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
                                                 actionMode === 'draft' 
                                                     ? 'bg-white dark:bg-slate-700 text-orange-500 dark:text-orange-400 shadow-sm' 
                                                     : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400']">
-                                            <svg v-if="!isSubmitting || actionMode !== 'draft'" class="w-4 h-4" fill="none"
-                                                stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                                            </svg>
-                                            <svg v-else class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                    stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                </path>
                                             </svg>
                                             <span>Чернетка</span>
                                         </button>
                                         <button type="button" @@click="actionMode = 'publish'"
-                                            :disabled="isSubmitting || !content.trim() || rating === 0"
+                                            :disabled="isSubmitting"
                                             :class="['flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
                                                 actionMode === 'publish' 
                                                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' 
                                                     : 'text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400']">
-                                            <svg v-if="!isSubmitting || actionMode !== 'publish'" class="w-4 h-4"
-                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            <svg v-else class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                    stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                </path>
                                             </svg>
                                             <span>Опублікувати</span>
                                         </button>
                                     </div>
+                                    
+                                    <!-- Submit Button -->
+                                    <button type="button" @@click="submitReview(actionMode === 'draft')"
+                                        :disabled="isSubmitting || !content.trim() || (actionMode === 'publish' && rating === 0)"
+                                        :class="['w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
+                                            actionMode === 'draft'
+                                                ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-orange-500 dark:text-orange-400 shadow-md'
+                                                : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl']">
+                                        <svg v-if="!isSubmitting" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                :d="actionMode === 'draft' ? 'M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4' : 'M5 13l4 4L19 7'" />
+                                        </svg>
+                                        <svg v-else class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+                                        <span>@{{ actionMode === 'draft' ? 'Зберегти чернетку' : 'Опублікувати рецензію' }}</span>
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -365,7 +368,7 @@
                                 return this.content ? this.content.length : 0;
                             },
                             minContentLength() {
-                                return this.reviewType === 'opinion' ? 100 : 800;
+                                return this.reviewType === 'opinion' ? 25 : 800;
                             },
                             maxContentLength() {
                                 return this.reviewType === 'opinion' ? 1000 : 15000;
