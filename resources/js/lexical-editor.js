@@ -3,55 +3,6 @@
 
 let lexicalEditorInstance = null;
 
-export function initLexicalEditor(editorElement, contentInput, options = {}) {
-    // For now, we'll use a simpler approach
-    // Lexical requires React for full functionality
-    // We'll create a wrapper that uses contenteditable with Lexical-like features
-    
-    console.log('Lexical Editor initialization - using simplified approach');
-    
-    // Return a simple editor interface that mimics Lexical API
-    return {
-        editor: {
-            getEditorState: () => ({
-                read: (callback) => {
-                    callback();
-                }
-            }),
-            getRootElement: () => editorElement,
-            setRootElement: (element) => {
-                // Editor is already set
-            },
-            update: (callback) => {
-                callback();
-            },
-            setEditable: (editable) => {
-                if (editorElement) {
-                    editorElement.contentEditable = editable;
-                }
-            },
-            registerUpdateListener: (listener) => {
-                if (editorElement) {
-                    editorElement.addEventListener('input', () => {
-                        listener({ editorState: { read: (cb) => cb() } });
-                    });
-                }
-            }
-        },
-        getHTML: () => {
-            return editorElement ? editorElement.innerHTML : '';
-        },
-        getText: () => {
-            return editorElement ? (editorElement.innerText || editorElement.textContent) : '';
-        },
-        setContent: (content) => {
-            if (editorElement) {
-                editorElement.innerHTML = content;
-            }
-        }
-    };
-}
-
 // Lexical Editor Setup
 export function initLexicalEditor(editorElement, contentInput, options = {}) {
     const {

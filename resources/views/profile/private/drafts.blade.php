@@ -3,34 +3,34 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Drafts Header -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
+        <div class="mb-8">
             <div class="mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Мої чернетки</h2>
                 <p class="text-gray-600 dark:text-gray-400">Збережені чернетки рецензій, цитат та обговорень</p>
             </div>
 
             <!-- Drafts Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 lg:gap-4">
                 <div class="bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-blue-400 mb-1">{{ isset($draftReviews) ? $draftReviews->count() : 0 }}</div>
-                    <div class="text-sm text-gray-300">Чернеток рецензій</div>
+                    <div class="text-sm text-gray-300">Рецензій</div>
                 </div>
                 
                 <div class="bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-green-400 mb-1">{{ isset($draftQuotes) ? $draftQuotes->count() : 0 }}</div>
-                    <div class="text-sm text-gray-300">Чернеток цитат</div>
+                    <div class="text-sm text-gray-300">Цитат</div>
                 </div>
                 
                 <div class="bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-purple-400 mb-1">{{ isset($draftDiscussions) ? $draftDiscussions->count() : 0 }}</div>
-                    <div class="text-sm text-gray-300">Чернеток обговорень</div>
+                    <div class="text-sm text-gray-300">Обговорень</div>
                 </div>
             </div>
         </div>
 
         <!-- Draft Reviews -->
         @if(isset($draftReviews) && $draftReviews->count() > 0)
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-6">
+        <div class="mb-6">
             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Чернетки рецензій</h3>
             <div class="space-y-4">
                 @foreach($draftReviews as $review)
@@ -81,12 +81,24 @@
 
         <!-- Draft Quotes -->
         @if(isset($draftQuotes) && $draftQuotes->count() > 0)
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-6">
+        <div class="mb-6">
             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Чернетки цитат</h3>
             <div class="space-y-4">
                 @foreach($draftQuotes as $quote)
                     <div class="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <div class="flex items-start justify-between">
+                        <div class="flex flex-col gap-2 items-start justify-between">
+                            <div class="flex space-x-2 w-full justify-between items-center">
+                                @if($quote->book)
+                                <a href="{{ route('books.quotes.edit-draft', [$quote->book->slug, $quote->id]) }}" 
+                                   class="text-sm font-medium text-yellow-500 underline">
+                                    Редагувати
+                                </a>
+                                @endif
+                                <button onclick="deleteDraft('quote', {{ $quote->id }})" 
+                                        class="px-4 py-2 bg-red-500/20 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors">
+                                    <i class="fas fa-xmark"></i>
+                                </button>
+                            </div>
                             <div class="flex-1">
                                 <div class="flex items-center space-x-2 mb-2">
                                     @if($quote->book)
@@ -103,22 +115,10 @@
                                 </div>
                                 <p class="text-gray-700 dark:text-gray-300 italic line-clamp-2">"{{ Str::limit($quote->content, 150) }}"</p>
                             </div>
-                            <div class="flex space-x-2 ml-4">
-                                @if($quote->book)
-                                <a href="{{ route('books.quotes.edit-draft', [$quote->book->slug, $quote->id]) }}" 
-                                   class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                @endif
-                                <button onclick="publishDraft('quote', {{ $quote->id }})" 
-                                        class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button onclick="deleteDraft('quote', {{ $quote->id }})" 
-                                        class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                            <button onclick="publishDraft('quote', {{ $quote->id }})" 
+                                    class="px-4 py-2 bg-purple-500 mt-2 text-white rounded-lg text-sm font-medium transition-colors">
+                                Опублікувати
+                            </button>
                         </div>
                     </div>
                 @endforeach

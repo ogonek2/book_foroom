@@ -3,7 +3,7 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Rating Statistics -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
+        <div class="mb-8">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Статистика оцінок</h2>
             </div>
@@ -77,14 +77,9 @@
         </div>
 
         <!-- Recent Activity -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
+        <div class="mb-8">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Остання активність</h2>
-                <!-- View All Activity Button -->
-                <button onclick="viewAllActivity()"
-                    class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-all duration-300">
-                    Переглянути все
-                </button>
             </div>
 
             @if (isset($recentActivity) && $recentActivity->count() > 0)
@@ -161,7 +156,7 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+        <div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Швидкі дії</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -170,9 +165,7 @@
                     <div class="flex-shrink-0">
                         <div
                             class="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
-                            <svg class="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <i class="fa-solid fa-star text-orange-400"></i>
                         </div>
                     </div>
                     <div>

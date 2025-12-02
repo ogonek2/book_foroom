@@ -3,21 +3,12 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Library Header -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
+        <div class="mb-8">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Моя бібліотека</h2>
                     <p class="text-gray-600 dark:text-gray-400">Книги з різними статусами читання</p>
                 </div>
-                <!-- Manage Library Button -->
-                <button onclick="manageLibrary()" 
-                        class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-300 backdrop-blur-sm">
-                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Керувати
-                </button>
             </div>
 
             <!-- Reading Status Stats -->
@@ -42,13 +33,13 @@
         </div>
 
         <!-- Library Content -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Книги в бібліотеці</h3>
+        <div>
+            <div class="flex flex-col mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Книги в бібліотеці</h3>
                 <!-- Filter and Sort -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
                     <select id="statusFilter" onchange="filterByStatus(this.value)" 
-                            class="px-3 py-2 bg-white/20 text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            class="px-2 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                         <option value="">Всі статуси</option>
                         <option value="want_to_read">Хочу прочитати</option>
                         <option value="reading">Читаю</option>
@@ -57,7 +48,7 @@
                     </select>
                     
                     <select id="sortBy" onchange="sortBooks(this.value)" 
-                            class="px-3 py-2 bg-white/20 text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            class="px-2 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                         <option value="created_at">Дата додавання</option>
                         <option value="title">Назва</option>
                         <option value="rating">Оцінка</option>
@@ -66,7 +57,7 @@
             </div>
 
             <!-- Books Grid -->
-            <div id="booksGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div id="booksGrid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @php
                     $books = $user->bookReadingStatuses()
                         ->with(['book.author', 'book.categories'])
@@ -76,7 +67,7 @@
 
                 @if($books->count() > 0)
                     @foreach($books as $readingStatus)
-                        <div class="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-all duration-200 group" 
+                        <div class="group relative" 
                              data-status="{{ $readingStatus->status }}">
                             <!-- Book Cover -->
                             <div class="aspect-[3/4] mb-3 relative">
@@ -117,20 +108,8 @@
                                     </div>
                                 @endif
                             </div>
-
-                            <!-- Book Info -->
-                            <div class="space-y-2">
-                                <h4 class="font-semibold text-gray-900 dark:text-white line-clamp-2">
-                                    <a href="{{ route('books.show', $readingStatus->book->slug) }}" 
-                                       class="hover:text-orange-500 transition-colors">
-                                        {{ $readingStatus->book->title }}
-                                    </a>
-                                </h4>
-                                
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    {{ $readingStatus->book->author->first_name ?? $readingStatus->book->author ?? 'Не указан' }}
-                                </p>
-
+                            
+                            <div>
                                 <!-- Additional Info -->
                                 <div class="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400 pt-1">
                                     @if($readingStatus->times_read && $readingStatus->times_read > 1)
@@ -183,6 +162,19 @@
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                            <!-- Book Info -->
+                            <div class="space-y-2">
+                                <h4 class="font-semibold text-gray-900 dark:text-white line-clamp-2">
+                                    <a href="{{ route('books.show', $readingStatus->book->slug) }}" 
+                                       class="hover:text-orange-500 transition-colors">
+                                        {{ $readingStatus->book->title }}
+                                    </a>
+                                </h4>
+                                
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    {{ $readingStatus->book->author->first_name ?? $readingStatus->book->author ?? 'Не указан' }}
+                                </p>
                             </div>
                         </div>
                     @endforeach

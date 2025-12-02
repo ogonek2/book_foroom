@@ -3,24 +3,22 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Reviews Header -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
-            <div class="flex items-center justify-between mb-6">
+        <div class="mb-8">
+            <div class="flex flex-col mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Мої рецензії</h2>
                     <p class="text-gray-600 dark:text-gray-400">Всі написані рецензії на книги</p>
                 </div>
                 <!-- Write Review Button -->
                 <button onclick="writeNewReview()" 
-                        class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-300 backdrop-blur-sm">
-                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
+                        class="px-4 py-2 w-fit mt-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-300 backdrop-blur-sm">
+                    <i class="fa-solid fa-plus"></i>
                     Написати рецензію
                 </button>
             </div>
 
             <!-- Reviews Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 lg:gap-4">
                 @php
                     $reviews = $user->reviews()->with('book')->get();
                     $totalReviews = $reviews->count();
@@ -46,18 +44,9 @@
         </div>
 
         <!-- Reviews Content -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+        <div>
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">Список рецензій</h3>
-                <!-- Filter and Sort -->
-                <div class="flex items-center space-x-4">
-                    <select id="sortBy" onchange="sortReviews(this.value)" 
-                            class="px-3 py-2 bg-white/20 text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <option value="created_at">Дата написання</option>
-                        <option value="rating">Оцінка</option>
-                        <option value="likes_count">Кількість лайків</option>
-                    </select>
-                </div>
             </div>
 
             <!-- Reviews List -->
@@ -73,15 +62,6 @@
                     @foreach($reviews as $review)
                         <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-200 group">
                             <div class="flex items-start space-x-4">
-                                <!-- Book Cover -->
-                                <div class="flex-shrink-0">
-                                    <div class="w-16 h-24">
-                                        <img src="{{ $review->book->cover_image }}" 
-                                             alt="{{ $review->book->title }}"
-                                             class="w-full h-full object-cover rounded-lg shadow-md">
-                                    </div>
-                                </div>
-
                                 <!-- Review Content -->
                                 <div class="flex-1 min-w-0">
                                     <!-- Header -->
@@ -133,7 +113,7 @@
                                     <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4">
                                         {!! Str::limit($review->content, 300) !!}
                                         @if(strlen($review->content) > 300)
-                                            <a href="{{ route('books.show', $review->book->slug) }}#review-{{ $review->id }}" 
+                                            <br><a href="{{ route('books.show', $review->book->slug) }}#review-{{ $review->id }}" 
                                                class="text-orange-500 hover:text-orange-600 font-medium">
                                                 Читати повністю →
                                             </a>
@@ -144,9 +124,6 @@
                                     <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                         <div class="flex items-center space-x-4">
                                             <span>{{ $review->created_at->format('d.m.Y H:i') }}</span>
-                                            @if($review->updated_at != $review->created_at)
-                                                <span>(редаговано {{ $review->updated_at->format('d.m.Y H:i') }})</span>
-                                            @endif
                                         </div>
                                         <div class="flex items-center space-x-4">
                                             <span class="flex items-center space-x-1">
@@ -163,6 +140,9 @@
                                             </span>
                                         </div>
                                     </div>
+                                    @if($review->updated_at != $review->created_at)
+                                        <span class="text-sm text-gray-400"><i class="fa-solid fa-pen"></i> Редаговано {{ $review->updated_at->format('d.m.Y H:i') }}</span>
+                                    @endif
                                 </div>
                             </div>
                         </div>

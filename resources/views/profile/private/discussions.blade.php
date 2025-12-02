@@ -3,24 +3,22 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Discussions Header -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
-            <div class="flex items-center justify-between mb-6">
+        <div class="mb-8">
+            <div class="flex flex-col mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Мої обговорення</h2>
                     <p class="text-gray-600 dark:text-gray-400">Створені теми для обговорення</p>
                 </div>
                 <!-- Create Discussion Button -->
                 <button onclick="createNewDiscussion()" 
-                        class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-300 backdrop-blur-sm">
-                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
+                        class="px-4 py-2 w-fit bg-white/20 hover:bg-white/30 light:text-gray-600 dark:text-white rounded-lg font-medium transition-all duration-300 backdrop-blur-sm mt-2">
+                    <i class="fa-solid fa-plus"></i>
                     Створити тему
                 </button>
             </div>
 
             <!-- Discussions Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4">
                 @php
                     $discussions = $user->discussions();
                     $totalDiscussions = $discussions->count();
@@ -52,13 +50,13 @@
         </div>
 
         <!-- Discussions Content -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-            <div class="flex items-center justify-between mb-6">
+        <div>
+            <div class="flex flex-col mb-6">
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">Список обговорень</h3>
                 <!-- Filter and Sort -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 mt-2">
                     <select id="statusFilter" onchange="filterByStatus(this.value)" 
-                            class="px-3 py-2 bg-white/20 text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            class="px-3 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <option value="">Всі статуси</option>
                         <option value="active">Активні</option>
                         <option value="closed">Закриті</option>
@@ -66,7 +64,7 @@
                     </select>
                     
                     <select id="sortBy" onchange="sortDiscussions(this.value)" 
-                            class="px-3 py-2 bg-white/20 text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            class="px-3 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <option value="created_at">Дата створення</option>
                         <option value="updated_at">Остання активність</option>
                         <option value="replies_count">Кількість відповідей</option>
@@ -89,15 +87,6 @@
                         <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-200 group" 
                              data-status="{{ $discussion->status }}">
                             <div class="flex items-start space-x-4">
-                                <!-- Discussion Icon -->
-                                <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                </div>
-
                                 <!-- Discussion Content -->
                                 <div class="flex-1 min-w-0">
                                     <!-- Header -->
@@ -153,24 +142,10 @@
                                         </div>
                                     </div>
 
-                                    <!-- Discussion Preview -->
-                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4">
-                                        {!! Str::limit($discussion->content, 200) !!}
-                                        @if(strlen($discussion->content) > 200)
-                                            <a href="{{ route('discussions.show', $discussion->slug) }}" 
-                                               class="text-orange-500 hover:text-orange-600 font-medium">
-                                                Читати повністю →
-                                            </a>
-                                        @endif
-                                    </div>
-
                                     <!-- Footer -->
                                     <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                                         <div class="flex items-center space-x-4">
                                             <span>{{ $discussion->created_at->format('d.m.Y H:i') }}</span>
-                                            @if($discussion->updated_at != $discussion->created_at)
-                                                <span>(оновлено {{ $discussion->updated_at->format('d.m.Y H:i') }})</span>
-                                            @endif
                                         </div>
                                         <div class="flex items-center space-x-4">
                                             <span class="flex items-center space-x-1">
@@ -187,6 +162,9 @@
                                             </span>
                                         </div>
                                     </div>
+                                    @if($discussion->updated_at != $discussion->created_at)
+                                        <span class="text-sm text-gray-400"><i class="fa-solid fa-pen"></i> оновлено {{ $discussion->updated_at->format('d.m.Y H:i') }}</span>
+                                    @endif
                                 </div>
                             </div>
                         </div>

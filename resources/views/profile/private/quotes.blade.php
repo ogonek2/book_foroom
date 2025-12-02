@@ -3,24 +3,16 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Quotes Header -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
+        <div class="mb-8">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Мої цитати</h2>
                     <p class="text-gray-600 dark:text-gray-400">Збережені цитати з прочитаних книг</p>
                 </div>
-                <!-- Add Quote Button -->
-                <button onclick="addNewQuote()" 
-                        class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition-all duration-300 backdrop-blur-sm">
-                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Додати цитату
-                </button>
             </div>
 
             <!-- Quotes Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-2 lg:gap-4">
                 @php
                     $quotes = $user->quotes()->with('book')->get();
                     $totalQuotes = $quotes->count();
@@ -46,13 +38,13 @@
         </div>
 
         <!-- Quotes Content -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-            <div class="flex items-center justify-between mb-6">
+        <div>
+            <div class="flex flex-col mb-6">
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">Список цитат</h3>
                 <!-- Filter and Sort -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-4 mt-2">
                     <select id="bookFilter" onchange="filterByBook(this.value)" 
-                            class="px-3 py-2 bg-white/20 text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            class="px-3 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <option value="">Всі книги</option>
                         @php
                             $books = $user->quotes()->with('book')->get()->pluck('book')->unique('id');
@@ -63,7 +55,7 @@
                     </select>
                     
                     <select id="sortBy" onchange="sortQuotes(this.value)" 
-                            class="px-3 py-2 bg-white/20 text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            class="px-3 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <option value="created_at">Дата додавання</option>
                         <option value="book_title">Назва книги</option>
                         <option value="likes_count">Кількість лайків</option>
@@ -85,15 +77,6 @@
                         <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-200 group" 
                              data-book-id="{{ $quote->book_id }}">
                             <div class="flex items-start space-x-4">
-                                <!-- Quote Icon -->
-                                <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                </div>
-
                                 <!-- Quote Content -->
                                 <div class="flex-1 min-w-0">
                                     <!-- Header -->

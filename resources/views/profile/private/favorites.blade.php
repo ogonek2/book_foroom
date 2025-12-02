@@ -3,38 +3,37 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Favorites Header -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
+        <div class="mb-8">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Избранные</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Рецензии и цитаты, которые вы добавили в избранное</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Збережене</h2>
                 </div>
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-2 lg:gap-4">
                 <div class="bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-yellow-400 mb-1">{{ $favoriteQuotes->total() }}</div>
-                    <div class="text-sm text-gray-300">Избранных цитат</div>
+                    <div class="text-sm text-gray-300">Збережених цитат</div>
                 </div>
                 
                 <div class="bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-yellow-400 mb-1">{{ $favoriteReviews->total() }}</div>
-                    <div class="text-sm text-gray-300">Избранных рецензий</div>
+                    <div class="text-sm text-gray-300">Збережених рецензій</div>
                 </div>
             </div>
         </div>
 
         <!-- Tabs -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
+        <div class="mb-8">
             <div class="flex space-x-4 mb-6 border-b border-white/10">
                 <button onclick="showTab('quotes')" id="tab-quotes" 
                     class="px-4 py-2 font-medium text-gray-900 dark:text-white border-b-2 border-yellow-500 transition-colors">
-                    Цитаты ({{ $favoriteQuotes->total() }})
+                    Цитати ({{ $favoriteQuotes->total() }})
                 </button>
                 <button onclick="showTab('reviews')" id="tab-reviews" 
                     class="px-4 py-2 font-medium text-gray-600 dark:text-gray-400 border-b-2 border-transparent hover:text-gray-900 dark:hover:text-white transition-colors">
-                    Рецензии ({{ $favoriteReviews->total() }})
+                    Рецензії ({{ $favoriteReviews->total() }})
                 </button>
             </div>
 
@@ -45,15 +44,6 @@
                         @foreach($favoriteQuotes as $quote)
                             <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
                                 <div class="flex items-start space-x-4">
-                                    <!-- Quote Icon -->
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    </div>
-
                                     <!-- Quote Content -->
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-start justify-between mb-3">
@@ -88,7 +78,7 @@
                                             <div class="flex items-center space-x-4">
                                                 <a href="{{ route('books.show', $quote->book->slug) }}" 
                                                    class="text-orange-500 hover:text-orange-600 transition-colors">
-                                                    Перейти к книге →
+                                                    Перейти до книги →
                                                 </a>
                                             </div>
                                         </div>
@@ -111,8 +101,8 @@
                                 <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-300 mb-2">Немає избранних цитат</h3>
-                        <p class="text-gray-500 mb-6">Додайте цитати до избранного, щоб вони з'явились тут</p>
+                        <h3 class="text-xl font-semibold text-gray-300 mb-2">Немає збережених цитат</h3>
+                        <p class="text-gray-500 mb-6">Додайте цитати до збереженних, щоб вони з'явились тут</p>
                     </div>
                 @endif
             </div>
@@ -124,14 +114,6 @@
                         @foreach($favoriteReviews as $review)
                             <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
                                 <div class="flex items-start space-x-4">
-                                    <!-- Book Cover -->
-                                    <div class="flex-shrink-0">
-                                        <div class="w-16 h-24">
-                                            <img src="{{ $review->book->cover_image }}" 
-                                                 alt="{{ $review->book->title }}"
-                                                 class="w-full h-full object-cover rounded-lg shadow-md">
-                                        </div>
-                                    </div>
 
                                     <!-- Review Content -->
                                     <div class="flex-1 min-w-0">
@@ -144,7 +126,7 @@
                                                     </a>
                                                 </h4>
                                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                                    {{ $review->book->author->first_name ?? $review->book->author ?? 'Не указан' }}
+                                                    {{ $review->book->author->first_name ?? $review->book->author ?? 'Не вказано' }}
                                                 </p>
                                             </div>
                                         </div>
@@ -167,7 +149,7 @@
                                         <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4">
                                             {!! Str::limit($review->content, 300) !!}
                                             @if(strlen($review->content) > 300)
-                                                <a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}" 
+                                                <br><a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}" 
                                                    class="text-orange-500 hover:text-orange-600 font-medium">
                                                     Читати повністю →
                                                 </a>
@@ -182,7 +164,7 @@
                                             <div class="flex items-center space-x-4">
                                                 <a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}" 
                                                    class="text-orange-500 hover:text-orange-600 transition-colors">
-                                                    Перейти к рецензии →
+                                                    Перейти до рецензії →
                                                 </a>
                                             </div>
                                         </div>
@@ -205,8 +187,8 @@
                                 <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-300 mb-2">Немає избранних рецензій</h3>
-                        <p class="text-gray-500 mb-6">Додайте рецензії до избранного, щоб вони з'явились тут</p>
+                        <h3 class="text-xl font-semibold text-gray-300 mb-2">Немає збережених рецензій</h3>
+                        <p class="text-gray-500 mb-6">Додайте рецензії до збережених, щоб вони з'явились тут</p>
                     </div>
                 @endif
             </div>
