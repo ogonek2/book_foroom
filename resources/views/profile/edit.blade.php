@@ -2,13 +2,13 @@
 
 @section('main')
     <div class="min-h-screen">
-        <div class="max-w-7xl mx-auto py-8">
+        <div class="mx-auto">
             <div class="flex flex-col lg:flex-row gap-8">
 
                 <!-- Sidebar -->
                 <div class="lg:w-80 flex-shrink-0">
                     <div
-                        class="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-xl sticky top-10">
+                        class="sticky top-10">
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Налаштування профілю</h2>
 
                         <!-- Navigation -->
@@ -106,8 +106,7 @@
 
                     <!-- Personal Information Section -->
                     <div id="personal-section" class="content-section">
-                        <div
-                            class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl">
+                        <div>
 
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Особиста інформація</h3>
 
@@ -242,8 +241,7 @@
 
                     <!-- Account Management Section -->
                     <div id="account-section" class="content-section hidden">
-                        <div
-                            class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl">
+                        <div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Управління акаунтом</h3>
 
                             <!-- Account Stats -->
@@ -329,8 +327,7 @@
 
                     <!-- Security Section -->
                     <div id="security-section" class="content-section hidden">
-                        <div
-                            class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl">
+                        <div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Безпека</h3>
 
                             <form action="{{ route('profile.password.update') }}" method="POST" class="space-y-6">
@@ -372,8 +369,7 @@
 
                     <!-- Notifications Section -->
                     <div id="notifications-section" class="content-section hidden">
-                        <div
-                            class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl">
+                        <div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Сповіщення</h3>
 
                             <form action="{{ route('profile.notifications.update') }}" method="POST" class="space-y-6">
@@ -443,8 +439,7 @@
 
                     <!-- Privacy Section -->
                     <div id="privacy-section" class="content-section hidden">
-                        <div
-                            class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-xl">
+                        <div>
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Приватність</h3>
 
                             <form action="{{ route('profile.privacy.update') }}" method="POST" class="space-y-6">

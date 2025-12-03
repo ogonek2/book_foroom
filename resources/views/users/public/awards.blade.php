@@ -3,10 +3,10 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Awards Header -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
-            <div class="flex items-center justify-between mb-6">
+        <div class="mb-8">
+            <div class="flex flex-col mb-4">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Нагороди</h2>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-4 mt-4">
                     @if($userAwards->count() > 0)
                         <div class="text-center">
                             <div class="text-3xl font-bold text-yellow-500">{{ $userAwards->count() }}</div>
@@ -36,7 +36,7 @@
 
         @if($userAwards->count() > 0)
             <!-- Awards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
                 @foreach($userAwards as $award)
                     <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-6 border border-yellow-200 dark:border-yellow-700/30 hover:shadow-lg transition-all duration-300 group">
                         <div class="flex items-start space-x-4">

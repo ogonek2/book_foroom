@@ -4,7 +4,7 @@
 
 @section('profile-content')
     <div class="flex-1">
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+        <div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Бібліотека користувача</h2>
 
             <!-- Library Stats -->
@@ -21,7 +21,7 @@
                 ];
             @endphp
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4 mb-8">
                 <div class="bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $readingStats['read_count'] }}</div>
                     <div class="text-sm text-gray-600 dark:text-gray-300">Прочитано</div>
@@ -48,7 +48,7 @@
             @endphp
 
             @if ($allBooks->count() > 0)
-                <div id="user-library-app" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
+                <div id="user-library-app" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
                     @foreach ($allBooks as $readingStatus)
                         @php
                             $bookData = [

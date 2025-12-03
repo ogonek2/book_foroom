@@ -14,14 +14,67 @@
 @endpush
 
 @section('main')
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+<div>
+    <div>
+        <div class="flex gap-4 flex-col md:flex-row lg:flex-row">
+            <!-- Sticky Sidebar with Book Info -->
+            @if($book)
+            <div class="md:max-w-[220px] lg:max-w-[220px]">
+                <div class="sticky top-8">
+                    <div class="flex gap-4 flex-row md:flex-col lg:flex-col">
+                        <!-- Book Cover -->
+                        <div class="relative max-w-[10px] overflow-hidden rounded-xl">
+                                    <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
+                                         alt="{{ $book->title }}"
+                                         class="w-ful object-cover"
+                                         style="aspect-ratio: 2 / 3;">
+                                </div>
+
+                        <!-- Book Info -->
+                        <div class="pb-4 w-full">
+                            <a href="{{ route('books.show', $book->slug) }}" class="block group">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2">
+                                    {{ $book->title }}
+                                </h3>
+                            </a>
+                            
+                            @if($book->author)
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                <span class="font-medium">Автор:</span> {{ $book->author }}
+                            </p>
+                            @endif
+
+                            @if($book->rating)
+                            <div class="flex items-center mb-3">
+                                <div class="flex items-center">
+                                    <i class="fa-solid fa-star text-yellow-400"></i>
+                                </div>
+                                <span class="ml-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    {{ number_format($book->rating, 1) }}/10
+                                </span>
+                            </div>
+                            @endif
+
+                            <div class="flex-1">
+                                <a href="{{ route('books.show', $book->slug) }}" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                    <i class="fas fa-book-open mr-2"></i> До книги
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
             <!-- Main Content -->
-            <div class="lg:col-span-3">
+            <div class="w-full">
                 <!-- Header -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 mb-6">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="mb-6">
+                    <div class="flex flex-col mb-4">
+                        <a href="{{ route('profile.show', ['tab' => 'drafts']) }}" 
+                           class="text-sm text-yellow-400 mb-4">
+                            <i class='fa-solid fa-arrow-left'></i>
+                            Назад до чернеток
+                        </a>
                         <div>
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Редагувати чернетку рецензії</h2>
                             @if($book)
@@ -32,18 +85,11 @@
                             </p>
                             @endif
                         </div>
-                        <a href="{{ route('profile.show', ['tab' => 'drafts']) }}" 
-                           class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
-                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Назад до чернеток
-                        </a>
                     </div>
                 </div>
 
                 <!-- Form -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div>
         <form action="{{ route('books.reviews.update', [$book, $review]) }}" method="POST" id="edit-review-form">
             @csrf
             @method('PUT')
@@ -65,7 +111,7 @@
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Оцінка <span class="text-gray-500 text-xs">(необов'язково для чернетки)</span>
                 </label>
-                <div class="flex space-x-2" id="rating-stars">
+                <div class="flex flex-wrap gap-2" id="rating-stars">
                     @for($i = 1; $i <= 10; $i++)
                     <button type="button" 
                             data-rating="{{ $i }}"
@@ -172,110 +218,30 @@
                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Зберегти як чернетку</span>
                 </label>
             </div>
-
-            <!-- Submit Buttons -->
-            <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button type="submit" 
-                        name="action" 
-                        value="publish"
-                        class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-medium transition-all transform hover:scale-105">
-                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Опублікувати
-                </button>
-                <button type="submit" 
+            <button type="submit" 
                         name="action" 
                         value="save"
-                        class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors">
-                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                    </svg>
+                        class="mb-2 text-blue-400 dark:text-blue-400 font-medium transition-colors">
                     Зберегти чернетку
                 </button>
-                <a href="{{ route('profile.show', ['tab' => 'drafts']) }}" 
-                   class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    Скасувати
-                </a>
+            <!-- Submit Buttons -->
+            <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex space-x-2">
+                    <a href="{{ route('profile.show', ['tab' => 'drafts']) }}" 
+                       class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        Скасувати
+                    </a>
+                    <button type="submit" 
+                            name="action" 
+                            value="publish"
+                            class="flex-1 px-6 py-3 bg-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-medium">
+                        Опублікувати
+                    </button>
+                </div>
             </div>
         </form>
                 </div>
             </div>
-
-            <!-- Sticky Sidebar with Book Info -->
-            @if($book)
-            <div class="lg:col-span-1">
-                <div class="sticky top-8">
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <!-- Book Cover -->
-                        <div class="p-4">
-                            <a href="{{ route('books.show', $book->slug) }}" class="block group">
-                                <div class="relative overflow-hidden rounded-xl shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                                    <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
-                                         alt="{{ $book->title }}"
-                                         class="w-full object-cover"
-                                         style="aspect-ratio: 2 / 3;">
-                                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
-                                </div>
-                            </a>
-                        </div>
-
-                        <!-- Book Info -->
-                        <div class="px-4 pb-4">
-                            <a href="{{ route('books.show', $book->slug) }}" class="block group">
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2">
-                                    {{ $book->title }}
-                                </h3>
-                            </a>
-                            
-                            @if($book->author)
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                                <span class="font-medium">Автор:</span> {{ $book->author }}
-                            </p>
-                            @endif
-
-                            @if($book->rating)
-                            <div class="flex items-center mb-3">
-                                <div class="flex items-center">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        @if($i <= round($book->rating / 2))
-                                            <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                            </svg>
-                                        @else
-                                            <svg class="w-4 h-4 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                            </svg>
-                                        @endif
-                                    @endfor
-                                </div>
-                                <span class="ml-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    {{ number_format($book->rating, 1) }}/10
-                                </span>
-                            </div>
-                            @endif
-
-                            @if($book->publication_year)
-                            <p class="text-xs text-gray-500 dark:text-gray-500 mb-3">
-                                <span class="font-medium">Рік видання:</span> {{ $book->publication_year }}
-                            </p>
-                            @endif
-
-                            @if($book->pages)
-                            <p class="text-xs text-gray-500 dark:text-gray-500 mb-4">
-                                <span class="font-medium">Сторінок:</span> {{ $book->pages }}
-                            </p>
-                            @endif
-
-                            <a href="{{ route('books.show', $book->slug) }}" 
-                               class="block w-full text-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all transform hover:scale-105">
-                                Переглянути книгу
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endif
         </div>
     </div>
 </div>
