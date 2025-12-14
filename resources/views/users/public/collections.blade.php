@@ -4,11 +4,8 @@
 
 @section('profile-content')
     <div class="flex-1" id="public-collections-app">
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+        <div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Добірки користувача</h2>
-
-            
-
             @if ($libraries->count() > 0)
                 <!-- Collections List -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">

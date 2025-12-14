@@ -89,7 +89,7 @@
                     @else
                         <!-- Auth Links -->
                         <a href="{{ route('login') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary px-3 py-2 text-sm font-medium transition-colors duration-200">Увійти</a>
-                        <a href="{{ route('register') }}" class="bg-gradient-to-r from-brand-500 to-accent-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-200 shadow-sm hover:shadow-md">Реєстрація</a>
+                        <a href="{{ route('register') }}" class="hidden md:flex bg-gradient-to-r from-brand-500 to-accent-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-200 shadow-sm hover:shadow-md">Реєстрація</a>
                     @endauth
 
                     <!-- Mobile Burger Menu Button -->

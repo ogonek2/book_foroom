@@ -35,7 +35,19 @@
             <div class="space-y-4">
                 @foreach($draftReviews as $review)
                     <div class="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <div class="flex items-start justify-between">
+                        <div class="flex flex-col items-start justify-between">
+                            <div class="flex w-full items-center justify-between space-x-2 mb-2">
+                                @if($review->book)
+                                <a href="{{ route('books.reviews.edit-draft', [$review->book->slug, $review->id]) }}" 
+                                   class="text-sm font-medium text-yellow-500 underline">
+                                    Редагувати
+                                </a>
+                                @endif
+                                <button onclick="deleteDraft('review', {{ $review->id }})" 
+                                        class="px-4 py-2 bg-red-500/20 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
                             <div class="flex-1">
                                 <div class="flex items-center space-x-2 mb-2">
                                     @if($review->book)
@@ -56,22 +68,10 @@
                                     </div>
                                 @endif
                             </div>
-                            <div class="flex space-x-2 ml-4">
-                                @if($review->book)
-                                <a href="{{ route('books.reviews.edit-draft', [$review->book->slug, $review->id]) }}" 
-                                   class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                @endif
-                                <button onclick="publishDraft('review', {{ $review->id }})" 
-                                        class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button onclick="deleteDraft('review', {{ $review->id }})" 
-                                        class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    Видалити
-                                </button>
-                            </div>
+                            <button onclick="publishDraft('review', {{ $review->id }})" 
+                                class="px-4 py-2 bg-purple-500 mt-2 text-white rounded-lg text-sm font-medium transition-colors">
+                                Опублікувати
+                            </button>
                         </div>
                     </div>
                 @endforeach
@@ -87,7 +87,7 @@
                 @foreach($draftQuotes as $quote)
                     <div class="bg-white/5 rounded-xl p-4 border border-white/10">
                         <div class="flex flex-col gap-2 items-start justify-between">
-                            <div class="flex space-x-2 w-full justify-between items-center">
+                            <div class="flex space-x-2 w-full justify-between items-center mb-2">
                                 @if($quote->book)
                                 <a href="{{ route('books.quotes.edit-draft', [$quote->book->slug, $quote->id]) }}" 
                                    class="text-sm font-medium text-yellow-500 underline">
@@ -128,12 +128,22 @@
 
         <!-- Draft Discussions -->
         @if(isset($draftDiscussions) && $draftDiscussions->count() > 0)
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-6">
+        <div class="mb-6">
             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Чернетки обговорень</h3>
             <div class="space-y-4">
                 @foreach($draftDiscussions as $discussion)
                     <div class="bg-white/5 rounded-xl p-4 border border-white/10">
-                        <div class="flex items-start justify-between">
+                        <div class="flex flex-col items-start justify-between">
+                            <div class="flex w-full items-center justify-between space-x-2 mb-2">
+                                <a href="{{ route('discussions.edit', $discussion) }}" 
+                                   class="text-sm font-medium text-yellow-500 underline">
+                                    Редагувати
+                                </a>
+                                <button onclick="deleteDraft('discussion', {{ $discussion->id }})" 
+                                        class="px-4 py-2 bg-red-500/20 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors">
+                                    <i class="fas fa-xmark"></i>
+                                </button>
+                            </div>
                             <div class="flex-1">
                                 <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ $discussion->title }}</h4>
                                 <p class="text-gray-700 dark:text-gray-300 line-clamp-2">{{ Str::limit(strip_tags($discussion->content), 150) }}</p>
@@ -141,20 +151,10 @@
                                     {{ $discussion->updated_at->diffForHumans() }}
                                 </span>
                             </div>
-                            <div class="flex space-x-2 ml-4">
-                                <a href="{{ route('discussions.edit', $discussion) }}" 
-                                   class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button onclick="publishDraft('discussion', {{ $discussion->id }})" 
-                                        class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button onclick="deleteDraft('discussion', {{ $discussion->id }})" 
-                                        class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                            <button onclick="publishDraft('discussion', {{ $discussion->id }})" 
+                                    class="px-4 py-2 bg-purple-500 mt-2 text-white rounded-lg text-sm font-medium transition-colors">
+                                Опублікувати
+                            </button>
                         </div>
                     </div>
                 @endforeach

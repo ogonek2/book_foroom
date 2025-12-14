@@ -14,7 +14,7 @@
 
         <!-- Dropdown Menu -->
         <transition name="dropdown">
-            <div v-if="isOpen" class="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50" @click.stop>
+            <div v-if="isOpen" class="absolute right-0 mt-2 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50" @click.stop>
                 <!-- Header -->
                 <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Сповіщення</h3>

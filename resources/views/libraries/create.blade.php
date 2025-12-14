@@ -4,7 +4,7 @@
 
 @section('main')
     <div id="app" class="">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="py-4">
             <!-- Breadcrumb -->
             <nav class="mb-8">
                 <ol class="flex items-center space-x-2 text-sm">
@@ -21,7 +21,7 @@
             </div>
 
             <!-- Create Form -->
-            <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-8">
+            <div>
                 <form action="{{ route('libraries.store') }}" method="POST" class="space-y-6">
                     @csrf
 
@@ -72,9 +72,7 @@
                                        class="w-4 h-4 text-orange-600 bg-slate-100 border-slate-300 focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2">
-                                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                        </svg>
+                                        <i class="fa-solid fa-lock-open text-green-500"></i>
                                         <span class="font-medium text-slate-900 dark:text-white">Публічна</span>
                                     </div>
                                     <p class="text-sm text-slate-600 dark:text-slate-400">Добірка буде видна всім користувачам та може отримати лайки</p>
@@ -89,9 +87,7 @@
                                        class="w-4 h-4 text-orange-600 bg-slate-100 border-slate-300 focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600">
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2">
-                                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                                        </svg>
+                                        <i class="fa-solid fa-lock text-red-500"></i>
                                         <span class="font-medium text-slate-900 dark:text-white">Приватна</span>
                                     </div>
                                     <p class="text-sm text-slate-600 dark:text-slate-400">Добірка буде видна тільки вам</p>
@@ -129,7 +125,7 @@
                         </a>
                         
                         <button type="submit" 
-                                class="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105">
+                                class="px-8 py-3 bg-purple-500 text-white rounded-xl font-bold">
                             <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>

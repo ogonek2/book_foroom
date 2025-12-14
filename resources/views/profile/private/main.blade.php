@@ -14,7 +14,7 @@
             <div class="absolute inset-0">
                 <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover filter"
                     style="filter: blur(8px); scale: 1.1; opacity: 0.7;">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+                <div class="absolute inset-0 bg-light-bg dark:bg-dark-bg opacity-50"></div>
             </div>
         @else
             <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600"></div>
@@ -217,7 +217,7 @@
                                 </a>
                                 <a href="{{ route('profile.show') }}?tab=favorites"
                                     class="px-4 py-2 {{ $currentTab === 'favorites' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
-                                    Избранные
+                                    Збережені
                                 </a>
                                 <a href="{{ route('profile.show') }}?tab=drafts"
                                     class="px-4 py-2 {{ $currentTab === 'drafts' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600' }} rounded-lg text-sm font-medium transition-all">
@@ -338,19 +338,16 @@
                     @endphp
                     
                     @if ($recentReadBooks->count() > 0)
-                        @foreach ($recentReadBooks as $readingStatus)
+                        @foreach ($recentReadBooks->take(3) as $readingStatus)
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-16 bg-gray-300 dark:bg-gray-700 rounded flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-                                        </path>
-                                    </svg>
+                                    <img src="{{ $readingStatus->book->cover_image }}" alt="{{ $readingStatus->book->title }}">
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                        {{ Str::limit($readingStatus->book->title, 30) }}</h4>
+                                    <a href="{{ route('books.show', $readingStatus->book->slug) }}">
+                                        <h4 class="text-sm font-medium text-purple-500">
+                                        {{ Str::limit($readingStatus->book->title, 30) }} <i class="fa-solid fa-arrow-up-right-from-square"></i></h4>
+                                    </a>
                                     <p class="text-xs text-gray-600 dark:text-gray-400">{{ ucfirst($readingStatus->status) }}</p>
                                     <p class="text-xs text-gray-500 dark:text-gray-500">
                                         {{ $readingStatus->updated_at->diffForHumans() }}</p>

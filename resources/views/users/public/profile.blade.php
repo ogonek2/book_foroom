@@ -3,7 +3,7 @@
 @section('profile-content')
     <div class="flex-1">
         <!-- Rating Statistics -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
+        <div class="mb-8">
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Статистика оцінок</h2>
             
             @if ($stats['total_rated_books'] > 0)
@@ -61,11 +61,11 @@
         </div>
 
         <!-- Recent Books Section -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl mb-8">
-            <div class="flex items-center justify-between mb-6">
+        <div class="mb-8">
+            <div class="flex flex-col mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Останні прочитані книги</h2>
                 <a href="{{ route('users.public.library', $user->username) }}"
-                    class="text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200 text-sm font-medium">
+                    class="text-purple-600 dark:text-purple-300 hover:text-purple-700 mt-2 dark:hover:text-purple-200 text-sm font-medium">
                     Переглянути всі →
                 </a>
             </div>
@@ -108,11 +108,11 @@
         </div>
 
         <!-- Recent Reviews Section -->
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-            <div class="flex items-center justify-between mb-6">
+        <div>
+            <div class="flex flex-col mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Останні рецензії</h2>
                 <a href="{{ route('users.public.reviews', $user->username) }}"
-                    class="text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200 text-sm font-medium">
+                    class="text-purple-600 dark:text-purple-300 hover:text-purple-700 mt-2 dark:hover:text-purple-200 text-sm font-medium">
                     Переглянути всі →
                 </a>
             </div>
@@ -133,25 +133,19 @@
                                 @if ($review->rating)
                                     <div class="flex items-center ml-4">
                                         <div class="flex space-x-1">
-                                            @for ($i = 1; $i <= 5; $i++)
-                                                <svg class="w-5 h-5 {{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-400 dark:text-gray-600' }}"
-                                                    fill="currentColor" viewBox="0 0 20 20">
-                                                    <path
-                                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
-                                                    </path>
-                                                </svg>
-                                            @endfor
+                                            <i class="fa-solid fa-star text-yellow-500"></i>
                                         </div>
-                                        <span class="ml-2 text-gray-900 dark:text-white font-medium">{{ $review->rating }}/5</span>
+                                        <span class="ml-2 text-gray-900 dark:text-white font-medium">{{ $review->rating }}/10</span>
                                     </div>
                                 @endif
                             </div>
 
                             <div class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                                {{ Str::limit($review->content, 250) }}
-                                @if (strlen($review->content) > 250)
-                                    <span class="text-purple-600 dark:text-purple-300 ml-1">...</span>
-                                @endif
+                                {{ strip_tags(Str::limit($review->content, 250)) }}
+                                    <br><a href="{{ route('books.show', $review->book->slug) }}/reviews/{{ $review->id }}" 
+                                           class="text-orange-500 hover:text-orange-600 font-medium">
+                                        До рецензії →
+                                    </a>
                             </div>
 
                             <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">

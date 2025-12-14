@@ -4,7 +4,7 @@
 
 @section('profile-content')
     <div class="flex-1">
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+        <div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Цитати користувача</h2>
 
             @if ($quotes->count() > 0)
