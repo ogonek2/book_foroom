@@ -62,12 +62,20 @@
                                 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border-radius: 12px; background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 12px;">
                                     <tr>
                                         <td width="48" valign="top" style="padding-right: 12px;">
-                                            <div style="width: 40px; height: 40px; border-radius: 9999px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 16px;">
-                                                @php
-                                                    $initials = mb_strtoupper(mb_substr($sender->name ?? $sender->username ?? 'U', 0, 1));
-                                                @endphp
-                                                {{ $initials }}
-                                            </div>
+                                            @php
+                                                /** @var \App\Models\User $sender */
+                                                $avatarUrl = $sender->avatar_display ?? null;
+                                                $initials = mb_strtoupper(mb_substr($sender->name ?? $sender->username ?? 'U', 0, 1));
+                                            @endphp
+                                            @if($avatarUrl)
+                                                <div style="width: 40px; height: 40px; border-radius: 9999px; overflow: hidden; background: #111827;">
+                                                    <img src="{{ $avatarUrl }}" alt="{{ $sender->name ?? $sender->username ?? 'Avatar' }}" style="width: 40px; height: 40px; object-fit: cover; display: block;">
+                                                </div>
+                                            @else
+                                                <div style="width: 40px; height: 40px; border-radius: 9999px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 16px;">
+                                                    {{ $initials }}
+                                                </div>
+                                            @endif
                                         </td>
                                         <td valign="top">
                                             <p style="margin: 0; font-size: 14px; color: #111827; font-weight: 600;">
@@ -78,7 +86,7 @@
                                                     @php
                                                         $profileUrl = route('users.public.profile', $sender->username);
                                                     @endphp
-                                                    <a href="{{ $profileUrl }}" style="color: #6366f1; text-decoration: none;">@{{ $sender->username }}</a>
+                                                    <a href="{{ $profileUrl }}" style="color: #6366f1; text-decoration: none;">{{ '@' . $sender->username }}</a>
                                                 </p>
                                             @endif
                                         </td>
