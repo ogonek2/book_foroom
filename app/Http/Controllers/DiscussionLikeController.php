@@ -20,6 +20,8 @@ class DiscussionLikeController extends Controller
             return response()->json(['error' => 'Необходима авторизация'], 401);
         }
 
+        $likesBefore = $discussion->likes()->where('vote', 1)->count();
+
         $existingLike = Like::where('user_id', $user->id)
             ->where('likeable_type', Discussion::class)
             ->where('likeable_id', $discussion->id)
@@ -36,9 +38,29 @@ class DiscussionLikeController extends Controller
                 'vote' => 1,
             ]);
             $liked = true;
+
+            // Уведомление о лайке обговорення
+            if ($discussion->user_id && $discussion->user_id !== $user->id) {
+                \App\Services\NotificationService::createLikeNotification($discussion, $user);
+            }
         }
 
         $likesCount = $discussion->likes()->where('vote', 1)->count();
+
+        // Поріг 20 лайків для обговорення (email + notification)
+        if ($liked && $likesBefore < 20 && $likesCount >= 20 && $discussion->user_id && $discussion->user_id !== $user->id) {
+            \App\Helpers\UserNotificationHelper::send(
+                'discussion_like_milestone',
+                $discussion->user,
+                $user,
+                [
+                    'likes_count'    => $likesCount,
+                    'discussion_id'  => $discussion->id,
+                    'discussion_slug'=> $discussion->slug ?? null,
+                ],
+                $discussion
+            );
+        }
 
         return response()->json([
             'success' => true,
@@ -73,6 +95,11 @@ class DiscussionLikeController extends Controller
                 'vote' => 1,
             ]);
             $liked = true;
+
+            // Уведомление о лайке коментаря в обговоренні
+            if ($reply->user_id && $reply->user_id !== $user->id) {
+                \App\Services\NotificationService::createLikeNotification($reply, $user);
+            }
         }
 
         $likesCount = $reply->likes()->where('vote', 1)->count();

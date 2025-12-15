@@ -937,10 +937,10 @@ class DiscussionController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string|min:10|max:300',
+            'content' => 'required|string|min:1|max:300',
             'parent_id' => 'nullable|exists:discussion_replies,id',
         ], [
-            'content.min' => 'Коментар повинен містити мінімум 10 символів.',
+            'content.min' => 'Коментар повинен містити мінімум 1 символ.',
             'content.max' => 'Коментар повинен містити максимум 300 символів.',
         ]);
 

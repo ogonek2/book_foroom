@@ -71,6 +71,7 @@ class QuoteController extends Controller
     public function toggleLike(Book $book, Quote $quote)
     {
         $user = auth()->user();
+        $likesBefore = $quote->likes()->where('vote', 1)->count();
         
         // Check if user already liked this quote
         $existingLike = $quote->likes()->where('user_id', $user->id)->first();
@@ -86,10 +87,30 @@ class QuoteController extends Controller
                 'vote' => 1
             ]);
             $isLiked = true;
+
+            // Уведомление о лайке цитати
+            if ($quote->user_id && $quote->user_id !== $user->id) {
+                \App\Services\NotificationService::createLikeNotification($quote, $user);
+            }
         }
         
         // Update likes count
         $likesCount = $quote->likes()->where('vote', 1)->count();
+
+        // Поріг 20 лайків для цитати (email + notification)
+        if ($isLiked && $likesBefore < 20 && $likesCount >= 20 && $quote->user_id && $quote->user_id !== $user->id) {
+            \App\Helpers\UserNotificationHelper::send(
+                'quote_like_milestone',
+                $quote->user,
+                $user,
+                [
+                    'likes_count' => $likesCount,
+                    'quote_id'    => $quote->id,
+                    'book_id'     => $quote->book_id ?? null,
+                ],
+                $quote
+            );
+        }
         
         return response()->json([
             'success' => true,

@@ -13,7 +13,7 @@
                 Введіть свої дані для входу
             </p>
         </div>
-        <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Right Side - Information Text -->
             <div class="hidden lg:block">
                 <div>
@@ -127,7 +127,7 @@
 
                         <!-- Email Field -->
                         <div>
-                            <label for="email" class="block text-xs font-semibold text-slate-900 dark:text-white mb-1.5">
+                            <label for="email" class="block text-xs font-semibold text-slate-900 dark:text-white mb-2">
                                 Email
                             </label>
                             <input id="email" name="email" type="email" required value="{{ old('email') }}"
@@ -140,7 +140,7 @@
 
                         <!-- Password Field -->
                         <div>
-                            <label for="password" class="block text-xs font-semibold text-slate-900 dark:text-white mb-1.5">
+                            <label for="password" class="block text-xs font-semibold text-slate-900 dark:text-white mb-2">
                                 Пароль
                             </label>
                             <div class="relative">

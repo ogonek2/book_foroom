@@ -57,6 +57,8 @@ class ReviewController extends Controller
             ->where('vote', 1)
             ->first();
 
+        $likesBefore = $review->likes()->where('vote', 1)->count();
+
         if ($existingLike) {
             // Убираем лайк
             $existingLike->delete();
@@ -77,12 +79,34 @@ class ReviewController extends Controller
                 'vote' => 1
             ]);
             $isLiked = true;
+
+            // Уведомление о лайке рецензии / коментаря до рецензії
+            if ($review->user_id && $review->user_id !== $userId) {
+                \App\Services\NotificationService::createLikeNotification($review, Auth::user());
+            }
+        }
+
+        $likesCount = $review->fresh()->likes_count;
+
+        // Поріг 20 лайків для рецензії (email + notification)
+        if ($isLiked && $likesBefore < 20 && $likesCount >= 20 && $review->user_id && $review->user_id !== $userId) {
+            \App\Helpers\UserNotificationHelper::send(
+                'review_like_milestone',
+                $review->user,
+                Auth::user(),
+                [
+                    'likes_count' => $likesCount,
+                    'book_id'     => $review->book_id ?? null,
+                    'review_id'   => $review->id,
+                ],
+                $review
+            );
         }
 
         return response()->json([
             'success' => true,
             'isLiked' => $isLiked,
-            'likesCount' => $review->fresh()->likes_count,
+            'likesCount' => $likesCount,
             'dislikesCount' => $review->fresh()->dislikes_count,
             'message' => $isLiked ? 'Лайк додано!' : 'Лайк прибрано!'
         ]);

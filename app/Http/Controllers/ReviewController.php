@@ -441,10 +441,10 @@ class ReviewController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string|min:10|max:400',
+            'content' => 'required|string|min:1|max:400',
             'parent_id' => 'nullable|exists:reviews,id'
         ], [
-            'content.min' => 'Коментар повинен містити мінімум 10 символів.',
+            'content.min' => 'Коментар повинен містити мінімум 1 символ.',
             'content.max' => 'Коментар повинен містити максимум 400 символів.',
         ]);
 

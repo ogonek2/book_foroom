@@ -61,6 +61,7 @@ class FactController extends Controller
     public function toggleLike(Request $request, Book $book, Fact $fact)
     {
         $user = Auth::user();
+        $likesBefore = $fact->likes()->where('vote', 1)->count();
         $existingLike = $fact->likes()->where('user_id', $user->id)->first();
 
         if ($existingLike) {
@@ -80,10 +81,30 @@ class FactController extends Controller
                 'vote' => 1,
             ]);
             $isLiked = true;
+
+            // Уведомление о лайке факта
+            if ($fact->user_id && $fact->user_id !== $user->id) {
+                \App\Services\NotificationService::createLikeNotification($fact, $user);
+            }
         }
 
         // Update likes count
         $likesCount = $fact->likes()->where('vote', 1)->count();
+
+        // Поріг 20 лайків для факту (email + notification)
+        if ($isLiked && $likesBefore < 20 && $likesCount >= 20 && $fact->user_id && $fact->user_id !== $user->id) {
+            \App\Helpers\UserNotificationHelper::send(
+                'fact_like_milestone',
+                $fact->user,
+                $user,
+                [
+                    'likes_count' => $likesCount,
+                    'fact_id'     => $fact->id,
+                    'book_id'     => $fact->book_id ?? null,
+                ],
+                $fact
+            );
+        }
 
         return response()->json([
             'success' => true,

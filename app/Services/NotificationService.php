@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Notification;
 use App\Models\User;
+use App\Helpers\UserNotificationHelper;
 
 class NotificationService
 {
@@ -12,7 +13,6 @@ class NotificationService
      */
     public static function createReviewReplyNotification($review, $sender)
     {
-        // Находим автора родительской рецензии
         $parentReview = $review->parent;
         
         if (!$parentReview || !$parentReview->user_id || $parentReview->user_id === $sender->id) {
@@ -20,31 +20,22 @@ class NotificationService
         }
 
         $recipient = $parentReview->user;
-        
-        // Проверяем настройки уведомлений
-        if (!$recipient->comments_notifications) {
-            return;
-        }
 
-        // Убеждаемся, что книга загружена
         $parentReview->load('book');
-        
-        Notification::create([
-            'user_id' => $recipient->id,
-            'sender_id' => $sender->id,
-            'type' => 'review_reply',
-            'message' => $sender->name . ' відповів на вашу рецензію',
-            'notifiable_type' => get_class($review),
-            'notifiable_id' => $review->id,
-            'data' => [
-                'book_id' => $parentReview->book_id,
-                'book_slug' => $parentReview->book->slug,
-                'book_title' => $parentReview->book->title ?? 'Книга',
-                'review_id' => $parentReview->id,
-                'reply_id' => $review->id,
-                'reply_content' => mb_substr($review->content, 0, 100),
-            ],
-        ]);
+
+        // Определяем, это ответ на рецензию или на комментарий к рецензии
+        $eventKey = $parentReview->parent_id ? 'review_comment_reply' : 'review_reply';
+
+        $payload = [
+            'book_id'       => $parentReview->book_id,
+            'book_slug'     => $parentReview->book->slug,
+            'book_title'    => $parentReview->book->title ?? 'Книга',
+            'review_id'     => $parentReview->id,
+            'reply_id'      => $review->id,
+            'reply_content' => mb_substr($review->content, 0, 100),
+        ];
+
+        UserNotificationHelper::send($eventKey, $recipient, $sender, $payload, $review);
     }
 
     /**
@@ -53,8 +44,7 @@ class NotificationService
     public static function createDiscussionReplyNotification($reply, $sender)
     {
         $discussion = $reply->discussion;
-        
-        // Если это ответ на другой ответ
+
         if ($reply->parent_id) {
             $parentReply = $reply->parent;
             
@@ -63,56 +53,45 @@ class NotificationService
             }
 
             $recipient = $parentReply->user;
-            
-            // Проверяем настройки уведомлений
-            if (!$recipient->comments_notifications) {
-                return;
-            }
 
-            Notification::create([
-                'user_id' => $recipient->id,
-                'sender_id' => $sender->id,
-                'type' => 'discussion_reply',
-                'message' => $sender->name . ' відповів на ваш коментар',
-                'notifiable_type' => get_class($reply),
-                'notifiable_id' => $reply->id,
-                'data' => [
-                    'discussion_id' => $discussion->id,
-                    'discussion_title' => $discussion->title,
-                    'discussion_slug' => $discussion->slug,
-                    'parent_reply_id' => $parentReply->id,
-                    'reply_id' => $reply->id,
-                    'reply_content' => mb_substr($reply->content, 0, 100),
-                ],
-            ]);
+            $payload = [
+                'discussion_id'    => $discussion->id,
+                'discussion_title' => $discussion->title,
+                'discussion_slug'  => $discussion->slug,
+                'parent_reply_id'  => $parentReply->id,
+                'reply_id'         => $reply->id,
+                'reply_content'    => mb_substr($reply->content, 0, 100),
+            ];
+
+            UserNotificationHelper::send(
+                'discussion_comment_reply',
+                $recipient,
+                $sender,
+                $payload,
+                $reply
+            );
         } else {
-            // Если это ответ на обсуждение, уведомляем автора обсуждения
             if (!$discussion->user_id || $discussion->user_id === $sender->id) {
                 return;
             }
 
             $recipient = $discussion->user;
-            
-            // Проверяем настройки уведомлений
-            if (!$recipient->comments_notifications) {
-                return;
-            }
 
-            Notification::create([
-                'user_id' => $recipient->id,
-                'sender_id' => $sender->id,
-                'type' => 'discussion_reply',
-                'message' => $sender->name . ' відповів у вашому обговоренні',
-                'notifiable_type' => get_class($reply),
-                'notifiable_id' => $reply->id,
-                'data' => [
-                    'discussion_id' => $discussion->id,
-                    'discussion_title' => $discussion->title,
-                    'discussion_slug' => $discussion->slug,
-                    'reply_id' => $reply->id,
-                    'reply_content' => mb_substr($reply->content, 0, 100),
-                ],
-            ]);
+            $payload = [
+                'discussion_id'    => $discussion->id,
+                'discussion_title' => $discussion->title,
+                'discussion_slug'  => $discussion->slug,
+                'reply_id'         => $reply->id,
+                'reply_content'    => mb_substr($reply->content, 0, 100),
+            ];
+
+            UserNotificationHelper::send(
+                'discussion_reply',
+                $recipient,
+                $sender,
+                $payload,
+                $reply
+            );
         }
     }
 
@@ -121,46 +100,41 @@ class NotificationService
      */
     public static function createLikeNotification($likeable, $sender)
     {
-        // Определяем получателя в зависимости от типа лайкнутого объекта
         $recipient = null;
-        $message = '';
-        $type = 'like';
+        $eventKey = null;
 
         if ($likeable instanceof \App\Models\Review) {
             $recipient = $likeable->user;
-            $message = $sender->name . ' вподобав вашу рецензію';
+            // Если это ответ (коментар на рецензію)
+            if (!empty($likeable->parent_id)) {
+                $eventKey = 'review_comment_like';
+            } else {
+                $eventKey = 'review_like';
+            }
         } elseif ($likeable instanceof \App\Models\Discussion) {
             $recipient = $likeable->user;
-            $message = $sender->name . ' вподобав ваше обговорення';
+            $eventKey = 'discussion_like';
         } elseif ($likeable instanceof \App\Models\DiscussionReply) {
             $recipient = $likeable->user;
-            $message = $sender->name . ' вподобав ваш коментар';
+            $eventKey = 'discussion_comment_like';
         } elseif ($likeable instanceof \App\Models\Quote) {
             $recipient = $likeable->user;
-            $message = $sender->name . ' вподобав вашу цитату';
+            $eventKey = 'quote_like';
+        } elseif ($likeable instanceof \App\Models\Fact) {
+            $recipient = $likeable->user;
+            $eventKey = 'fact_like';
         }
 
-        if (!$recipient || $recipient->id === $sender->id) {
-            return; // Не создаем уведомление если это свой лайк
-        }
-
-        // Проверяем настройки уведомлений (пока используем общие настройки)
-        if (!$recipient->email_notifications) {
+        if (!$recipient || !$eventKey) {
             return;
         }
 
-        Notification::create([
-            'user_id' => $recipient->id,
-            'sender_id' => $sender->id,
-            'type' => $type,
-            'message' => $message,
-            'notifiable_type' => get_class($likeable),
-            'notifiable_id' => $likeable->id,
-            'data' => [
-                'likeable_type' => get_class($likeable),
-                'likeable_id' => $likeable->id,
-            ],
-        ]);
+        $payload = [
+            'likeable_type' => get_class($likeable),
+            'likeable_id'   => $likeable->id,
+        ];
+
+        UserNotificationHelper::send($eventKey, $recipient, $sender, $payload, $likeable);
     }
 }
 
