@@ -106,6 +106,12 @@
                         :user-review='@json($userReviewData)' :hide-header="true" :hide-add-button="true"
                         @@show-notification="showNotification">
                     </book-reviews-list>
+
+                    @if(isset($reviewsPaginator) && $reviewsPaginator->hasPages())
+                        <div class="mt-6">
+                            {{ $reviewsPaginator->onEachSide(1)->links() }}
+                        </div>
+                    @endif
                 </div>
             </div>
 

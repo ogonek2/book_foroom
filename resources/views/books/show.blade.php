@@ -274,7 +274,7 @@
                         <quotes-list :quotes="{{ json_encode($quotesData) }}" book-slug="{{ $book->slug }}"
                             :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}">
                         </quotes-list>
-                        </div>
+                    </div>
 
                     <!-- Interesting Facts Section -->
                     @php

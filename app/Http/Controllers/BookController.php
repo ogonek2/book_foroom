@@ -185,7 +185,8 @@ class BookController extends Controller
                 'replies.replies.replies.replies.user' // Добавляем четвертый уровень
             ])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->limit(5)
+            ->get();
 
         // Get quotes for this book (excluding drafts)
         $quotes = $book->quotes()
@@ -194,7 +195,7 @@ class BookController extends Controller
             ->where('is_public', true)
             ->where('is_draft', false) // Exclude drafts
             ->orderBy('created_at', 'desc')
-            ->limit(10)
+            ->limit(4)
             ->get();
 
         // Get facts for this book
@@ -202,7 +203,7 @@ class BookController extends Controller
             ->with('user')
             ->where('is_public', true)
             ->orderBy('created_at', 'desc')
-            ->limit(10)
+            ->limit(4)
             ->get();
 
         // Get book prices

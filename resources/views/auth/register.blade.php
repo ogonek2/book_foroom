@@ -76,7 +76,7 @@
                                     персоналізовані рекомендації
                                 </p>
                             </div>
-                        </div>
+        </div>
 
                         <div class="flex items-start gap-4">
                             <div
@@ -95,16 +95,16 @@
                                     найкращі книги
                                 </p>
                             </div>
-                        </div>
-                    </div>
+                </div>
+                </div>
                 </div>
             </div>
             <!-- Registration Card with Glass Effect -->
             <div class="backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6">
                 <!-- Registration Form -->
                 <form action="{{ route('register') }}" method="POST" class="space-y-4">
-                    @csrf
-
+            @csrf
+            
                     <!-- Name Field -->
                     <div>
                         <label for="name" class="block text-xs font-semibold text-slate-900 dark:text-white mb-1.5 mb-2">
@@ -123,7 +123,7 @@
                             Email <span class="text-red-500">*</span>
                         </label>
                         <input id="email" name="email" type="email" required value="{{ old('email') }}"
-                            placeholder="your@email.com"
+                               placeholder="your@email.com"
                             class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all @error('email') border-red-500 @enderror">
                         @error('email')
                             <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -139,7 +139,7 @@
                         <div class="relative">
                             <input id="password" name="password" type="password" required placeholder="••••••••"
                                 class="w-full px-3 py-2 pr-10 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all @error('password') border-red-500 @enderror">
-                            <button type="button" onclick="togglePassword('password')"
+                            <button type="button" onclick="togglePassword('password')" 
                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                                 <svg id="password-eye" class="h-4 w-4" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -167,10 +167,10 @@
                             Підтвердіть пароль <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
-                            <input id="password_confirmation" name="password_confirmation" type="password" required
+                            <input id="password_confirmation" name="password_confirmation" type="password" required 
                                 placeholder="••••••••"
                                 class="w-full px-3 py-2 pr-10 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                            <button type="button" onclick="togglePassword('password_confirmation')"
+                            <button type="button" onclick="togglePassword('password_confirmation')" 
                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                                 <svg id="password_confirmation-eye" class="h-4 w-4" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -206,20 +206,20 @@
                     </p>
                 </div>
 
-                <!-- OAuth Login Options -->
+        <!-- OAuth Login Options -->
                 <div class="mt-6">
-                    <div class="relative">
-                        <div class="absolute inset-0 flex items-center">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
                             <div class="w-full border-t border-slate-300 dark:border-slate-600"></div>
-                        </div>
+                </div>
                         <div class="relative flex justify-center text-xs">
                             <span class="px-2 bg-white/80 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400">Або
                                 увійдіть через</span>
-                        </div>
-                    </div>
+                </div>
+            </div>
 
                     <div class="mt-4 grid grid-cols-2 gap-3">
-                        <button type="button" onclick="loginWithGoogle()"
+                <button type="button" onclick="loginWithGoogle()" 
                             class="w-full inline-flex justify-center py-2.5 px-4 border border-slate-300 dark:border-slate-600 rounded-xl shadow-sm bg-white dark:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
                             <svg class="w-4 h-4" viewBox="0 0 24 24">
                                 <path fill="#4285F4"
@@ -230,24 +230,24 @@
                                     d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                                 <path fill="#EA4335"
                                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                            </svg>
-                            <span class="ml-2">Google</span>
-                        </button>
+                    </svg>
+                    <span class="ml-2">Google</span>
+                </button>
 
-                        <button type="button" onclick="loginWithFacebook()"
+                <button type="button" onclick="loginWithFacebook()" 
                             class="w-full inline-flex justify-center py-2.5 px-4 border border-slate-300 dark:border-slate-600 rounded-xl shadow-sm bg-white dark:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
                             <svg class="w-4 h-4" fill="#1877F2" viewBox="0 0 24 24">
                                 <path
                                     d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                            </svg>
-                            <span class="ml-2">Facebook</span>
-                        </button>
-                    </div>
-                </div>
+                    </svg>
+                    <span class="ml-2">Facebook</span>
+                </button>
             </div>
         </div>
+    </div>
+</div>
 
-        <script>
+<script>
             function togglePassword(fieldId) {
                 const field = document.getElementById(fieldId);
                 const eye = document.getElementById(fieldId + '-eye');
@@ -257,19 +257,19 @@
                     field.type = 'text';
                     if (eye) eye.classList.add('hidden');
                     if (eyeOff) eyeOff.classList.remove('hidden');
-                } else {
+        } else {
                     field.type = 'password';
                     if (eye) eye.classList.remove('hidden');
                     if (eyeOff) eyeOff.classList.add('hidden');
                 }
-            }
+}
 
-            function loginWithGoogle() {
-                window.location.href = '{{ route("auth.google") }}';
-            }
+function loginWithGoogle() {
+    window.location.href = '{{ route("auth.google") }}';
+}
 
-            function loginWithFacebook() {
-                window.location.href = '{{ route("auth.facebook") }}';
-            }
-        </script>
+function loginWithFacebook() {
+    window.location.href = '{{ route("auth.facebook") }}';
+}
+</script>
 @endsection

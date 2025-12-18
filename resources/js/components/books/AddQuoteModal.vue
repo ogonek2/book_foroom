@@ -250,16 +250,8 @@ export default {
                         this.$emit('quote-added', response.data.quote);
                         this.$emit('show-notification', isDraft ? 'Чернетку збережено!' : 'Цитату успішно додано!', 'success');
                     }
+                    // Просто закрываем модалку, обновление списка происходит через события
                     this.closeModal();
-                    if (isDraft) {
-                        setTimeout(() => {
-                            window.location.href = '/profile?tab=drafts';
-                        }, 1000);
-                    } else if (this.isEditMode) {
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1000);
-                    }
                 } else {
                     this.$emit('show-notification', response.data.message || 'Помилка при додаванні цитати.', 'error');
                 }

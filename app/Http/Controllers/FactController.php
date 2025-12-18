@@ -10,6 +10,66 @@ use Illuminate\Support\Facades\Auth;
 class FactController extends Controller
 {
     /**
+     * Display all facts for a book (page with list).
+     */
+    public function index(Request $request, Book $book)
+    {
+        $book->load(['categories', 'author']);
+
+        $factsQuery = $book->facts()
+            ->where('is_public', true)
+            ->with('user')
+            ->orderByDesc('created_at');
+
+        if ($request->expectsJson()) {
+            $perPage = (int) $request->input('per_page', 10);
+            $perPage = max(1, min(50, $perPage));
+
+            return response()->json(
+                $factsQuery->paginate($perPage)
+            );
+        }
+
+        $perPage = 10;
+        $facts = $factsQuery->paginate($perPage);
+        $factsCount = $facts->total();
+
+        $isAuthenticated = Auth::check();
+        $currentUserId = Auth::id();
+
+        $factsData = collect($facts->items())->map(function ($fact) use ($isAuthenticated, $currentUserId) {
+            return [
+                'id' => $fact->id,
+                'content' => $fact->content,
+                'user_id' => $fact->user_id,
+                'user' => [
+                    'id' => $fact->user->id,
+                    'name' => $fact->user->name,
+                    'username' => $fact->user->username,
+                    'avatar_display' => $fact->user->avatar_display,
+                ],
+                'is_liked_by_current_user' => $isAuthenticated ? $fact->isLikedBy($currentUserId) : false,
+                'likes_count' => $fact->likes()->where('vote', 1)->count(),
+                'created_at' => $fact->created_at->toISOString(),
+            ];
+        })->values()->toArray();
+
+        $ratingDistribution = $book->getRatingDistribution();
+        $readingStats = $book->getReadingStats();
+        $authorModel = $book->getRelation('author');
+
+        return view('books.facts', [
+            'book' => $book,
+            'authorModel' => $authorModel,
+            'factsData' => $factsData,
+            'factsCount' => $factsCount,
+            'ratingDistribution' => $ratingDistribution,
+            'readingStats' => $readingStats,
+            'factsPaginator' => $facts,
+        ]);
+    }
+
+    /**
      * Store a newly created fact.
      */
     public function store(Request $request, Book $book)

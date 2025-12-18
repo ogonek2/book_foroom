@@ -37,11 +37,17 @@
             </form>
         </div>
 
-        <div v-if="localFacts && localFacts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div class="flex flex-col justify-end mb-4" v-if="localFacts.length > 0" >
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
             <fact-card v-for="fact in localFacts" :key="fact.id" :fact="fact" :book-slug="bookSlug"
                 :current-user-id="currentUserId" @show-notification="showNotification" @like-toggled="handleLikeToggled"
-                @fact-deleted="handleFactDeleted" @fact-updated="handleFactUpdated">
-            </fact-card>
+                    @fact-deleted="handleFactDeleted" @fact-updated="handleFactUpdated">
+                </fact-card>
+            </div>
+            <a :href="`/books/${bookSlug}/facts`"
+                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-center mt-4">
+                Всі факти
+            </a>
         </div>
 
         <div v-else class="text-center py-8">
@@ -122,7 +128,17 @@ export default {
                 }
             } catch (error) {
                 console.error('Error adding fact:', error);
-                this.showNotification('Помилка при додаванні факту.', 'error');
+
+                // Пытаемся показать конкретное сообщение валидации (например, про мінімум 50 символів)
+                let message = 'Помилка при додаванні факту.';
+                if (error.response && error.response.status === 422 && error.response.data && error.response.data.errors) {
+                    const errors = error.response.data.errors;
+                    if (errors.content && errors.content.length) {
+                        message = errors.content[0];
+                    }
+                }
+
+                this.showNotification(message, 'error');
             }
 
             this.isSubmitting = false;

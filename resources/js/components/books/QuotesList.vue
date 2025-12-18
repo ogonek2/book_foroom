@@ -1,5 +1,6 @@
 <template>
-    <div class="lg:bg-white/80 lg:dark:bg-slate-800/80 lg:backdrop-blur-xl rounded-3xl lg:shadow-xl lg:border border-white/20 dark:border-slate-700/30 lg:p-8">
+    <div
+        class="lg:bg-white/80 lg:dark:bg-slate-800/80 lg:backdrop-blur-xl rounded-3xl lg:shadow-xl lg:border border-white/20 dark:border-slate-700/30 lg:p-8">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center justify-between mb-6">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
                 Цитати
@@ -13,11 +14,16 @@
             </div>
 
         </div>
-
-        <div v-if="localQuotes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            <quote-card v-for="quote in localQuotes" :key="quote.id" :quote="quote" :book-slug="bookSlug"
-                :current-user-id="currentUserId" @like-toggled="handleLikeToggled" @quote-deleted="handleQuoteDeleted"
-                @quote-updated="handleQuoteUpdated" @show-notification="showNotification" />
+        <div class="flex flex-col justify-end mb-4" v-if="localQuotes.length > 0" >
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                <quote-card v-for="quote in localQuotes" :key="quote.id" :quote="quote" :book-slug="bookSlug"
+                    :current-user-id="currentUserId" @like-toggled="handleLikeToggled" @quote-deleted="handleQuoteDeleted"
+                    @quote-updated="handleQuoteUpdated" @show-notification="showNotification" />
+            </div>
+            <a :href="`/books/${bookSlug}/quotes`"
+                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-center mt-4">
+                Всі цитати
+            </a>
         </div>
         <div v-else class="text-center py-20">
             <div

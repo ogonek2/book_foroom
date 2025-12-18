@@ -36,8 +36,10 @@ class ReviewController extends Controller
             );
         }
 
-        $reviews = $reviewsQuery->get();
-        $reviewsCount = $reviews->count();
+        // Для веб-версії используем пагинацию
+        $perPage = 10;
+        $reviews = $reviewsQuery->paginate($perPage);
+        $reviewsCount = $reviews->total();
 
         $userReview = null;
         if (Auth::check()) {
@@ -51,7 +53,7 @@ class ReviewController extends Controller
         $isAuthenticated = Auth::check();
         $currentUserId = Auth::id();
 
-        $reviewsData = $reviews->map(function ($review) use ($isAuthenticated, $currentUserId, $book) {
+        $reviewsData = collect($reviews->items())->map(function ($review) use ($isAuthenticated, $currentUserId, $book) {
             return [
                 'id' => $review->id,
                 'content' => $review->content,
@@ -99,6 +101,7 @@ class ReviewController extends Controller
             'userReviewData' => $userReviewData,
             'ratingDistribution' => $ratingDistribution,
             'readingStats' => $readingStats,
+            'reviewsPaginator' => $reviews,
         ]);
     }
     

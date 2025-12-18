@@ -55,6 +55,8 @@ Route::prefix('books')->name('books.')->group(function () {
     
     // Маршруты для цитат
     Route::prefix('{book:slug}/quotes')->name('quotes.')->group(function () {
+        // Список всіх цитат книги
+        Route::get('/', [QuoteController::class, 'index'])->name('index');
         Route::post('/', [QuoteController::class, 'store'])->name('store')->middleware('auth');
         Route::post('/{quote}/like', [QuoteController::class, 'toggleLike'])->name('like')->middleware('auth');
         Route::post('/{quote}/favorite', [QuoteController::class, 'toggleFavorite'])->name('favorite')->middleware('auth');
@@ -66,6 +68,8 @@ Route::prefix('books')->name('books.')->group(function () {
     
     // Маршруты для фактов
     Route::prefix('{book:slug}/facts')->name('facts.')->group(function () {
+        // Список всіх фактів книги
+        Route::get('/', [FactController::class, 'index'])->name('index');
         Route::post('/', [FactController::class, 'store'])->name('store')->middleware('auth');
         Route::post('/{fact}/like', [FactController::class, 'toggleLike'])->name('like')->middleware('auth');
         Route::put('/{fact}', [FactController::class, 'update'])->name('update')->middleware('auth');

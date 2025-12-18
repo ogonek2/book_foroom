@@ -10,17 +10,80 @@ use Illuminate\Support\Facades\Auth;
 class QuoteController extends Controller
 {
     /**
+     * Display all quotes for a book (page with list).
+     */
+    public function index(Request $request, Book $book)
+    {
+        $book->load(['categories', 'author']);
+
+        $quotesQuery = $book->quotes()
+            ->where('is_draft', false)
+            ->where('is_public', true)
+            ->with('user')
+            ->orderByDesc('created_at');
+
+        if ($request->expectsJson()) {
+            $perPage = (int) $request->input('per_page', 10);
+            $perPage = max(1, min(50, $perPage));
+
+            return response()->json(
+                $quotesQuery->paginate($perPage)
+            );
+        }
+
+        $perPage = 10;
+        $quotes = $quotesQuery->paginate($perPage);
+        $quotesCount = $quotes->total();
+
+        $isAuthenticated = Auth::check();
+        $currentUserId = Auth::id();
+
+        $quotesData = collect($quotes->items())->map(function ($quote) use ($isAuthenticated, $currentUserId) {
+            return [
+                'id' => $quote->id,
+                'content' => $quote->content,
+                'page_number' => $quote->page_number,
+                'is_public' => $quote->is_public,
+                'created_at' => $quote->created_at->toISOString(),
+                'user_id' => $quote->user_id,
+                'user' => $quote->user ? [
+                    'id' => $quote->user->id,
+                    'name' => $quote->user->name,
+                    'username' => $quote->user->username,
+                    'avatar_display' => $quote->user->avatar_display ?? null,
+                ] : null,
+                'is_liked_by_current_user' => $isAuthenticated ? $quote->isLikedBy($currentUserId) : false,
+                'is_favorited_by_current_user' => $isAuthenticated ? $quote->isFavoritedBy($currentUserId) : false,
+                'likes_count' => $quote->likes()->where('vote', 1)->count(),
+            ];
+        })->values()->toArray();
+
+        $ratingDistribution = $book->getRatingDistribution();
+        $readingStats = $book->getReadingStats();
+        $authorModel = $book->getRelation('author');
+
+        return view('books.quotes', [
+            'book' => $book,
+            'authorModel' => $authorModel,
+            'quotesData' => $quotesData,
+            'quotesCount' => $quotesCount,
+            'ratingDistribution' => $ratingDistribution,
+            'readingStats' => $readingStats,
+            'quotesPaginator' => $quotes,
+        ]);
+    }
+
+    /**
      * Store a new quote
      */
     public function store(Request $request, Book $book)
     {
         $isDraft = $request->boolean('is_draft', false);
-        
+
         $request->validate([
             'content' => 'required|string|min:20|max:500',
             'page_number' => 'nullable|integer|min:1',
             'is_public' => 'boolean',
-            'is_draft' => 'nullable|boolean',
         ], [
             'content.min' => 'Цитата повинна містити мінімум 20 символів.',
             'content.max' => 'Цитата повинна містити максимум 500 символів.',
@@ -170,12 +233,11 @@ class QuoteController extends Controller
         // Определяем действие: publish или save
         $action = $request->input('action');
         $isDraft = ($action === 'save' || ($request->boolean('is_draft', false) && $action !== 'publish')) ? true : false;
-        
+
         $request->validate([
             'content' => 'required|string|min:20|max:500',
             'page_number' => 'nullable|integer|min:1',
             'is_public' => 'boolean',
-            'is_draft' => 'nullable|boolean',
         ], [
             'content.min' => 'Цитата повинна містити мінімум 20 символів.',
             'content.max' => 'Цитата повинна містити максимум 500 символів.',

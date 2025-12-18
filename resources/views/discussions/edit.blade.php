@@ -302,15 +302,15 @@
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Редагувати обговорення</h2>
                     <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Внесіть зміни до вашого обговорення</p>
-                </div>
+        </div>
 
                 <div>
                     <form id="discussion-form" action="{{ route('discussions.update', $discussion) }}" method="POST" class="space-y-6">
-                        @csrf
-                        @method('PUT')
+                @csrf
+                @method('PUT')
 
-                        <!-- Title -->
-                        <div>
+                <!-- Title -->
+                <div>
                             <label for="title" class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                                 Заголовок обговорення <span class="text-red-500">*</span>
                                 <span class="text-xs font-normal text-slate-500 dark:text-slate-400 ml-2"
@@ -319,17 +319,17 @@
                                     <span id="title-max">200</span> символів)
                                 </span>
                             </label>
-                            <input type="text" id="title" name="title" value="{{ old('title', $discussion->title) }}"
+                    <input type="text" id="title" name="title" value="{{ old('title', $discussion->title) }}"
                                 placeholder="Введіть заголовок обговорення..." maxlength="200"
                                 class="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all @error('title') border-red-500 @enderror"
-                                required>
-                            @error('title')
-                                <p class="mt-2 text-red-500 dark:text-red-400 text-sm">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        required>
+                    @error('title')
+                        <p class="mt-2 text-red-500 dark:text-red-400 text-sm">{{ $message }}</p>
+                    @enderror
+                </div>
 
                         <!-- Content Editor -->
-                        <div>
+                <div>
                             <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
                                 Зміст обговорення <span class="text-red-500">*</span>
                                 <span class="text-xs font-normal text-slate-500 dark:text-slate-400 ml-2"
@@ -360,10 +360,10 @@
                                 для згадки користувачів та <strong>#hashtag</strong> для тегів.
                             </div>
 
-                            @error('content')
-                                <p class="mt-2 text-red-500 dark:text-red-400 text-sm">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    @error('content')
+                        <p class="mt-2 text-red-500 dark:text-red-400 text-sm">{{ $message }}</p>
+                    @enderror
+                </div>
 
                         <!-- Guidelines -->
                         <div
@@ -371,14 +371,14 @@
                             <h4 class="text-blue-700 dark:text-blue-300 font-medium mb-2 flex items-center gap-2">
                                 <i class="fas fa-info-circle"></i>
                                 Правила редагування обговорень
-                            </h4>
+                    </h4>
                             <ul class="text-blue-600 dark:text-blue-400 text-sm space-y-1">
                                 <li>• Будьте ввічливими і уважні до інших учасників</li>
                                 <li>• Створюйте цікаві і змістовні обговорення</li>
                                 <li>• Використовуйте понятні і інформативні заголовки</li>
                                 <li>• Використовуйте @ для згадки користувачів та # для тегів</li>
                             </ul>
-                        </div>
+                    </div>
 
                         <!-- Form Actions -->
                         <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
@@ -402,14 +402,14 @@
                                     </svg>
                                     <span>Опублікувати</span>
                                 </button>
-                            </div>
-                            
+                </div>
+
                             <!-- Submit Button -->
                             <button type="submit" id="submit-btn"
                                 class="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span>Оновити обговорення</span>
-                            </button>
-                        </div>
+                        </button>
+                    </div>
                     </form>
                 </div>
             </div>
@@ -482,7 +482,7 @@
                             console.log('Setting initial content to editor');
                             editorComponent.editor.commands.setContent(initialContent, false);
                             editorApp.editorContent = initialContent;
-                            if (contentInput) {
+                    if (contentInput) {
                                 contentInput.value = initialContent;
                             }
                             updateContentCounter();
@@ -551,7 +551,7 @@
                         }
                     });
                 }
-
+                
                 // Action mode tabs
                 const actionTabs = document.querySelectorAll('.action-tab');
                 actionTabs.forEach(tab => {
