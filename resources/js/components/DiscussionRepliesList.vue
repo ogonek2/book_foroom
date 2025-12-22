@@ -52,7 +52,7 @@
                                      :reply="reply"
                                      :level="0"
                                      :highlighted-reply-id="highlightedReplyId"
-                                     :discussion-id="discussionId"
+                                     :discussion-slug="discussionSlug"
                                      :current-user-id="currentUserId"
                                      :is-discussion-closed="isDiscussionClosed"
                                      :is-moderator="isModerator"
@@ -95,8 +95,8 @@ export default {
             type: [Array, Object],
             default: () => []
         },
-        discussionId: {
-            type: Number,
+        discussionSlug: {
+            type: String,
             required: true
         },
         currentUserId: {
@@ -128,14 +128,157 @@ export default {
             return this.currentUserId !== null;
         }
     },
+    mounted() {
+        // Handle hash anchor on mount
+        this.handleHashAnchor();
+        
+        // Listen for hash changes
+        window.addEventListener('hashchange', this.handleHashAnchor);
+    },
+    beforeDestroy() {
+        window.removeEventListener('hashchange', this.handleHashAnchor);
+    },
     methods: {
+        handleHashAnchor() {
+            const hash = window.location.hash;
+            if (!hash || !hash.startsWith('#reply-')) {
+                return;
+            }
+            
+            const replyId = parseInt(hash.replace('#reply-', ''));
+            if (!replyId) {
+                return;
+            }
+            
+            // Wait for DOM to be ready
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    this.scrollToReply(replyId);
+                }, 300);
+            });
+        },
+        
+        scrollToReply(replyId) {
+            // Find the reply element
+            const replyElement = document.querySelector(`[data-reply-id="${replyId}"]`);
+            if (!replyElement) {
+                // If reply is nested, we need to expand parent replies
+                this.expandToReply(replyId);
+                return;
+            }
+            
+            // Expand all parent replies to make this reply visible
+            this.expandParentReplies(replyId);
+            
+            // Scroll to the reply
+            setTimeout(() => {
+                replyElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                // Highlight the reply
+                replyElement.classList.add('highlighted-reply');
+                setTimeout(() => {
+                    replyElement.classList.remove('highlighted-reply');
+                }, 3000);
+            }, 200);
+        },
+        
+        expandToReply(replyId) {
+            // Recursively find and expand parent replies
+            const findAndExpand = (replies, targetId, parentIds = []) => {
+                for (const reply of replies) {
+                    if (reply.id === targetId) {
+                        // Found it! Expand all parents
+                        parentIds.forEach(pid => {
+                            this.expandReplyById(pid);
+                        });
+                        return true;
+                    }
+                    if (reply.replies && reply.replies.length > 0) {
+                        if (findAndExpand(reply.replies, targetId, [...parentIds, reply.id])) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            };
+            
+            findAndExpand(this.localReplies, replyId);
+            
+            // Try to scroll after expanding
+            setTimeout(() => {
+                this.scrollToReply(replyId);
+            }, 500);
+        },
+        
+        expandParentReplies(replyId) {
+            // Find all parent IDs leading to this reply
+            const findParents = (replies, targetId, parents = []) => {
+                for (const reply of replies) {
+                    if (reply.id === targetId) {
+                        return parents;
+                    }
+                    if (reply.replies && reply.replies.length > 0) {
+                        const found = findParents(reply.replies, targetId, [...parents, reply.id]);
+                        if (found !== null) {
+                            return found;
+                        }
+                    }
+                }
+                return null;
+            };
+            
+            const parentIds = findParents(this.localReplies, replyId);
+            if (parentIds) {
+                parentIds.forEach(pid => {
+                    this.expandReplyById(pid);
+                });
+            }
+        },
+        
+        expandReplyById(replyId) {
+            // Find reply component via refs and expand it
+            const findAndExpand = (components) => {
+                if (!components || !Array.isArray(components)) return false;
+                
+                for (const component of components) {
+                    if (component && component.reply && component.reply.id === replyId) {
+                        // Found the target reply - expand it if it has nested replies
+                        if (component.expandReplies) {
+                            component.expandReplies();
+                        }
+                        return true;
+                    }
+                    
+                    // Check nested replies
+                    if (component && component.$refs && component.$refs.replyComponents) {
+                        if (findAndExpand(component.$refs.replyComponents)) {
+                            // If found in nested, expand this parent
+                            if (component.expandReplies) {
+                                component.expandReplies();
+                            }
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            };
+            
+            // Try to find via refs
+            if (this.$refs.replyComponents) {
+                findAndExpand(this.$refs.replyComponents);
+            }
+        },
+        
         async submitMainReply() {
             if (!this.mainReplyContent.trim() || this.isSubmitting) return;
 
             this.isSubmitting = true;
 
             try {
-                const response = await axios.post(`/discussions/${this.discussionId}/replies`, {
+                const response = await axios.post(`/discussions/${this.discussionSlug}/replies`, {
                     content: this.mainReplyContent
                 });
 

@@ -91,11 +91,13 @@
                     </div>
                     
                     <!-- Rating for Reviews -->
-                    <div v-if="item.type === 'review'" class="flex items-center">
+                    <div v-if="item.type === 'review'" class="flex items-center gap-2">
                         <div class="flex items-center bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
                             <i class="fas fa-star text-green-600 dark:text-green-400 text-sm mr-1"></i>
                             <span class="text-green-700 dark:text-green-300 font-medium text-sm">{{ item.rating }}</span>
                         </div>
+                        <!-- Opinion Reaction -->
+                        <opinion-type-icon :opinion-type="item.opinion_type" size="sm"></opinion-type-icon>
                     </div>
                 </div>
 
@@ -354,6 +356,7 @@ export default {
         normalizedContent() {
             const discussions = (this.allDiscussions.length > 0 ? this.allDiscussions : this.discussions).map(discussion => ({
                 id: discussion.id,
+                slug: discussion.slug || null,
                 type: 'discussion',
                 title: discussion.title,
                 content: discussion.content,
@@ -365,7 +368,7 @@ export default {
                 is_liked: this.getItemLiked(discussion.id, 'discussion'),
                 is_pinned: discussion.is_pinned,
                 is_closed: discussion.is_closed,
-                url: `/discussions/${discussion.id}`,
+                url: `/discussions/${discussion.slug || discussion.id}`,
                 top_comment: discussion.top_comment || null,
             }));
 
@@ -381,6 +384,8 @@ export default {
                 comments_count: review.replies_count || 0,
                 is_liked: this.getItemLiked(review.id, 'review'),
                 rating: review.rating,
+                review_type: review.review_type || null,
+                opinion_type: review.opinion_type || null,
                 book: review.book,
                 url: `/books/${review.book?.slug}/reviews/${review.id}`,
                 top_comment: review.top_comment || null,
@@ -668,24 +673,13 @@ export default {
         },
 
         async shareItem(item) {
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: item.title || 'Контент',
-                        url: window.location.origin + (item.url || '#')
-                    });
-                } catch (error) {
-                    console.log('Share cancelled');
-                }
-            } else {
-                // Fallback to clipboard
-                try {
-                    await navigator.clipboard.writeText(window.location.origin + (item.url || '#'));
-                    alert('Посилання скопійовано в буфер обміну!', 'Успіх', 'success');
-                } catch (error) {
-                    console.error('Failed to copy to clipboard:', error);
-                }
-            }
+            const { shareContent } = await import('../utils/shareHelper');
+            const url = item.url ? (item.url.startsWith('http') ? item.url : window.location.origin + item.url) : window.location.href;
+            await shareContent({
+                title: item.title || (item.type === 'review' ? 'Рецензія' : item.type === 'discussion' ? 'Обговорення' : 'Контент'),
+                text: item.content ? this.stripHTML(item.content).substring(0, 200) : '',
+                url: url
+            });
         },
 
         // Загрузка данных с сервера

@@ -50,7 +50,7 @@
                                     </a>
                                     <!-- Like Button -->
                                     @auth
-                                        <button onclick="toggleLike({{ $discussion->id }})"
+                                        <button onclick="toggleLike('{{ $discussion->slug }}')"
                                             class="flex items-center space-x-2 px-4 py-2 rounded-xl transition-colors"
                                             id="likeButton{{ $discussion->id }}">
                                             <i
@@ -131,7 +131,7 @@
                     <div id="discussion-replies-app">
                         <discussion-replies-list 
                             :replies="{{ json_encode($replies->values()->toArray()) }}"
-                            :discussion-id="{{ $discussion->id }}"
+                            :discussion-slug="'{{ $discussion->slug }}'"
                             :current-user-id="{{ auth()->id() }}"
                             :is-discussion-closed="{{ $discussion->is_closed ? 'true' : 'false' }}"
                             :is-moderator="{{ auth()->check() && auth()->user()->isModerator() ? 'true' : 'false' }}">
@@ -369,8 +369,8 @@
                 });
 
                 // Like functionality for main discussion
-                function toggleLike(discussionId) {
-                    fetch(`/discussions/${discussionId}/like`, {
+                function toggleLike(discussionSlug) {
+                    fetch(`/discussions/${discussionSlug}/like`, {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -401,5 +401,30 @@
                         });
                 }
             </script>
+        @endpush
+        
+        @push('styles')
+            <style>
+                /* Mention link styles */
+                .mention-link {
+                    color: rgb(139, 92, 246);
+                    font-weight: 500;
+                    text-decoration: none;
+                    transition: color 0.2s ease;
+                }
+                
+                .mention-link:hover {
+                    color: rgb(124, 58, 237);
+                    text-decoration: underline;
+                }
+                
+                .dark .mention-link {
+                    color: rgb(167, 139, 250);
+                }
+                
+                .dark .mention-link:hover {
+                    color: rgb(196, 181, 253);
+                }
+            </style>
         @endpush
     @endsection

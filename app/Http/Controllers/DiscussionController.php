@@ -481,20 +481,21 @@ class DiscussionController extends Controller
      */
     private function processMentions(Discussion $discussion, string $content)
     {
-        // Extract mentions from content using regex - supports Cyrillic
-        // Pattern: @ followed by letters (Latin/Cyrillic), numbers, and underscores
-        preg_match_all('/@([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_]+)/u', strip_tags($content), $matches);
+        // Extract mentions from content using regex - supports Cyrillic, Latin, numbers, underscores, and hyphens
+        // Pattern: @ followed by letters (Latin/Cyrillic), numbers, underscores, and hyphens
+        preg_match_all('/@([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_-]+)/u', strip_tags($content), $matches);
         
         if (empty($matches[1])) {
             return;
         }
 
         $usernames = array_unique($matches[1]);
+        $sender = Auth::user();
         
         foreach ($usernames as $username) {
             $user = \App\Models\User::where('username', $username)->first();
             
-            if ($user && $user->id !== $discussion->user_id) {
+            if ($user && $user->id !== $discussion->user_id && $user->id !== $sender->id) {
                 // Create mention record
                 \App\Models\DiscussionMention::firstOrCreate(
                     [
@@ -506,8 +507,47 @@ class DiscussionController extends Controller
                     ]
                 );
 
-                // Create notification (if notification system exists)
-                // You can add notification creation here
+                // Send notification
+                \App\Services\NotificationService::createMentionNotification($discussion, $user, $sender);
+            }
+        }
+    }
+
+    /**
+     * Process mentions from reply content
+     */
+    private function processReplyMentions(\App\Models\DiscussionReply $reply, string $content)
+    {
+        // Extract mentions from content using regex - supports Cyrillic, Latin, numbers, underscores, and hyphens
+        // Don't strip tags - mentions can be in plain text
+        preg_match_all('/@([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_-]+)/u', $content, $matches);
+        
+        if (empty($matches[1])) {
+            return;
+        }
+
+        $usernames = array_unique($matches[1]);
+        $sender = Auth::user();
+        
+        if (!$sender) {
+            return;
+        }
+        
+        foreach ($usernames as $username) {
+            $user = \App\Models\User::where('username', $username)->first();
+            
+            if ($user && $user->id !== $sender->id) {
+                try {
+                    // Send notification for mention in reply
+                    \App\Services\NotificationService::createReplyMentionNotification($reply, $user, $sender);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send mention notification', [
+                        'reply_id' => $reply->id,
+                        'mentioned_user_id' => $user->id,
+                        'sender_id' => $sender->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
             }
         }
     }
@@ -580,6 +620,11 @@ class DiscussionController extends Controller
             $discussionArray = $this->modelToArray($discussion);
             $topComment = $topComments->get($discussionArray['id'] ?? null);
             $discussionArray['top_comment'] = $this->formatTopComment($topComment);
+            
+            // Убеждаемся, что slug включен
+            if (!isset($discussionArray['slug']) && is_object($discussion)) {
+                $discussionArray['slug'] = $discussion->slug ?? null;
+            }
 
             return $discussionArray;
         })->values()->toArray();
@@ -599,6 +644,14 @@ class DiscussionController extends Controller
             $reviewArray = $this->modelToArray($review);
             $topComment = $topComments->get($reviewArray['id'] ?? null);
             $reviewArray['top_comment'] = $this->formatTopComment($topComment);
+            
+            // Убеждаемся, что opinion_type включен
+            if (!isset($reviewArray['opinion_type']) && is_object($review)) {
+                $reviewArray['opinion_type'] = $review->opinion_type ?? null;
+            }
+            if (!isset($reviewArray['review_type']) && is_object($review)) {
+                $reviewArray['review_type'] = $review->review_type ?? null;
+            }
 
             return $reviewArray;
         })->values()->toArray();
@@ -952,6 +1005,9 @@ class DiscussionController extends Controller
             'status' => 'active',
         ]);
 
+        // Process mentions in reply
+        $this->processReplyMentions($reply, $request->content);
+
         if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -978,6 +1034,9 @@ class DiscussionController extends Controller
         ]);
 
         $reply->update($request->only(['content']));
+
+        // Process mentions in updated reply
+        $this->processReplyMentions($reply, $request->content);
 
         if ($request->expectsJson()) {
             return response()->json([

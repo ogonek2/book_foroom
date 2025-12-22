@@ -3197,6 +3197,15 @@ select{
   --tw-bg-opacity: 1;
   background-color: rgb(202 138 4 / var(--tw-bg-opacity, 1));
 }
+.bg-green-900\/30{
+  background-color: rgb(20 83 45 / 0.3);
+}
+.bg-red-900\/30{
+  background-color: rgb(127 29 29 / 0.3);
+}
+.bg-yellow-900\/30{
+  background-color: rgb(113 63 18 / 0.3);
+}
 .bg-opacity-20{
   --tw-bg-opacity: 0.2;
 }

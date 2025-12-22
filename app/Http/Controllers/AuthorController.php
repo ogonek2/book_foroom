@@ -178,6 +178,7 @@ class AuthorController extends Controller
                 'replies_count' => $review->replies_count ?? 0,
                 'contains_spoiler' => $review->contains_spoiler ?? false,
                 'review_type' => $review->review_type ?? null,
+                'opinion_type' => $review->opinion_type ?? null,
                 'book_type' => $review->book_type ?? null,
                 'language' => $review->language ?? null,
             ];

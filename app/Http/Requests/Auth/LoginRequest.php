@@ -32,6 +32,20 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'Поле електронної пошти обов\'язкове для заповнення.',
+            'email.email' => 'Електронна пошта повинна бути валідною адресою.',
+            'password.required' => 'Поле пароля обов\'язкове для заповнення.',
+        ];
+    }
+
+    /**
      * Attempt to authenticate the request's credentials.
      *
      * @throws \Illuminate\Validation\ValidationException
@@ -44,7 +58,7 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => 'Невірні облікові дані. Перевірте електронну пошту та пароль.',
             ]);
         }
 
@@ -66,11 +80,9 @@ class LoginRequest extends FormRequest
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
+        $minutes = ceil($seconds / 60);
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'email' => "Забагато спроб входу. Спробуйте ще раз через {$minutes} " . ($minutes == 1 ? 'хвилину' : ($minutes < 5 ? 'хвилини' : 'хвилин')) . '.',
         ]);
     }
 

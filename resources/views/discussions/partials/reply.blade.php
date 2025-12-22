@@ -29,7 +29,7 @@
         </div>
         <!-- Reply Content -->
         <div class="text-light-text-primary dark:text-dark-text-primary leading-relaxed mb-3 sm:mb-4 whitespace-pre-wrap text-sm sm:text-base"
-            id="replyContent{{ $reply->id }}">{{ $reply->content }}</div>
+            id="replyContent{{ $reply->id }}">{!! \App\Helpers\TextHelper::formatMentions($reply->content) !!}</div>
 
         @auth
             <div class="flex items-center justify-between flex-wrap gap-2">
@@ -289,7 +289,7 @@
 
         // Reply like functionality
         function toggleReplyLike(replyId) {
-            fetch(`/discussions/{{ $discussion->id }}/replies/${replyId}/like`, {
+            fetch(`/discussions/{{ $discussion->slug }}/replies/${replyId}/like`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -648,7 +648,7 @@ ${actionsHtml}
             const content = document.getElementById(`editContent${replyId}`).value.trim();
             if (!content) return;
 
-            fetch(`/discussions/{{ $discussion->id }}/replies/${replyId}`, {
+            fetch(`/discussions/{{ $discussion->slug }}/replies/${replyId}`, {
                     method: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -679,7 +679,7 @@ ${actionsHtml}
             const confirmed = await confirm('Ви впевнені, що хочете видалити цю відповідь?', 'Підтвердження', 'warning');
             if (!confirmed) return;
 
-            fetch(`/discussions/{{ $discussion->id }}/replies/${replyId}`, {
+            fetch(`/discussions/{{ $discussion->slug }}/replies/${replyId}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

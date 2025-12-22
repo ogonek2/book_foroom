@@ -83,7 +83,7 @@ class LibraryController extends Controller
         }
 
         // Load books with pagination
-        $books = $library->books()->paginate(12);
+        $books = $library->books()->paginate(25);
 
         // Check if current user has saved this library
         $isSaved = false;

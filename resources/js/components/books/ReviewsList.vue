@@ -88,11 +88,14 @@
                                 </template>
                             </div>
 
-                            <!-- Rating Stars -->
-                            <div v-if="review.rating" class="flex items-center space-x-2">
-                                <span class="text-yellow-400 text-2xl"><i class="fas fa-star"></i></span>
-                                <span class="ml-3 text-lg font-bold text-slate-700 dark:text-slate-300">{{ review.rating
-                                    }}/10</span>
+                            <!-- Rating Stars and Opinion -->
+                            <div v-if="review.rating" class="flex items-center space-x-3">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-yellow-400 text-2xl"><i class="fas fa-star"></i></span>
+                                    <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ review.rating }}/10</span>
+                                </div>
+                                <!-- Opinion Reaction -->
+                                <opinion-type-icon :opinion-type="review.opinion_type" size="md"></opinion-type-icon>
                             </div>
                         </div>
 
@@ -300,6 +303,13 @@ export default {
             reportData: null
         };
     },
+    mounted() {
+        // Debug: проверяем наличие opinion_type в данных
+        if (this.localReviews.length > 0) {
+            console.log('Reviews data sample:', this.localReviews[0]);
+            console.log('Has opinion_type:', this.localReviews.some(r => r.opinion_type));
+        }
+    },
     computed: {
         isAuthenticated() {
             return this.currentUserId !== null;
@@ -378,22 +388,17 @@ export default {
                 this.showNotification('Помилка при зміні лайка.', 'error');
             }
         },
-        shareReview(review) {
+        async shareReview(review) {
             const plainText = this.stripHTML(review.content);
             const text = this.truncateText(plainText, 200) + (plainText.length > 200 ? '...' : '');
-            const url = window.location.href;
-
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Рецензія на книгу',
-                    text: text,
-                    url: url
-                }).catch(err => console.log('Error sharing:', err));
-            } else {
-                navigator.clipboard.writeText(`${text}\n\n${url}`).then(() => {
-                    this.showNotification('Посилання скопійовано в буфер обміну!', 'success');
-                });
-            }
+            const url = review.url || `${window.location.origin}/books/${this.bookSlug}/reviews/${review.id}`;
+            
+            const { shareContent } = await import('../../utils/shareHelper');
+            await shareContent({
+                title: 'Рецензія на книгу',
+                text: text,
+                url: url
+            });
         },
         toggleMenu(reviewId) {
             this.activeMenu = this.activeMenu === reviewId ? null : reviewId;

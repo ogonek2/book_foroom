@@ -165,6 +165,18 @@ class UserNotificationHelper
                 'subject' => 'Новий лайк вашого коментаря',
                 'message' => ':senderName вподобав ваш коментар в обговоренні',
             ],
+
+            // Упоминания
+            'discussion_mention' => [
+                'type'    => 'discussion_mention',
+                'subject' => 'Вас згадали в обговоренні',
+                'message' => ':senderName згадав вас в обговоренні',
+            ],
+            'discussion_reply_mention' => [
+                'type'    => 'discussion_reply_mention',
+                'subject' => 'Вас згадали в коментарі',
+                'message' => ':senderName згадав вас в коментарі до обговорення',
+            ],
             'review_comment_like' => [
                 'type'    => 'review_comment_like',
                 'subject' => 'Новий лайк вашого коментаря',
@@ -203,8 +215,8 @@ class UserNotificationHelper
      */
     protected static function passesUserSettings(string $eventKey, User $recipient): bool
     {
-        // Для ответов и комментариев — comments_notifications (если есть)
-        if (str_contains($eventKey, 'reply') || str_contains($eventKey, 'comment')) {
+        // Для ответов, комментариев и упоминаний — comments_notifications (если есть)
+        if (str_contains($eventKey, 'reply') || str_contains($eventKey, 'comment') || str_contains($eventKey, 'mention')) {
             if (isset($recipient->comments_notifications) && !$recipient->comments_notifications) {
                 return false;
             }

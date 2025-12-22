@@ -49,11 +49,17 @@
             @endif
         </div>
 
-        <!-- Rating Stars -->
+        <!-- Rating Stars and Opinion -->
         @if ($review->rating && !$review->isReply())
-            <div class="flex items-center space-x-2">
-                <span class="text-yellow-400 text-2xl"><i class="fas fa-star"></i></span>
-                <span class="ml-3 text-lg font-bold text-slate-700 dark:text-slate-300">{{ $review->rating }}/10</span>
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-2">
+                    <span class="text-yellow-400 text-2xl"><i class="fas fa-star"></i></span>
+                    <span class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ $review->rating }}/10</span>
+                </div>
+                <!-- Opinion Reaction -->
+                @if($review->opinion_type)
+                    <opinion-type-icon :opinion-type="'{{ $review->opinion_type }}'" size="md"></opinion-type-icon>
+                @endif
             </div>
         @endif
     </div>

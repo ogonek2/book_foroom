@@ -141,119 +141,112 @@
         <script>
             // Vue приложение для страницы добірки
             document.addEventListener('DOMContentLoaded', function() {
-                const libraryShowApp = new Vue({
-                    el: '#app',
-                    data: {
-                        isLiked: {{ $library->likes()->where('user_id', auth()->id())->exists() ? 'true' : 'false' }},
-                        isSaved: {{ $isSaved ? 'true' : 'false' }},
-                        likesCount: {{ $library->likes()->count() }},
-                        libraryId: {{ $library->id }},
-                        @auth
-                        user: {
-                            username: '{{ auth()->user()->username }}'
-                        }
-                        @endauth
-                    },
-                    methods: {
-                        async toggleLike() {
-                            if (!{{ auth()->check() ? 'true' : 'false' }}) {
-                                this.showNotification('Необхідна авторизація', 'error');
-                                return;
+                // Wait for axios and shareContent to be available
+                const waitForDependencies = () => {
+                    return new Promise((resolve) => {
+                        const checkInterval = setInterval(() => {
+                            if (window.axios && window.shareContent) {
+                                clearInterval(checkInterval);
+                                resolve({ axios: window.axios, shareContent: window.shareContent });
                             }
+                        }, 100);
+                        
+                        // Timeout after 5 seconds
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            resolve({ axios: window.axios || null, shareContent: window.shareContent || null });
+                        }, 5000);
+                    });
+                };
 
-                            try {
-                                const response = await axios.post(`/libraries/${this.libraryId}/like`);
-                                if (response.data.success) {
-                                    this.isLiked = response.data.is_liked;
-                                    this.likesCount = response.data.likes_count;
-                                    this.showNotification(response.data.message, 'success');
-                                }
-                            } catch (error) {
-                                console.error('Error toggling like:', error);
-                                this.showNotification('Помилка при збереженні лайка', 'error');
-                            }
-                        },
-                        async toggleSave() {
-                            if (!{{ auth()->check() ? 'true' : 'false' }}) {
-                                this.showNotification('Необхідна авторизація', 'error');
-                                return;
-                            }
-
-                            try {
-                                const response = await fetch(`/libraries/${this.libraryId}/save`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json'
-                                    }
-                                });
-                                
-                                const data = await response.json();
-                                
-                                if (data.success) {
-                                    this.isSaved = data.is_saved;
-                                    this.showNotification(data.message, 'success');
-                                } else {
-                                    this.showNotification(data.message || 'Помилка при збереженні добірки', 'error');
-                                }
-                            } catch (error) {
-                                console.error('Error toggling save:', error);
-                                this.showNotification('Помилка при збереженні добірки', 'error');
-                            }
-                        },
-                        shareLibrary() {
-                            if (navigator.share) {
-                                navigator.share({
-                                    title: '{{ $library->name }}',
-                                    text: '{{ $library->description ?: "Добірка від " . $library->user->name }}',
-                                    url: window.location.href
-                                }).catch(error => {
-                                    console.log('Error sharing:', error);
-                                    this.fallbackShare();
-                                });
-                            } else {
-                                this.fallbackShare();
-                            }
-                        },
-                        fallbackShare() {
-                            navigator.clipboard.writeText(window.location.href).then(() => {
-                                this.showNotification('Посилання скопійовано в буфер обміну', 'success');
-                            }).catch(() => {
-                                alert(`Посилання на добірку: ${window.location.href}`, 'Посилання', 'info');
-                            });
-                        },
-                        handleNotification(notification) {
-                            this.showNotification(notification.message, notification.type);
-                        },
-                        showNotification(message, type = 'success') {
-                            // Удаляем существующие уведомления
-                            const existingNotifications = document.querySelectorAll('.notification');
-                            existingNotifications.forEach(notification => notification.remove());
-
-                            // Создаем новое уведомление
-                            const notification = document.createElement('div');
-                            notification.className = `notification fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
-                                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                            }`;
-                            notification.textContent = message;
-
-                            document.body.appendChild(notification);
-
-                            // Анимация появления
-                            setTimeout(() => {
-                                notification.style.transform = 'translateX(0)';
-                            }, 100);
-
-                            // Автоматическое скрытие через 3 секунды
-                            setTimeout(() => {
-                                notification.style.transform = 'translateX(100%)';
-                                setTimeout(() => {
-                                    notification.remove();
-                                }, 300);
-                            }, 3000);
-                        }
+                waitForDependencies().then((deps) => {
+                    if (!deps.axios) {
+                        console.error('Axios is not available');
+                        return;
                     }
+
+                    const libraryShowApp = new Vue({
+                        el: '#app',
+                        data: {
+                            isLiked: {{ $library->likes()->where('user_id', auth()->id())->exists() ? 'true' : 'false' }},
+                            isSaved: {{ $isSaved ? 'true' : 'false' }},
+                            likesCount: {{ $library->likes()->count() }},
+                            libraryId: {{ $library->id }},
+                            @auth
+                            user: {
+                                username: '{{ auth()->user()->username }}'
+                            }
+                            @endauth
+                        },
+                        methods: {
+                            async toggleLike() {
+                                if (!{{ auth()->check() ? 'true' : 'false' }}) {
+                                    return;
+                                }
+
+                                try {
+                                    const response = await deps.axios.post(`/libraries/${this.libraryId}/like`);
+                                    if (response.data.success) {
+                                        this.isLiked = response.data.is_liked;
+                                        this.likesCount = response.data.likes_count;
+                                    }
+                                } catch (error) {
+                                    console.error('Error toggling like:', error);
+                                }
+                            },
+                            async toggleSave() {
+                                if (!{{ auth()->check() ? 'true' : 'false' }}) {
+                                    return;
+                                }
+
+                                try {
+                                    const response = await deps.axios.post(`/libraries/${this.libraryId}/save`, {}, {
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json'
+                                        }
+                                    });
+                                    
+                                    if (response.data.success) {
+                                        this.isSaved = response.data.is_saved;
+                                    }
+                                } catch (error) {
+                                    console.error('Error toggling save:', error);
+                                }
+                            },
+                            async shareLibrary() {
+                                try {
+                                    // Use shareHelper from app.js if available
+                                    if (deps.shareContent) {
+                                        await deps.shareContent({
+                                            title: '{{ $library->name }}',
+                                            text: '{{ $library->description ?: "Добірка від " . $library->user->name }}',
+                                            url: window.location.href
+                                        });
+                                        return;
+                                    }
+
+                                    // Fallback to native share or clipboard
+                                    if (navigator.share) {
+                                        await navigator.share({
+                                            title: '{{ $library->name }}',
+                                            text: '{{ $library->description ?: "Добірка від " . $library->user->name }}',
+                                            url: window.location.href
+                                        });
+                                    } else {
+                                        await navigator.clipboard.writeText(window.location.href);
+                                    }
+                                } catch (error) {
+                                    console.error('Error sharing:', error);
+                                    // Silent fail - no notification
+                                }
+                            },
+                            handleNotification(notification) {
+                                // Уведомления отключены
+                            }
+                        }
+                    });
                 });
             });
         </script>

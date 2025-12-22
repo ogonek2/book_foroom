@@ -114,6 +114,7 @@
 
 <script>
 import axios from 'axios';
+import { shareContent } from '../../utils/shareHelper';
 
 export default {
     name: 'FactCard',
@@ -182,19 +183,14 @@ export default {
                 this.$emit('show-notification', 'Помилка при зміні лайка.', 'error');
             }
         },
-        shareFact() {
+        async shareFact() {
             const text = `Цікавий факт про книгу: ${this.fact.content}`;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Цікавий факт',
-                    text: text,
-                    url: window.location.href
-                }).catch(err => console.log('Error sharing:', err));
-            } else {
-                navigator.clipboard.writeText(text).then(() => {
-                    this.$emit('show-notification', 'Факт скопійовано!', 'success');
-                });
-            }
+            const url = `${window.location.origin}/books/${this.bookSlug}#fact-${this.fact.id}`;
+            await shareContent({
+                title: 'Цікавий факт',
+                text: text,
+                url: url
+            });
         },
         startEdit() {
             this.isEditing = true;

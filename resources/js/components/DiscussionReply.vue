@@ -46,8 +46,8 @@
 
             <!-- Reply Content -->
             <div v-if="!isEditing" 
-                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm sm:text-base">
-                {{ reply.content }}
+                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm sm:text-base"
+                 v-html="formatContent(reply.content)">
             </div>
 
             <!-- Edit Form -->
@@ -151,10 +151,11 @@
                                  :reply="nestedReply"
                                  :level="level + 1"
                                  :highlighted-reply-id="highlightedReplyId"
-                                 :discussion-id="discussionId"
+                                 :discussion-slug="discussionSlug"
                                  :current-user-id="currentUserId"
                                  :is-discussion-closed="isDiscussionClosed"
                                  :is-moderator="isModerator"
+                                 ref="replyComponents"
                                  @reply-added="handleReplyAdded"
                                  @reply-updated="handleReplyUpdated"
                                  @reply-deleted="handleReplyDeleted"
@@ -178,8 +179,8 @@ export default {
             type: Number,
             default: 0
         },
-        discussionId: {
-            type: Number,
+        discussionSlug: {
+            type: String,
             required: true
         },
         currentUserId: {
@@ -223,14 +224,51 @@ export default {
             return this.highlightedReplyId === this.reply.id;
         }
     },
+    watch: {
+        highlightedReplyId(newVal) {
+            if (newVal === this.reply.id) {
+                // If this reply is highlighted, expand it if it has replies
+                if (this.reply.replies && this.reply.replies.length > 0 && !this.repliesExpanded) {
+                    this.repliesExpanded = true;
+                }
+            }
+        }
+    },
     methods: {
         toggleReplies() {
             this.repliesExpanded = !this.repliesExpanded;
         },
         
+        expandReplies() {
+            if (!this.repliesExpanded && this.reply.replies && this.reply.replies.length > 0) {
+                this.repliesExpanded = true;
+            }
+        },
+        
+        formatContent(content) {
+            if (!content) return '';
+            
+            // Escape HTML to prevent XSS
+            const escaped = content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            
+            // Replace @username mentions with styled links
+            // Supports Cyrillic, Latin, numbers, underscores, and hyphens
+            const mentionRegex = /@([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_-]+)/gu;
+            
+            return escaped.replace(mentionRegex, (match, username) => {
+                const profileUrl = `/users/${username}`;
+                return `<a href="${profileUrl}" class="mention-link text-brand-500 dark:text-brand-400 hover:text-brand-600 dark:hover:text-brand-300 font-medium transition-colors" target="_blank">@${username}</a>`;
+            });
+        },
+        
         async toggleLike() {
             try {
-                const response = await axios.post(`/discussions/${this.discussionId}/replies/${this.reply.id}/like`);
+                const response = await axios.post(`/discussions/${this.discussionSlug}/replies/${this.reply.id}/like`);
 
                 if (response.data.success) {
                     this.isLiked = response.data.liked;
@@ -253,7 +291,7 @@ export default {
             this.isSubmitting = true;
 
             try {
-                const response = await axios.post(`/discussions/${this.discussionId}/replies`, {
+                const response = await axios.post(`/discussions/${this.discussionSlug}/replies`, {
                     content: this.replyContent,
                     parent_id: this.reply.id
                 });
@@ -295,7 +333,7 @@ export default {
             this.isSaving = true;
 
             try {
-                const response = await axios.put(`/discussions/${this.discussionId}/replies/${this.reply.id}`, {
+                const response = await axios.put(`/discussions/${this.discussionSlug}/replies/${this.reply.id}`, {
                     content: this.editContent
                 });
                 
@@ -319,7 +357,7 @@ export default {
             if (!confirmed) return;
 
             try {
-                const response = await axios.delete(`/discussions/${this.discussionId}/replies/${this.reply.id}`);
+                const response = await axios.delete(`/discussions/${this.discussionSlug}/replies/${this.reply.id}`);
                 
                 if (response.data.success) {
                     this.$emit('reply-deleted', this.reply.id);
@@ -484,5 +522,26 @@ export default {
     0% { background-color: rgba(245, 158, 11, 0.2); }
     50% { background-color: rgba(245, 158, 11, 0.15); }
     100% { background-color: rgba(245, 158, 11, 0.1); }
+}
+
+/* Mention link styles */
+.mention-link {
+    color: rgb(139, 92, 246);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.mention-link:hover {
+    color: rgb(124, 58, 237);
+    text-decoration: underline;
+}
+
+.dark .mention-link {
+    color: rgb(167, 139, 250);
+}
+
+.dark .mention-link:hover {
+    color: rgb(196, 181, 253);
 }
 </style>

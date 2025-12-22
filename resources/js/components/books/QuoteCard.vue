@@ -146,6 +146,7 @@
 
 <script>
 import axios from 'axios';
+import { shareContent } from '../../utils/shareHelper';
 
 export default {
     name: 'QuoteCard',
@@ -217,19 +218,14 @@ export default {
                 this.$emit('show-notification', 'Помилка при зміні лайка.', 'error');
             }
         },
-        shareQuote() {
+        async shareQuote() {
             const text = `"${this.quote.content}" — ${this.quote.user?.name || 'Користувач'}`;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Цитата з книги',
-                    text: text,
-                    url: window.location.href
-                }).catch(err => console.log('Error sharing:', err));
-            } else {
-                navigator.clipboard.writeText(text).then(() => {
-                    this.$emit('show-notification', 'Цитату скопійовано!', 'success');
-                });
-            }
+            const url = `${window.location.origin}/books/${this.bookSlug}#quote-${this.quote.id}`;
+            await shareContent({
+                title: 'Цитата з книги',
+                text: text,
+                url: url
+            });
         },
         startEdit() {
             this.isEditing = true;

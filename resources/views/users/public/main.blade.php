@@ -273,9 +273,6 @@
                 <div class="rounded-lg">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-gray-900 dark:text-white font-semibold">Статистика читання</h3>
-                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
                     </div>
 
                     <!-- Progress Circle -->
@@ -390,9 +387,8 @@
                                 <div class="flex-1 min-w-0">
                                     <a href="{{ route('books.show', $readingStatus->book->slug) }}">
                                         <h4 class="text-sm font-medium text-purple-500">
-                                        {{ Str::limit($readingStatus->book->title, 30) }} <i class="fa-solid fa-arrow-up-right-from-square"></i></h4>
+                                        {{ Str::limit($readingStatus->book->title, 30) }}</h4>
                                     </a>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">{{ ucfirst($readingStatus->status) }}</p>
                                     <p class="text-xs text-gray-500 dark:text-gray-500">
                                         {{ $readingStatus->updated_at->diffForHumans() }}</p>
                                 </div>

@@ -21,10 +21,17 @@
             if ($bookIdentifier && $reviewId) {
                 $notificationUrl = rtrim($baseUrl, '/') . "/books/{$bookIdentifier}/reviews/{$reviewId}";
             }
-        } elseif (in_array($type, ['discussion_reply', 'discussion_comment_reply', 'discussion_like', 'discussion_like_milestone', 'discussion_comment_like'])) {
-            $discussionIdentifier = $d['discussion_id'] ?? $d['discussion_slug'] ?? null;
+        } elseif (in_array($type, ['discussion_reply', 'discussion_comment_reply', 'discussion_like', 'discussion_like_milestone', 'discussion_comment_like', 'discussion_mention', 'discussion_reply_mention'])) {
+            // Используем discussion_slug (новые уведомления) или fallback на discussion_id (старые уведомления)
+            $discussionIdentifier = $d['discussion_slug'] ?? $d['discussion_id'] ?? null;
             if ($discussionIdentifier) {
-                $notificationUrl = rtrim($baseUrl, '/') . "/discussions/{$discussionIdentifier}";
+                // Для ответов используем reply_id (новый ответ), для комментариев тоже reply_id
+                $replyId = $d['reply_id'] ?? $d['parent_reply_id'] ?? null;
+                $url = rtrim($baseUrl, '/') . "/discussions/{$discussionIdentifier}";
+                if ($replyId) {
+                    $url .= "#reply-{$replyId}";
+                }
+                $notificationUrl = $url;
             }
         } else {
             // Fallback — страница уведомлений

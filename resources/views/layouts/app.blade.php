@@ -245,18 +245,10 @@
                 display: none;
             }
 
-            /* Smooth slide up animation for mobile menu */
-            @keyframes slideUp {
-                from {
-                    transform: translateY(100%);
-                }
-                to {
-                    transform: translateY(0);
-                }
-            }
-
+            /* Mobile menu should be hidden by default */
             #mobile-menu {
-                animation: slideUp 0.3s ease-out;
+                /* Убираем анимацию при загрузке, чтобы избежать мелькания */
+                transform: translateY(100%);
             }
         </style>
     </head>

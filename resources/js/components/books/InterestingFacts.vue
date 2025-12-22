@@ -163,19 +163,15 @@ export default {
             this.newFact = '';
             this.showAddForm = false;
         },
-        shareFact(fact, index) {
+        async shareFact(fact, index) {
+            const { shareContent } = await import('../../utils/shareHelper');
             const text = `Цікавий факт про книгу: ${fact}`;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Цікавий факт',
-                    text: text,
-                    url: window.location.href
-                }).catch(err => console.log('Error sharing:', err));
-            } else {
-                navigator.clipboard.writeText(text).then(() => {
-                    this.showNotification('Факт скопійовано!', 'success');
-                });
-            }
+            const url = `${window.location.origin}/books/${this.bookSlug}#fact-${index}`;
+            await shareContent({
+                title: 'Цікавий факт',
+                text: text,
+                url: url
+            });
         },
         showNotification(message, type) {
             // Создаем уведомление

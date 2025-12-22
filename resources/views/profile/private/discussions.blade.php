@@ -95,7 +95,7 @@
                                                     class="w-10 h-10 bg-red-500/20 rounded-lg text-gray-400 hover:text-red-400 transition-colors">
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
-                                            <a href="{{ route('discussions.edit', $discussion->id) }}"
+                                            <a href="{{ route('discussions.edit', $discussion->slug) }}"
                                                     class="p-2 text-yellow-500 underline transition-colors">
                                                 Редагувати
                                             </a>
@@ -104,7 +104,7 @@
                                     <div class="flex items-start justify-between mb-3">
                                         <div>
                                             <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                                                <a href="{{ route('discussions.show', $discussion->id) }}" 
+                                                <a href="{{ route('discussions.show', $discussion->slug) }}" 
                                                    class="hover:text-orange-500 transition-colors">
                                                     {{ $discussion->title }}
                                                 </a>

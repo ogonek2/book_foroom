@@ -134,7 +134,52 @@ class NotificationService
             'likeable_id'   => $likeable->id,
         ];
 
+        // Добавляем slug для обсуждений
+        if ($likeable instanceof \App\Models\Discussion) {
+            $payload['discussion_id'] = $likeable->id;
+            $payload['discussion_slug'] = $likeable->slug;
+            $payload['discussion_title'] = $likeable->title;
+        } elseif ($likeable instanceof \App\Models\DiscussionReply) {
+            $discussion = $likeable->discussion;
+            $payload['discussion_id'] = $discussion->id;
+            $payload['discussion_slug'] = $discussion->slug;
+            $payload['discussion_title'] = $discussion->title;
+            $payload['reply_id'] = $likeable->id;
+        }
+
         UserNotificationHelper::send($eventKey, $recipient, $sender, $payload, $likeable);
+    }
+
+    /**
+     * Создать уведомление об упоминании в обсуждении
+     */
+    public static function createMentionNotification($discussion, $mentionedUser, $sender)
+    {
+        $payload = [
+            'discussion_id'    => $discussion->id,
+            'discussion_slug'  => $discussion->slug,
+            'discussion_title' => $discussion->title,
+        ];
+
+        UserNotificationHelper::send('discussion_mention', $mentionedUser, $sender, $payload, $discussion);
+    }
+
+    /**
+     * Создать уведомление об упоминании в ответе на обсуждение
+     */
+    public static function createReplyMentionNotification($reply, $mentionedUser, $sender)
+    {
+        $discussion = $reply->discussion;
+        
+        $payload = [
+            'discussion_id'    => $discussion->id,
+            'discussion_slug'  => $discussion->slug,
+            'discussion_title' => $discussion->title,
+            'reply_id'         => $reply->id,
+            'reply_content'    => mb_substr($reply->content, 0, 100),
+        ];
+
+        UserNotificationHelper::send('discussion_reply_mention', $mentionedUser, $sender, $payload, $reply);
     }
 }
 

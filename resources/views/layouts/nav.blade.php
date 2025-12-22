@@ -104,7 +104,7 @@
     </nav>
 
     <!-- Mobile Bottom Menu -->
-    <div id="mobile-menu" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 h-full max-h-[85vh] ease-in-out md:hidden">
+    <div id="mobile-menu" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 h-full max-h-[85vh] ease-in-out md:hidden" style="transform: translateY(100%);">
         <div class="bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border shadow-2xl rounded-t-3xl h-full overflow-hidden flex flex-col">
             <!-- Menu Header -->
             <div class="flex items-center justify-between p-4 border-b border-light-border dark:border-dark-border">

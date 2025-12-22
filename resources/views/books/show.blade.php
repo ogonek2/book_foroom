@@ -105,11 +105,6 @@
                                                 <h1
                                                     class="text-3xl font-black text-slate-900 dark:text-white mb-2 leading-tight">
                                                     {{ $book->title }}</h1>
-                                                <span class="text-sm py-2 px-4 dark:bg-gray-800/60 rounded-2xl">
-                                                    <i class="fas fa-star text-yellow-400"></i>
-                                                    <span
-                                                        class="text-slate-400 dark:text-white">{{ $book->display_rating }}</span>
-                                                </span>
                                             </div>
                                             <p class="text-lg text-slate-600 dark:text-slate-400 font-bold mb-2">
                                                 @if ($authorModel)
@@ -212,6 +207,7 @@
                                     'replies_count' => $review->replies_count ?? 0,
                                     'contains_spoiler' => $review->contains_spoiler ?? false,
                                     'review_type' => $review->review_type ?? null,
+                                    'opinion_type' => $review->opinion_type ?? null,
                                     'book_type' => $review->book_type ?? null,
                                     'language' => $review->language ?? null,
                                 ];

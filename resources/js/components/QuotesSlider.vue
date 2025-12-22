@@ -220,19 +220,15 @@ export default {
             }
         },
         
-        shareQuote(quote) {
+        async shareQuote(quote) {
+            const { shareContent } = await import('../utils/shareHelper');
             const text = `"${quote.content}" — ${quote.user?.name || 'Користувач'}`;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Цитата з книги',
-                    text: text,
-                    url: window.location.href
-                }).catch(err => console.log('Error sharing:', err));
-            } else {
-                navigator.clipboard.writeText(text).then(() => {
-                    this.$emit('show-notification', 'Цитату скопійовано!', 'success');
-                });
-            }
+            const url = quote.book?.slug ? `${window.location.origin}/books/${quote.book.slug}#quote-${quote.id}` : window.location.href;
+            await shareContent({
+                title: 'Цитата з книги',
+                text: text,
+                url: url
+            });
         },
         
         openReportModal(quote) {

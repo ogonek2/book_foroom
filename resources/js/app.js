@@ -40,6 +40,7 @@ import BookSearch from './components/BookSearch.vue';
 import DiscussionEditor from './components/DiscussionEditor.vue';
 import Pagination from './components/Pagination.vue';
 import AlertModal from './components/AlertModal.vue';
+import OpinionTypeIcon from './components/OpinionTypeIcon.vue';
 import DoubleRangeSlider from './components/DoubleRangeSlider.vue';
 import { initFeaturedBooksSwiper, initReviewsSwiper } from './swiper-init';
 
@@ -83,6 +84,7 @@ Vue.component('book-search', BookSearch);
 Vue.component('discussion-editor', DiscussionEditor);
 Vue.component('pagination', Pagination);
 Vue.component('alert-modal', AlertModal);
+Vue.component('opinion-type-icon', OpinionTypeIcon);
 Vue.component('double-range-slider', DoubleRangeSlider);
 
 // Импортируем Axios
@@ -97,6 +99,13 @@ const token = document.querySelector('meta[name="csrf-token"]');
 if (token) {
     axios.defaults.headers.common['X-CSRF-TOKEN'] = token.getAttribute('content');
 }
+
+// Экспортируем axios глобально для использования в Blade шаблонах
+window.axios = axios;
+
+// Экспортируем shareContent глобально для использования в Blade шаблонах
+import { shareContent } from './utils/shareHelper';
+window.shareContent = shareContent;
 
 // Глобальные переменные
 window.repliesPages = {};
@@ -298,7 +307,7 @@ window.createReplyElement = function(reply, depth = 0) {
         `<span class="ml-2 px-2 py-1 text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-full">Гость</span>` : '';
     
     // Форматируем время
-    let timeText = 'только что';
+    let timeText = 'щойно';
     if (reply.created_at) {
         const createdDate = new Date(reply.created_at);
         const now = new Date();
@@ -308,13 +317,13 @@ window.createReplyElement = function(reply, depth = 0) {
         const diffDays = Math.floor(diffMs / 86400000);
         
         if (diffMins < 1) {
-            timeText = 'только что';
+            timeText = 'щойно';
         } else if (diffMins < 60) {
-            timeText = `${diffMins} мин. назад`;
+            timeText = `${diffMins} хв тому`;
         } else if (diffHours < 24) {
-            timeText = `${diffHours} ч. назад`;
+            timeText = `${diffHours} год тому`;
         } else {
-            timeText = `${diffDays} дн. назад`;
+            timeText = `${diffDays} дн тому`;
         }
     }
     

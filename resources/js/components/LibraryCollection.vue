@@ -142,7 +142,6 @@ export default {
         },
         async toggleLike() {
             if (!this.isAuthenticated) {
-                this.$emit('notification', { message: 'Необхідна авторизація', type: 'error' });
                 return;
             }
 
@@ -154,22 +153,18 @@ export default {
                         isLiked: response.data.is_liked,
                         likesCount: response.data.likes_count
                     });
-                    this.$emit('notification', { message: response.data.message, type: 'success' });
                 }
             } catch (error) {
                 console.error('Error toggling like:', error);
-                this.$emit('notification', { message: 'Помилка при збереженні лайка', type: 'error' });
             }
         },
         async toggleSave() {
             if (!this.isAuthenticated) {
-                this.$emit('notification', { message: 'Необхідна авторизація', type: 'error' });
                 return;
             }
 
             try {
-                const response = await fetch(`/libraries/${this.library.id}/save`, {
-                    method: 'POST',
+                const response = await axios.post(`/libraries/${this.library.id}/save`, {}, {
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                         'Content-Type': 'application/json',
@@ -177,44 +172,22 @@ export default {
                     }
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
+                if (response.data.success) {
                     this.$emit('saved', {
                         libraryId: this.library.id,
-                        isSaved: data.is_saved
+                        isSaved: response.data.is_saved
                     });
-                    this.$emit('notification', { message: data.message, type: 'success' });
-                } else {
-                    this.$emit('notification', { message: data.message || 'Помилка при збереженні добірки', type: 'error' });
                 }
             } catch (error) {
                 console.error('Error toggling save:', error);
-                this.$emit('notification', { message: 'Помилка при збереженні добірки', type: 'error' });
             }
         },
-        shareLibrary() {
-            if (navigator.share) {
-                navigator.share({
-                    title: this.library.name,
-                    text: this.library.description || `Добірка "${this.library.name}" від ${this.library.user.name}`,
-                    url: `${window.location.origin}/libraries/${this.library.id}`
-                }).catch(error => {
-                    console.log('Error sharing:', error);
-                    this.fallbackShare();
-                });
-            } else {
-                this.fallbackShare();
-            }
-        },
-        fallbackShare() {
-            // Fallback for browsers that don't support Web Share API
-            const url = `${window.location.origin}/libraries/${this.library.id}`;
-            navigator.clipboard.writeText(url).then(() => {
-                this.$emit('notification', { message: 'Посилання скопійовано в буфер обміну', type: 'success' });
-            }).catch(() => {
-                // Final fallback - show URL in alert
-                alert(`Посилання на добірку: ${url}`, 'Посилання', 'info');
+        async shareLibrary() {
+            const { shareContent } = await import('../utils/shareHelper');
+            await shareContent({
+                title: this.library.name,
+                text: this.library.description || `Добірка "${this.library.name}" від ${this.library.user.name}`,
+                url: `${window.location.origin}/libraries/${this.library.id}`
             });
         }
     }
@@ -225,6 +198,7 @@ export default {
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

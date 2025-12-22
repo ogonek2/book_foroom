@@ -34,7 +34,6 @@
                      alt="{{ $book->title }}" 
                      class="w-full object-cover rounded-lg mb-4" style="aspect-ratio: 2 / 3;">
                 <div>
-                    <p class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">Книга</p>
                     <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">{{ $book->title }}</h2>
                     <p class="text-sm text-slate-600 dark:text-slate-300">
                         @php
@@ -77,9 +76,15 @@
                                 'showGuest' => $review->isGuest()
                             ])
                         </div>
-                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                            <span class="text-yellow-400 text-2xl"><i class="fas fa-star"></i></span>
-                            <span class="font-semibold text-slate-900 dark:text-white">{{ $review->rating }}/10</span>
+                        <div id="review-rating-opinion" class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                            <div class="flex items-center gap-2">
+                                <span class="text-yellow-400 text-2xl"><i class="fas fa-star"></i></span>
+                                <span class="font-semibold text-slate-900 dark:text-white">{{ $review->rating }}/10</span>
+                            </div>
+                            <!-- Opinion Reaction -->
+                            @if($review->opinion_type)
+                                <opinion-type-icon :opinion-type="'{{ $review->opinion_type }}'" size="md"></opinion-type-icon>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -208,6 +213,13 @@
 <script>
 // Vue приложение для ответов на рецензии
 document.addEventListener('DOMContentLoaded', function() {
+    // Инициализируем Vue для области с рейтингом и типом думки
+    if (document.getElementById('review-rating-opinion')) {
+        new Vue({
+            el: '#review-rating-opinion'
+        });
+    }
+    
     const reviewRepliesApp = new Vue({
         el: '#review-replies-app',
         data: {

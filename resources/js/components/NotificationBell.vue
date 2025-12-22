@@ -189,10 +189,17 @@ export default {
                 // Используем book_slug (новые уведомления) или fallback на book_id (старые уведомления)
                 const bookIdentifier = notification.data.book_slug || notification.data.book_id;
                 return `/books/${bookIdentifier}/reviews/${notification.data.review_id}`;
-            } else if (notification.type === 'discussion_reply' && notification.data) {
-                // Используем discussion_id для маршрутизации (поддержка и старого discussion_slug)
-                const discussionIdentifier = notification.data.discussion_id || notification.data.discussion_slug;
-                return `/discussions/${discussionIdentifier}/replies/${notification.data.reply_id}`;
+            } else if (['discussion_reply', 'discussion_comment_reply'].includes(notification.type) && notification.data) {
+                // Используем discussion_slug (новые уведомления) или fallback на discussion_id (старые уведомления)
+                const discussionIdentifier = notification.data.discussion_slug || notification.data.discussion_id;
+                // Для ответов используем reply_id (новый ответ), для комментариев тоже reply_id
+                const replyId = notification.data.reply_id || notification.data.parent_reply_id;
+                return `/discussions/${discussionIdentifier}${replyId ? `#reply-${replyId}` : ''}`;
+            } else if (['discussion_like', 'discussion_like_milestone', 'discussion_comment_like', 'discussion_mention', 'discussion_reply_mention'].includes(notification.type) && notification.data) {
+                // Используем discussion_slug для лайков и упоминаний
+                const discussionIdentifier = notification.data.discussion_slug || notification.data.discussion_id;
+                const replyId = notification.data.reply_id;
+                return `/discussions/${discussionIdentifier}${replyId ? `#reply-${replyId}` : ''}`;
             }
             return null;
         },
