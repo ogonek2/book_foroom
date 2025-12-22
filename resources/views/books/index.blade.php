@@ -88,15 +88,12 @@
                             <div>
                                 <label
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Рейтинг</label>
-                                <div class="space-y-3">
-                                    <div
-                                        class="flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                        <span>Від: @{{ filters.rating_min }}</span>
-                                        <span>До: 10</span>
-                                    </div>
-                                    <input type="range" min="1" max="10" v-model.number="filters.rating_min"
-                                        @change="fetchBooks" class="w-full accent-purple-600">
-                                </div>
+                                <double-range-slider
+                                    :min="1"
+                                    :max="10"
+                                    v-model="filters.rating_range"
+                                    @change="fetchBooks"
+                                ></double-range-slider>
                             </div>
 
                             <div>
@@ -231,15 +228,12 @@
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Рейтинг</label>
-                                        <div class="space-y-3">
-                                            <div
-                                                class="flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                                <span>Від: @{{ filters.rating_min }}</span>
-                                                <span>До: 10</span>
-                                            </div>
-                                            <input type="range" min="1" max="10" v-model.number="filters.rating_min"
-                                                @change="fetchBooks" class="w-full accent-purple-600">
-                                        </div>
+                                        <double-range-slider
+                                            :min="1"
+                                            :max="10"
+                                            v-model="filters.rating_range"
+                                            @change="fetchBooks"
+                                        ></double-range-slider>
                                     </div>
 
                                     <div>
@@ -306,12 +300,6 @@
                                 return this.categories.reduce((total, category) => total + (Number(category.books_count) || 0), 0);
                             }
                         },
-                        watch: {
-                            'filters.rating_min'(value) {
-                                this.filters.rating_min = Math.max(1, Math.min(10, Number(value)));
-                                this.fetchBooksDebounced();
-                            }
-                        },
                         data: {
                             books: @js($initialBooks),
                             pagination: @js($initialPagination),
@@ -321,7 +309,10 @@
                                 search: @json(request('search', '')),
                                 category: @json(request('category', '')),
                                 sort: @json(request('sort', 'rating')),
-                                rating_min: Number(@json(request('rating_min', 1))),
+                                rating_range: [
+                                    Number(@json(request('rating_min', 1))),
+                                    Number(@json(request('rating_max', 10)))
+                                ],
                             },
                             loading: false,
                             error: null,
@@ -353,8 +344,8 @@
                     search: this.filters.search || undefined,
                     category: this.filters.category || undefined,
                     sort: this.filters.sort || 'rating',
-                    rating_min: this.filters.rating_min,
-                    rating_max: 10,
+                    rating_min: this.filters.rating_range[0],
+                    rating_max: this.filters.rating_range[1],
                     page,
                 };
 
@@ -395,7 +386,7 @@
                 this.filters.search = '';
                 this.filters.category = '';
                 this.filters.sort = 'rating';
-                this.filters.rating_min = 1;
+                this.filters.rating_range = [1, 10];
                 this.fetchBooks();
             },
             changePage(page) {

@@ -40,6 +40,8 @@ import BookSearch from './components/BookSearch.vue';
 import DiscussionEditor from './components/DiscussionEditor.vue';
 import Pagination from './components/Pagination.vue';
 import AlertModal from './components/AlertModal.vue';
+import DoubleRangeSlider from './components/DoubleRangeSlider.vue';
+import { initFeaturedBooksSwiper, initReviewsSwiper } from './swiper-init';
 
 // Экспортируем Vue глобально для использования в Blade шаблонах
 window.Vue = Vue;
@@ -81,6 +83,7 @@ Vue.component('book-search', BookSearch);
 Vue.component('discussion-editor', DiscussionEditor);
 Vue.component('pagination', Pagination);
 Vue.component('alert-modal', AlertModal);
+Vue.component('double-range-slider', DoubleRangeSlider);
 
 // Импортируем Axios
 import axios from 'axios';
@@ -673,12 +676,40 @@ function initAlertModal() {
     return window.alertModalInstance;
 }
 
+// Helper function to wait for Swiper library
+function waitForSwiper(callback, maxAttempts = 20, attempt = 0) {
+    if (typeof Swiper !== 'undefined') {
+        callback();
+        return;
+    }
+    
+    if (attempt >= maxAttempts) {
+        console.error('Swiper library failed to load after multiple attempts');
+        return;
+    }
+    
+    setTimeout(() => {
+        waitForSwiper(callback, maxAttempts, attempt + 1);
+    }, 200);
+}
+
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAlertModal);
+    document.addEventListener('DOMContentLoaded', function() {
+        initAlertModal();
+        // Wait for Swiper library to load before initializing
+        waitForSwiper(function() {
+            initFeaturedBooksSwiper();
+            initReviewsSwiper();
+        });
+    });
 } else {
     // DOM already loaded
-    setTimeout(initAlertModal, 100);
+    initAlertModal();
+    waitForSwiper(function() {
+        initFeaturedBooksSwiper();
+        initReviewsSwiper();
+    });
 }
 
 // Replace window.alert
@@ -736,6 +767,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Настройка обработчиков для кнопок показать/скрыть ответы
     setupReplyToggleButtons();
+    
+    // Initialize Swipers after Swiper library is loaded
+    waitForSwiper(function() {
+        initFeaturedBooksSwiper();
+        initReviewsSwiper();
+    });
 });
 
 // Функция настройки обработчиков для кнопок показать/скрыть ответы

@@ -26,6 +26,8 @@ class HomeController extends Controller
 
         $recentReviews = Review::with(['book.categories', 'user'])
             ->whereNull('parent_id') // Только основные рецензии, не ответы
+            ->where('review_type', 'review') // Только рецензии, без отзывов
+            ->where('is_draft', false) // Без черновиков
             ->orderBy('created_at', 'desc')
             ->limit(8)
             ->get();

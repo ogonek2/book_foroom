@@ -63,10 +63,24 @@
                             <div class="text-4xl text-orange-500/30 mb-4">
                                 <svg data-v-3095836c="" width="32" height="14" viewBox="0 0 32 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path data-v-3095836c="" d="M6.9682 0.131836C8.63086 0.131836 10.0929 0.533169 11.3542 1.33584C12.6729 2.08117 13.4755 3.05584 13.7622 4.25983C14.3355 6.38117 13.9342 8.44517 12.5582 10.4518C11.2395 12.4012 9.4622 13.2898 7.2262 13.1178C8.71686 12.2578 9.3762 11.1972 9.2042 9.93583C8.45886 10.1078 7.71353 10.1938 6.9682 10.1938C5.01886 10.1938 3.3562 9.7065 1.9802 8.73183C0.661531 7.75717 0.00219727 6.58184 0.00219727 5.20584C0.00219727 3.7725 0.661531 2.5685 1.9802 1.59383C3.3562 0.619168 5.01886 0.131836 6.9682 0.131836ZM30.8762 4.25983C31.4495 6.38117 31.0769 8.44517 29.7582 10.4518C28.4395 12.4012 26.6335 13.2898 24.3402 13.1178C25.8309 12.2578 26.4902 11.1972 26.3182 9.93583C25.5729 10.1078 24.8275 10.1938 24.0822 10.1938C22.1329 10.1938 20.4702 9.7065 19.0942 8.73183C17.7755 7.75717 17.1162 6.58184 17.1162 5.20584C17.1162 3.7725 17.7755 2.5685 19.0942 1.59383C20.4702 0.619168 22.1329 0.131836 24.0822 0.131836C25.7449 0.131836 27.2069 0.533169 28.4682 1.33584C29.7869 2.08117 30.5895 3.05584 30.8762 4.25983Z" fill="#F97316"></path></svg>
                             </div>
+                            <div class="mb-4">
+                                <template v-if="quote.book && quote.book.slug">
+                                    <a
+                                        :href="`/books/${quote.book.slug}`"
+                                        class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm hover:text-brand-500 dark:hover:text-brand-400 transition-colors truncate"
+                                    >
+                                        {{ quote.book.title || 'Без назви книги' }}
+                                    </a>
+                                </template>
+                                <template v-else>
+                                    <p class="text-light-text-tertiary dark:text-dark-text-terтиary text-sm truncate">
+                                        {{ quote.book?.title || 'Без назви книги' }}
+                                    </p>
+                                </template>
+                            </div>
                             <p class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1">
                                 {{ quote.content }}
                             </p>
-
                             <div class="flex items-center justify-between mt-auto">
                                 <div class="flex items-start space-x-3">
                                     <template v-if="quote.user && quote.user.username">
@@ -110,22 +124,6 @@
                                         {{ quote.likes_count || 0 }}
                                     </span>
                                 </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <template v-if="quote.book && quote.book.slug">
-                                    <a
-                                        :href="`/books/${quote.book.slug}`"
-                                        class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm hover:text-brand-500 dark:hover:text-brand-400 transition-colors truncate"
-                                    >
-                                        {{ quote.book.title || 'Без назви книги' }}
-                                    </a>
-                                </template>
-                                <template v-else>
-                                    <p class="text-light-text-tertiary dark:text-dark-text-terтиary text-sm truncate">
-                                        {{ quote.book?.title || 'Без назви книги' }}
-                                    </p>
-                                </template>
                             </div>
                         </div>
                     </div>

@@ -23,7 +23,8 @@
                 <p
                     class="text-base md:text-lg text-light-text-secondary dark:text-dark-text-secondary mb-6 max-w-2xl mx-auto leading-relaxed">
                     Приєднуйтесь до найбільшої спільноти читачів України.
-                    <span class="text-brand-500 dark:text-brand-300 font-medium">Діліться думками, відкривайте нових авторів та
+                    <span class="text-brand-500 dark:text-brand-300 font-medium">Діліться думками, відкривайте нових авторів
+                        та
                         знаходьте натхнення.</span>
                 </p>
 
@@ -56,19 +57,22 @@
                     <div
                         class="dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
                         <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">
-                            {{ number_format($stats['users']) }}</div>
+                            {{ number_format($stats['users']) }}
+                        </div>
                         <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Активних читачів</div>
                     </div>
                     <div
                         class="dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
                         <div class="text-xl font-bold text-accent-500 dark:text-accent-400 mb-1">
-                            {{ number_format($stats['books']) }}</div>
+                            {{ number_format($stats['books']) }}
+                        </div>
                         <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Книг у каталозі</div>
                     </div>
                     <div
                         class="dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
                         <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">
-                            {{ number_format($stats['reviews']) }}</div>
+                            {{ number_format($stats['reviews']) }}
+                        </div>
                         <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Рецензій та відгуків
                         </div>
                     </div>
@@ -90,124 +94,167 @@
             </a>
         </div>
 
-        <div class="relative featured-books-slider-container group">
-            <div class="featured-books-slider flex gap-4 overflow-x-auto pb-4 scroll-smooth" 
-                 style="scrollbar-width: none; -ms-overflow-style: none;">
-                @forelse($featuredBooks as $book)
-                    <div class="flex-shrink-0" style="width: 400px;">
-                        <book-card
-                            :book="{{ json_encode([
-                                'id' => $book->id,
-                                'title' => $book->title,
-                                'slug' => $book->slug,
-                                'author' => $book->author_full_name ?? 'Невідомий автор',
-                                'cover_image' => $book->cover_image_display ?? null,
-                                'rating' => $book->display_rating ?? 0,
-                                'reviews_count' => $book->reviews_count ?? 0,
-                                'category' => $book->categories->first()->name ?? 'Без категорії',
-                                'publication_year' => $book->publication_year ?? 'N/A',
-                                'description' => $book->description ?? ''
-                            ]) }}"
-                            :is-authenticated="isAuthenticated"
-                            :user="user"
-                            :user-libraries="userLibraries"
-                        ></book-card>
-                    </div>
-                @empty
-                    <div class="flex-shrink-0 w-full text-center py-8">
-                        <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-8">
-                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            <p class="text-light-text-tertiary dark:text-dark-text-tertiary">Поки що немає рекомендуваних книг</p>
+        <div class="relative featured-books-slider-container">
+            <!-- Swiper -->
+            <div class="swiper featured-books-swiper">
+                <div class="swiper-wrapper">
+                    @forelse($featuredBooks as $book)
+                                    <div class="swiper-slide">
+                                        <book-card :book="{{ json_encode([
+                            'id' => $book->id,
+                            'title' => $book->title,
+                            'slug' => $book->slug,
+                            'author' => $book->author_full_name ?? 'Невідомий автор',
+                            'cover_image' => $book->cover_image_display ?? null,
+                            'rating' => $book->display_rating ?? 0,
+                            'reviews_count' => $book->reviews_count ?? 0,
+                            'category' => $book->categories->first()->name ?? 'Без категорії',
+                            'publication_year' => $book->publication_year ?? 'N/A',
+                            'description' => $book->description ?? ''
+                        ]) }}" :is-authenticated="isAuthenticated" :user="user"
+                                            :user-libraries="userLibraries"></book-card>
+                                    </div>
+                    @empty
+                        <div class="swiper-slide">
+                            <div class="w-full text-center py-8">
+                                <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-8">
+                                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                    <p class="text-light-text-tertiary dark:text-dark-text-tertiary">Поки що немає
+                                        рекомендуваних книг</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                @endforelse
-            </div>
+                    @endforelse
+                </div>
 
-            <!-- Navigation Arrows -->
-            @if(count($featuredBooks) > 2)
-                <button
-                    class="featured-books-prev hidden lg:flex absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 bg-light-bg dark:bg-dark-bg-secondary hover:bg-brand-500 dark:hover:bg-brand-500 text-light-text-secondary dark:text-dark-text-primary hover:text-white p-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl z-10 items-center justify-center opacity-0 group-hover:opacity-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
-                <button
-                    class="featured-books-next hidden lg:flex absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 bg-light-bg dark:bg-dark-bg-secondary hover:bg-brand-500 dark:hover:bg-brand-500 text-light-text-secondary dark:text-dark-text-primary hover:text-white p-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl z-10 items-center justify-center opacity-0 group-hover:opacity-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            @endif
+                <!-- Navigation buttons -->
+                @if(count($featuredBooks) > 2)
+                    <div class="swiper-button-prev featured-books-prev"></div>
+                    <div class="swiper-button-next featured-books-next"></div>
+                @endif
+            </div>
         </div>
     </section>
 
     <style>
-        .featured-books-slider::-webkit-scrollbar {
-            display: none;
+        .featured-books-slider-container {
+            position: relative;
         }
-        
-        .featured-books-slider {
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
+
+        .featured-books-swiper {
+            padding: 0 0 1rem 0;
         }
-        
-        .featured-books-prev:disabled,
-        .featured-books-next:disabled {
+
+        .featured-books-swiper .swiper-slide {
+            height: auto;
+        }
+
+        .featured-books-prev,
+        .featured-books-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            margin-top: 0;
+            z-index: 10;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            opacity: 0;
+            border: none;
+            outline: none;
+        }
+
+        .featured-books-prev.swiper-button-disabled,
+        .featured-books-next.swiper-button-disabled {
             opacity: 0.3 !important;
             cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .featured-books-slider-container:hover .featured-books-prev,
+        .featured-books-slider-container:hover .featured-books-next {
+            opacity: 1;
+        }
+
+        .featured-books-prev {
+            left: 5px;
+        }
+
+        .featured-books-next {
+            right: 5px;
+        }
+
+        .featured-books-prev:hover,
+        .featured-books-next:hover {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .featured-books-prev::after,
+        .featured-books-next::after {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .dark .featured-books-prev,
+        .dark .featured-books-next {
+            background: rgba(30, 41, 59, 0.9);
+            color: #e2e8f0;
+        }
+
+        .dark .featured-books-prev:hover,
+        .dark .featured-books-next:hover {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+
+            .featured-books-prev,
+            .featured-books-next {
+                display: none !important;
+            }
+        }
+
+        /* Ensure Swiper container allows touch */
+        /* Ensure Swiper container allows touch */
+        .featured-books-swiper {
+            touch-action: pan-y pinch-zoom;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .featured-books-swiper .swiper-wrapper {
+            touch-action: pan-y;
+        }
+
+        /* Make sure buttons are clickable */
+        .featured-books-prev,
+        .featured-books-next {
+            pointer-events: auto;
+        }
+
+        .featured-books-prev.swiper-button-disabled,
+        .featured-books-next.swiper-button-disabled {
+            pointer-events: none;
         }
     </style>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const slider = document.querySelector('.featured-books-slider');
-            const prevBtn = document.querySelector('.featured-books-prev');
-            const nextBtn = document.querySelector('.featured-books-next');
-            
-            if (!slider || !prevBtn || !nextBtn) return;
-            
-            function getScrollAmount() {
-                const card = slider.querySelector('.flex-shrink-0');
-                if (!card) return 0;
-                return card.offsetWidth + 16; // card width + gap
-            }
-            
-            function updateButtons() {
-                const isAtStart = slider.scrollLeft <= 0;
-                const isAtEnd = slider.scrollLeft >= slider.scrollWidth - slider.clientWidth - 10;
-                
-                prevBtn.disabled = isAtStart;
-                nextBtn.disabled = isAtEnd;
-            }
-            
-            prevBtn.addEventListener('click', () => {
-                slider.scrollBy({ left: -getScrollAmount(), behavior: 'smooth' });
-            });
-            
-            nextBtn.addEventListener('click', () => {
-                slider.scrollBy({ left: getScrollAmount(), behavior: 'smooth' });
-            });
-            
-            slider.addEventListener('scroll', updateButtons);
-            window.addEventListener('resize', updateButtons);
-            updateButtons();
-            
-            // Touch support
-            let touchStartX = 0;
-            slider.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            });
-            
-            slider.addEventListener('touchend', (e) => {
-                const diff = touchStartX - e.changedTouches[0].screenX;
-                if (Math.abs(diff) > 50) {
-                    slider.scrollBy({ left: diff > 0 ? getScrollAmount() : -getScrollAmount(), behavior: 'smooth' });
-                }
-            });
-        });
-    </script>
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <!-- 2. Рекомендовані книги -->
     <section class="mb-16">
@@ -273,7 +320,7 @@
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-0 h-full">
                                             <div class="relative">
                                                 <div
-                                                    class="relative overflow-hidden h-80 md:h-96 bg-light-bg-secondary/20 dark:bg-gray-900/20">
+                                                    class="relative overflow-hidden h-80 lg:h-full bg-light-bg-secondary/20 dark:bg-gray-900/20">
                                                     <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=1200&fit=crop&crop=center' }}"
                                                         alt="{{ $book->title }} (background)"
                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
@@ -296,12 +343,13 @@
                                                         class="text-brand-400 dark:text-brand-400 text-sm font-medium">{{ $book->categories->first()->name ?? 'Без категорії' }}</span>
                                                     <h3
                                                         class="text-3xl font-bold text-light-text-primary dark:text-white mt-2 mb-3">
-                                                        {{ $book->title }}</h3>
+                                                        {{ $book->title }}
+                                                    </h3>
                                                     <p class="text-light-text-secondary dark:text-gray-300 text-lg mb-4">
-                                                        {{ $book->author }}</p>
+                                                        {{ $book->author }}
+                                                    </p>
                                                 </div>
-                                                <p
-                                                    class="text-light-text-tertiary dark:text-gray-400 mb-6 leading-relaxed">
+                                                <p class="text-light-text-tertiary dark:text-gray-400 mb-6 leading-relaxed">
                                                     {{ Str::limit($book->description, 150) }}
                                                 </p>
                                                 <div class="flex items-center justify-between">
@@ -420,280 +468,243 @@
             </a>
         </div>
         <div class="relative reviews-slider-container">
-            <!-- Container with overflow -->
-            <div class="reviews-slider flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scroll-smooth"
-                style="scrollbar-width: none; -ms-overflow-style: none;">
-                @forelse($recentReviews as $review)
-                    <!-- Review Card -->
-                    <div class="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[450px] lg:w-[500px]" style="max-width: 450px;">
-                        <div
-                            class="dark:bg-dark-bg-secondary rounded-lg p-5 bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full shadow-sm hover:shadow-md">
-                            <div class="flex items-start space-x-4 h-full">
-                                <!-- Left side: Avatar + Author name and Review content -->
-                                <div class="flex-1 min-w-0">
-                                    <!-- Author info -->
-                                <div class="flex items-center space-x-3 mb-3">
-                                    <!-- Avatar with first letter -->
-                                    @php
-                                        $reviewUser = $review->user;
-                                        $reviewUserAvatar = $reviewUser?->avatar_display ?? $reviewUser?->avatar_url ?? $reviewUser?->avatar;
-                                        $reviewUserName = optional($reviewUser)->name;
-                                        $reviewUserUsername = optional($reviewUser)->username;
-                                        $reviewUserInitial = Str::upper(Str::substr($reviewUserName ?: $reviewUserUsername ?: 'Г', 0, 1));
-                                    @endphp
-                                    @if ($reviewUser && $reviewUser->username)
-                                        <a href="{{ route('users.public.profile', $reviewUser->username) }}"
-                                            class="flex items-center space-x-3 group">
-                                            @if ($reviewUserAvatar)
-                                                <img src="{{ $reviewUserAvatar }}" alt="{{ $reviewUserName ?: $reviewUserInitial }}"
-                                                    class="w-10 h-10 rounded-full object-cover flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+            <!-- Swiper -->
+            <div class="swiper reviews-swiper">
+                <div class="swiper-wrapper">
+                    @forelse($recentReviews as $review)
+                        <!-- Review Card -->
+                        <div class="swiper-slide">
+                            <div
+                                class="dark:bg-dark-bg-secondary rounded-lg p-5 bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full shadow-sm hover:shadow-md">
+                                <div class="flex items-start space-x-4 h-full">
+                                    <!-- Left side: Avatar + Author name and Review content -->
+                                    <div class="flex-1 min-w-0">
+                                        <!-- Author info -->
+                                        <div class="flex items-center space-x-3 mb-3">
+                                            <!-- Avatar with first letter -->
+                                            @php
+                                                $reviewUser = $review->user;
+                                                $reviewUserAvatar = $reviewUser?->avatar_display ?? $reviewUser?->avatar_url ?? $reviewUser?->avatar;
+                                                $reviewUserName = optional($reviewUser)->name;
+                                                $reviewUserUsername = optional($reviewUser)->username;
+                                                $reviewUserInitial = Str::upper(Str::substr($reviewUserName ?: $reviewUserUsername ?: 'Г', 0, 1));
+                                            @endphp
+                                            @if ($reviewUser && $reviewUser->username)
+                                                <a href="{{ route('users.public.profile', $reviewUser->username) }}"
+                                                    class="flex items-center space-x-3 group">
+                                                    @if ($reviewUserAvatar)
+                                                        <img src="{{ $reviewUserAvatar }}"
+                                                            alt="{{ $reviewUserName ?: $reviewUserInitial }}"
+                                                            class="w-10 h-10 rounded-full object-cover flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+                                                    @else
+                                                        <div
+                                                            class="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-accent-500 flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+                                                            <span
+                                                                class="text-white font-semibold text-sm">{{ $reviewUserInitial }}</span>
+                                                        </div>
+                                                    @endif
+                                                    <div class="flex-1 min-w-0">
+                                                        <span
+                                                            class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                                            {{ $review->getAuthorName() }}
+                                                        </span>
+                                                        <span
+                                                            class="block text-light-text-tertiary dark:text-dark-text-tertiary text-xs group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                                                            {{ '@' . $reviewUserUsername }}
+                                                        </span>
+                                                    </div>
+                                                </a>
                                             @else
-                                                <div
-                                                    class="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-accent-500 flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
-                                                    <span class="text-white font-semibold text-sm">{{ $reviewUserInitial }}</span>
+                                                @if ($reviewUserAvatar)
+                                                    <img src="{{ $reviewUserAvatar }}" alt="{{ $reviewUserName ?? 'Користувач' }}"
+                                                        class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                                                @else
+                                                    <div
+                                                        class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
+                                                        <span
+                                                            class="text-gray-300 font-semibold text-sm">{{ $reviewUserInitial }}</span>
+                                                    </div>
+                                                @endif
+                                                <div class="flex-1 min-w-0">
+                                                    <span
+                                                        class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm">
+                                                        {{ $review->getAuthorName() }}
+                                                    </span>
                                                 </div>
                                             @endif
-                                            <div class="flex-1 min-w-0">
-                                                <span
-                                                    class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
-                                                    {{ $review->getAuthorName() }}
-                                                </span>
-                                                <span
-                                                    class="block text-light-text-tertiary dark:text-dark-text-tertiary text-xs group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
-                                                    {{ '@' . $reviewUserUsername }}
-                                                </span>
-                                            </div>
-                                        </a>
-                                    @else
-                                        @if ($reviewUserAvatar)
-                                            <img src="{{ $reviewUserAvatar }}" alt="{{ $reviewUserName ?? 'Користувач' }}"
-                                                class="w-10 h-10 rounded-full object-cover flex-shrink-0">
-                                        @else
-                                            <div
-                                                class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
-                                                <span class="text-gray-300 font-semibold text-sm">{{ $reviewUserInitial }}</span>
-                                            </div>
-                                        @endif
-                                        <div class="flex-1 min-w-0">
-                                            <span
-                                                class="text-light-text-primary dark:text-dark-text-primary font-medium text-sm">
-                                                {{ $review->getAuthorName() }}
-                                            </span>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                    <!-- Review content -->
-                                    <p
-                                        class="text-light-text-secondary dark:text-dark-text-secondary text-sm leading-relaxed line-clamp-4">
-                                        {{ Str::limit(strip_tags($review->content), 200) }}
-                                    </p>
-                                </div>
-
-                                <!-- Right side: Book cover, title and button -->
-                                <div class="flex-shrink-0 flex flex-col gap-2 justify-between h-full"
-                                    style="width: 120px; height: 100%; max-width: 120px;">
-                                    <div class="w-full flex flex-col space-y-3">
-                                        <!-- Book cover -->
-                                        <div class="w-full rounded-lg overflow-hidden shadow-md">
-                                            <img src="{{ $review->book->cover_image_display ?? 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=160&h=224&fit=crop' }}"
-                                                alt="{{ $review->book->title }}" class="w-full h-42 object-cover"
-                                                loading="lazy">
                                         </div>
 
-                                        <!-- Book title -->
-                                        <h4 class="text-brand-500 dark:text-brand-400 font-medium text-xs text-left w-full"
-                                            title="{{ $review->book->title }}">
-                                            {{ $review->book->title }}
-                                        </h4>
+                                        <!-- Review content -->
+                                        <div>
+                                            <h4 class="text-brand-500 dark:text-brand-400 font-medium text-sm text-left w-full py-2 line-clamp-2"
+                                                title="{{ $review->book->title }}">
+                                                {{ $review->book->title }}
+                                            </h4>
+                                            <p class="text-light-text-secondary dark:text-dark-text-secondary text-sm leading-relaxed line-clamp-6">
+                                                {{ Str::limit(strip_tags($review->content), 200) }}
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    <!-- Read more button -->
-                                    <a href="{{ route('books.show', $review->book->slug) }}/reviews/{{ $review->id }}"
-                                        class="bg-white/60 dark:bg-gray-600 backdrop-blur-sm rounded-2xl text-white text-xs font-medium px-3 py-2 rounded-lg w-full text-center">
-                                        Читати далі
-                                    </a>
+                                    <!-- Right side: Book cover, title and button -->
+                                    <div class="flex-shrink-0 flex flex-col gap-2 justify-end h-full"
+                                        style="width: 120px; height: 100%; max-width: 120px;">
+                                        <div class="w-full flex flex-col space-y-3">
+                                            <!-- Book cover -->
+                                            <div class="w-full rounded-lg overflow-hidden shadow-md">
+                                                <img src="{{ $review->book->cover_image_display ?? 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=160&h=224&fit=crop' }}"
+                                                    alt="{{ $review->book->title }}" class="w-full h-42 object-cover"
+                                                    loading="lazy">
+                                            </div>
+                                        </div>
+
+                                        <!-- Read more button -->
+                                        <a href="{{ route('books.show', $review->book->slug) }}/reviews/{{ $review->id }}"
+                                            class="bg-white/60 dark:bg-gray-600 backdrop-blur-sm rounded-2xl text-white text-xs font-medium px-3 py-2 rounded-lg w-full text-center">
+                                            Читати далі
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                @empty
-                    <!-- No Reviews -->
-                    <div class="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[450px] lg:w-[500px]">
-                        <div
-                            class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-8 text-center h-full flex items-center justify-center">
-                            <div>
-                                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                </svg>
-                                <p class="text-gray-400 text-sm">Поки що немає рецензій</p>
+                    @empty
+                        <!-- No Reviews -->
+                        <div class="swiper-slide">
+                            <div
+                                class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-8 text-center h-full flex items-center justify-center">
+                                <div>
+                                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                    <p class="text-gray-400 text-sm">Поки що немає рецензій</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endforelse
-            </div>
+                    @endforelse
+                </div>
 
-            <!-- Navigation Arrows (hidden on mobile, visible on desktop) -->
-            @if (count($recentReviews) > 1)
-                <button
-                    class="reviews-slider-prev hidden md:flex absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 bg-light-bg dark:bg-dark-bg-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg text-light-text-secondary dark:text-dark-text-primary p-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl z-10 items-center justify-center opacity-0 group-hover:opacity-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
-                <button
-                    class="reviews-slider-next hidden md:flex absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 bg-light-bg dark:bg-dark-bg-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg text-light-text-secondary dark:text-dark-text-primary p-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl z-10 items-center justify-center opacity-0 group-hover:opacity-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            @endif
+                <!-- Navigation buttons -->
+                @if(count($recentReviews) > 1)
+                    <div class="swiper-button-prev reviews-slider-prev"></div>
+                    <div class="swiper-button-next reviews-slider-next"></div>
+                @endif
+            </div>
         </div>
     </section>
 
     <style>
-        /* Hide scrollbar */
-        .reviews-slider::-webkit-scrollbar {
-            display: none;
+        .reviews-slider-container {
+            position: relative;
         }
 
-        /* Smooth scroll */
-        .reviews-slider {
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
+        .reviews-swiper {
+            padding: 0 0 1rem 0;
         }
 
-        /* Show arrows on hover */
+        .reviews-swiper .swiper-slide {
+            height: auto;
+        }
+
+        .reviews-slider-prev,
+        .reviews-slider-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            margin-top: 0;
+            z-index: 10;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 50%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            opacity: 0;
+            border: none;
+            outline: none;
+        }
+
         .reviews-slider-container:hover .reviews-slider-prev,
         .reviews-slider-container:hover .reviews-slider-next {
             opacity: 1;
         }
 
-        /* Disable button when at start/end */
-        .reviews-slider-prev:disabled,
-        .reviews-slider-next:disabled {
-            opacity: 0.3;
+        .reviews-slider-prev {
+            left: 5px;
+        }
+
+        .reviews-slider-next {
+            right: 5px;
+        }
+
+        .reviews-slider-prev:hover,
+        .reviews-slider-next:hover {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .reviews-slider-prev::after,
+        .reviews-slider-next::after {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .dark .reviews-slider-prev,
+        .dark .reviews-slider-next {
+            background: rgba(30, 41, 59, 0.9);
+            color: #e2e8f0;
+        }
+
+        .dark .reviews-slider-prev:hover,
+        .dark .reviews-slider-next:hover {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            color: white;
+        }
+
+        .reviews-slider-prev.swiper-button-disabled,
+        .reviews-slider-next.swiper-button-disabled {
+            opacity: 0.3 !important;
             cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        @media (max-width: 1024px) {
+
+            .reviews-slider-prev,
+            .reviews-slider-next {
+                display: none !important;
+            }
+        }
+
+        /* Ensure Swiper container allows touch */
+        .reviews-swiper {
+            touch-action: pan-y pinch-zoom;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .reviews-swiper .swiper-wrapper {
+            touch-action: pan-y;
+        }
+
+        /* Make sure buttons are clickable */
+        .reviews-slider-prev,
+        .reviews-slider-next {
+            pointer-events: auto;
+        }
+
+        .reviews-slider-prev.swiper-button-disabled,
+        .reviews-slider-next.swiper-button-disabled {
+            pointer-events: none;
         }
     </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const slider = document.querySelector('.reviews-slider');
-            const prevBtn = document.querySelector('.reviews-slider-prev');
-            const nextBtn = document.querySelector('.reviews-slider-next');
-
-            if (!slider || !prevBtn || !nextBtn) return;
-
-            // Calculate scroll amount based on card width + gap
-            function getScrollAmount() {
-                const card = slider.querySelector('.flex-shrink-0');
-                if (!card) return 0;
-
-                const cardWidth = card.offsetWidth;
-                const gap = 24; // 6 * 4px (space-x-6)
-                return cardWidth + gap;
-            }
-
-            // Update button states
-            function updateButtons() {
-                const isAtStart = slider.scrollLeft <= 0;
-                const isAtEnd = slider.scrollLeft >= slider.scrollWidth - slider.clientWidth - 10;
-
-                prevBtn.disabled = isAtStart;
-                nextBtn.disabled = isAtEnd;
-
-                // Visual feedback
-                if (isAtStart) {
-                    prevBtn.style.opacity = '0.3';
-                } else {
-                    prevBtn.style.opacity = '';
-                }
-
-                if (isAtEnd) {
-                    nextBtn.style.opacity = '0.3';
-                } else {
-                    nextBtn.style.opacity = '';
-                }
-            }
-
-            // Scroll to previous
-            prevBtn.addEventListener('click', () => {
-                const scrollAmount = getScrollAmount();
-                slider.scrollBy({
-                    left: -scrollAmount,
-                    behavior: 'smooth'
-                });
-            });
-
-            // Scroll to next
-            nextBtn.addEventListener('click', () => {
-                const scrollAmount = getScrollAmount();
-                slider.scrollBy({
-                    left: scrollAmount,
-                    behavior: 'smooth'
-                });
-            });
-
-            // Update button states on scroll
-            slider.addEventListener('scroll', updateButtons);
-
-            // Initial button state
-            updateButtons();
-
-            // Update on window resize
-            window.addEventListener('resize', updateButtons);
-
-            // Touch/swipe support for mobile
-            let touchStartX = 0;
-            let touchEndX = 0;
-
-            slider.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
-            });
-
-            slider.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            });
-
-            function handleSwipe() {
-                const swipeThreshold = 50;
-                const diff = touchStartX - touchEndX;
-
-                if (Math.abs(diff) > swipeThreshold) {
-                    if (diff > 0) {
-                        // Swipe left - scroll right
-                        const scrollAmount = getScrollAmount();
-                        slider.scrollBy({
-                            left: scrollAmount,
-                            behavior: 'smooth'
-                        });
-                    } else {
-                        // Swipe right - scroll left
-                        const scrollAmount = getScrollAmount();
-                        slider.scrollBy({
-                            left: -scrollAmount,
-                            behavior: 'smooth'
-                        });
-                    }
-                }
-            }
-
-            // Keyboard navigation
-            slider.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    prevBtn.click();
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    nextBtn.click();
-                }
-            });
-        });
-    </script>
 
     <!-- 4. Цитати -->
     <section class="mb-16">
@@ -704,6 +715,8 @@
 
 
     @push('styles')
+        <!-- Swiper CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
         <style>
             /* Hide scrollbar for horizontal scroll */
             .scrollbar-hide {
@@ -908,7 +921,7 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             initializeVueApp();
 
             // Reviews scroll functionality
@@ -916,7 +929,7 @@
             const scrollButton = document.querySelector('.absolute.right-0.top-1\\/2 button');
 
             if (reviewsContainer && scrollButton) {
-                scrollButton.addEventListener('click', function() {
+                scrollButton.addEventListener('click', function () {
                     // Calculate scroll distance based on screen size
                     const isMobile = window.innerWidth < 768;
                     const cardWidth = isMobile ? 384 : 448; // w-96 = 384px, w-[28rem] = 448px

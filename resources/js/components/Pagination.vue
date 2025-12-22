@@ -18,10 +18,11 @@
         </button>
 
         <!-- Page Numbers -->
-        <template v-for="(page, index) in displayPages" :key="index">
+        <template v-for="(page, index) in displayPages">
             <!-- Three Dots Separator -->
             <span
                 v-if="page === '...'"
+                :key="`dots-${index}`"
                 class="flex items-center justify-center w-10 h-10 text-gray-400 dark:text-gray-600 font-semibold"
             >
                 {{ page }}
@@ -30,6 +31,7 @@
             <!-- Page Number -->
             <button
                 v-else
+                :key="`page-${page}`"
                 @click="goToPage(page)"
                 :class="[
                     'flex items-center justify-center min-w-[2.5rem] h-10 px-3 rounded-xl font-semibold transition-all duration-200',
