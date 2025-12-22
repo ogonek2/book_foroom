@@ -109,7 +109,7 @@
 
                     @if(isset($reviewsPaginator) && $reviewsPaginator->hasPages())
                         <div class="mt-6">
-                            {{ $reviewsPaginator->onEachSide(1)->links() }}
+                            {{ $reviewsPaginator->onEachSide(1)->links('vendor.pagination.custom') }}
                         </div>
                     @endif
                 </div>

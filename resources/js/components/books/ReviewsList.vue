@@ -404,7 +404,8 @@ export default {
             this.activeMenu = null; // Закрываем меню
         },
         async deleteReview(reviewId) {
-            if (!confirm('Ви впевнені, що хочете видалити цю рецензію?')) return;
+            const confirmed = await confirm('Ви впевнені, що хочете видалити цю рецензію?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
 
             try {
                 const response = await axios.delete(`/books/${this.bookSlug}/reviews/${reviewId}`);
@@ -425,9 +426,10 @@ export default {
             this.activeMenu = null; // Закрываем меню
         },
         async reportReview(reviewId) {
-            if (!confirm('Ви впевнені, що хочете поскаржитись на цю рецензію?')) return;
+            const confirmed = await confirm('Ви впевнені, що хочете поскаржитись на цю рецензію?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
 
-            const reason = prompt('Вкажіть причину скарги (необов\'язково):');
+            const reason = await prompt('Вкажіть причину скарги (необов\'язково):', '', 'Причина скарги', 'Введіть причину...');
 
             try {
                 const response = await axios.post(`/books/${this.bookSlug}/reviews/${reviewId}/report`, {
@@ -445,7 +447,8 @@ export default {
             this.activeMenu = null;
         },
         async deleteUserReview() {
-            if (!confirm('Ви впевнені, що хочете видалити свою рецензію?')) return;
+            const confirmed = await confirm('Ви впевнені, що хочете видалити свою рецензію?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
 
             try {
                 const response = await axios.delete(`/books/${this.bookSlug}/reviews/${this.userReview.id}`);

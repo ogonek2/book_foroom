@@ -319,7 +319,8 @@ export default {
             }
         },
         async deleteReply() {
-            if (!confirm('Ви впевнені, що хочете видалити цей коментар?')) return;
+            const confirmed = await confirm('Ви впевнені, що хочете видалити цей коментар?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
             try {
                 const response = await axios.delete(`/books/${this.bookSlug}/reviews/${this.reply.id}/delete`);
                 if (response.data.success) {

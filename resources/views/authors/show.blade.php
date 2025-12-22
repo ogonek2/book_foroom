@@ -183,6 +183,14 @@
                     <section id="author-reviews-section">
 
                         @if ($reviews->count() > 0)
+                            <div class="flex justify-end mb-4">
+                                <a href="{{ route('authors.reviews.index', $author->slug) }}"
+                                   class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                    Переглянути всі рецензії
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </a>
+                            </div>
+
                             <reviews-list book-slug="{{ $reviews->first()->book->slug ?? '' }}"
                                 :current-user-id="{{ auth()->id() ?? 'null' }}" 
                                 :user-review="null"
@@ -240,6 +248,14 @@
                     <!-- Author Quotes Section -->
                     <section id="author-quotes-section">
                         @if ($quotes->count() > 0)
+                            <div class="flex justify-end mb-4">
+                                <a href="{{ route('authors.quotes.index', $author->slug) }}"
+                                   class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                    Переглянути всі цитати
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </a>
+                            </div>
+
                             <quotes-list book-slug="{{ $quotes->first()->book->slug ?? '' }}"
                                 :current-user-id="{{ auth()->id() ?? 'null' }}"
                                 :hide-header="true"
@@ -290,6 +306,14 @@
                     <!-- Author Facts Section -->
                     <section id="author-facts-section">
                         @if ($facts->count() > 0)
+                            <div class="flex justify-end mb-4">
+                                <a href="{{ route('authors.facts.index', $author->slug) }}"
+                                   class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                    Переглянути всі факти
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </a>
+                            </div>
+
                             <facts-list book-slug="{{ $facts->first()->book->slug ?? '' }}"
                                 :current-user-id="{{ auth()->id() ?? 'null' }}"
                                 :is-moderator="{{ auth()->check() && auth()->user()->hasRole('admin') ? 'true' : 'false' }}"

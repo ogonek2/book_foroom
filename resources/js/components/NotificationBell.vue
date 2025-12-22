@@ -242,7 +242,8 @@ export default {
         },
         
         async deleteAllRead() {
-            if (!confirm('Ви впевнені, що хочете видалити всі прочитані сповіщення?')) {
+            const confirmed = await confirm('Ви впевнені, що хочете видалити всі прочитані сповіщення?', 'Підтвердження', 'warning');
+            if (!confirmed) {
                 return;
             }
             

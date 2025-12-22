@@ -104,7 +104,7 @@
 
                     @if(isset($factsPaginator) && $factsPaginator->hasPages())
                         <div class="mt-6">
-                            {{ $factsPaginator->onEachSide(1)->links() }}
+                            {{ $factsPaginator->onEachSide(1)->links('vendor.pagination.custom') }}
                         </div>
                     @endif
                 </div>

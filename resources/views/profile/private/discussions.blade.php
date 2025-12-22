@@ -221,8 +221,9 @@
                 console.log('Edit discussion:', discussionId);
             }
 
-            function deleteDiscussion(discussionId) {
-                if (confirm('Ви впевнені, що хочете видалити це обговорення? Цю дію неможливо скасувати.')) {
+            async function deleteDiscussion(discussionId) {
+                const confirmed = await confirm('Ви впевнені, що хочете видалити це обговорення? Цю дію неможливо скасувати.', 'Підтвердження', 'warning');
+                if (confirmed) {
                     // TODO: Implement delete discussion
                     console.log('Delete discussion:', discussionId);
                 }

@@ -191,8 +191,9 @@
 
             // Функция editReview больше не нужна, так как используется прямая ссылка
 
-            function deleteReview(reviewId) {
-                if (confirm('Ви впевнені, що хочете видалити цю рецензію? Цю дію неможливо скасувати.')) {
+            async function deleteReview(reviewId) {
+                const confirmed = await confirm('Ви впевнені, що хочете видалити цю рецензію? Цю дію неможливо скасувати.', 'Підтвердження', 'warning');
+                if (confirmed) {
                     // TODO: Implement delete review
                     console.log('Delete review:', reviewId);
                 }

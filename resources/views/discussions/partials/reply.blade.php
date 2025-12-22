@@ -347,7 +347,7 @@
             const submitButton = form.querySelector('button[type="button"]');
 
             if (!textarea || !textarea.value.trim()) {
-                alert('Будь ласка, введіть текст відповіді');
+                alert('Будь ласка, введіть текст відповіді', 'Помилка валідації', 'error');
                 return;
             }
 
@@ -378,12 +378,12 @@
 
                         showNotification('Відповідь успішно додано!', 'success');
                     } else {
-                        alert(data.message || 'Помилка при відправці відповіді');
+                        alert(data.message || 'Помилка при відправці відповіді', 'Помилка', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Помилка при відправці відповіді');
+                    alert('Помилка при відправці відповіді', 'Помилка', 'error');
                 })
                 .finally(() => {
                     submitButton.disabled = false;
@@ -665,18 +665,19 @@ ${actionsHtml}
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert(data.message || 'Ошибка при обновлении ответа');
+                        alert(data.message || 'Ошибка при обновлении ответа', 'Помилка', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Ошибка при обновлении ответа');
+                    alert('Ошибка при обновлении ответа', 'Помилка', 'error');
                 });
         }
 
         // Delete reply
-        function deleteReply(replyId) {
-            if (!confirm('Вы уверены, что хотите удалить этот ответ?')) return;
+        async function deleteReply(replyId) {
+            const confirmed = await confirm('Ви впевнені, що хочете видалити цю відповідь?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
 
             fetch(`/discussions/{{ $discussion->id }}/replies/${replyId}`, {
                     method: 'DELETE',
@@ -691,12 +692,12 @@ ${actionsHtml}
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert(data.message || 'Ошибка при удалении ответа');
+                        alert(data.message || 'Ошибка при удалении ответа', 'Помилка', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Ошибка при удалении ответа');
+                    alert('Ошибка при удалении ответа', 'Помилка', 'error');
                 });
         }
     </script>

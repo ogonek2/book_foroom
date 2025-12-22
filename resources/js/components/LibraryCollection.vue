@@ -214,7 +214,7 @@ export default {
                 this.$emit('notification', { message: 'Посилання скопійовано в буфер обміну', type: 'success' });
             }).catch(() => {
                 // Final fallback - show URL in alert
-                alert(`Посилання на добірку: ${url}`);
+                alert(`Посилання на добірку: ${url}`, 'Посилання', 'info');
             });
         }
     }

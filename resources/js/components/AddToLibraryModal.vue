@@ -1,9 +1,8 @@
 <template>
     <div v-if="show" 
-         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+         class="fixed inset-0 bg-black/55 z-50 flex items-center justify-center p-4"
          @click="handleBackdropClick">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300"
-             :class="modalClasses"
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4"
              @click.stop>
             <div class="p-6">
                 <!-- Header -->
@@ -130,12 +129,14 @@ export default {
             default: () => []
         }
     },
-    computed: {
-        modalClasses() {
-            return this.show 
-                ? 'scale-100 opacity-100' 
-                : 'scale-95 opacity-0';
-        }
+    mounted() {
+        // Переносим модалку в body, чтобы избежать конфликтов с overflow/трансформациями родительских контейнеров (например, на головній сторінці)
+        this.moveToBody();
+
+        // Удаляем модалку из body при уничтожении компонента
+        this.$once('hook:beforeDestroy', () => {
+            this.removeFromBody();
+        });
     },
     methods: {
         closeModal() {
@@ -152,11 +153,20 @@ export default {
         openCustomLibraryModal() {
             // Эмитим событие для открытия модального окна с кастомными библиотеками
             this.$emit('open-custom-library');
+        },
+        moveToBody() {
+            const modalElement = this.$el;
+            if (modalElement && modalElement.parentNode !== document.body) {
+                document.body.appendChild(modalElement);
+            }
+        },
+        removeFromBody() {
+            const modalElement = this.$el;
+            if (modalElement && modalElement.parentNode === document.body) {
+                document.body.removeChild(modalElement);
+            }
         }
     }
 }
 </script>
 
-<style scoped>
-/* Стили для модального окна */
-</style>

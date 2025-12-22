@@ -245,7 +245,7 @@
 
             async function editBookStatus(readingStatusId) {
                 if (!readingStatusId) {
-                    alert('Помилка: не вказано ID статусу');
+                    alert('Помилка: не вказано ID статусу', 'Помилка', 'error');
                     return;
                 }
                 
@@ -268,7 +268,7 @@
                         currentReadingStatus = response.data.data;
                         openEditModal();
                     } else {
-                        alert('Помилка при завантаженні даних: ' + (response.data?.message || 'Невідома помилка'));
+                        alert('Помилка при завантаженні даних: ' + (response.data?.message || 'Невідома помилка'), 'Помилка', 'error');
                     }
                 } catch (error) {
                     console.error('Error loading status:', error);
@@ -277,13 +277,13 @@
                         return; // Не показываем ошибку, если запрос был прерван из-за навигации
                     } else if (error.response) {
                         // Сервер ответил с ошибкой
-                        alert('Помилка при завантаженні даних: ' + (error.response.data?.message || `HTTP ${error.response.status}`));
+                        alert('Помилка при завантаженні даних: ' + (error.response.data?.message || `HTTP ${error.response.status}`), 'Помилка', 'error');
                     } else if (error.request) {
                         // Запрос был отправлен, но ответа не получено
-                        alert('Не вдалося отримати відповідь від сервера. Перевірте підключення до інтернету.');
+                        alert('Не вдалося отримати відповідь від сервера. Перевірте підключення до інтернету.', 'Помилка', 'error');
                     } else {
                         // Ошибка при настройке запроса
-                        alert('Помилка при налаштуванні запиту: ' + error.message);
+                        alert('Помилка при налаштуванні запиту: ' + error.message, 'Помилка', 'error');
                     }
                 }
             }
@@ -447,14 +447,15 @@
                     });
                     
                     if (response.data.success) {
-                        alert('Статус оновлено!');
-                        window.location.reload();
+                        alert('Статус оновлено!', 'Успіх', 'success').then(() => {
+                            window.location.reload();
+                        });
                     } else {
-                        alert(response.data.message || 'Помилка при збереженні');
+                        alert(response.data.message || 'Помилка при збереженні', 'Помилка', 'error');
                     }
                 } catch (error) {
                     console.error('Error saving status:', error);
-                    alert(error.response?.data?.message || 'Помилка при збереженні статусу');
+                    alert(error.response?.data?.message || 'Помилка при збереженні статусу', 'Помилка', 'error');
                 } finally {
                     btn.disabled = false;
                     btn.textContent = 'Зберегти';
@@ -462,7 +463,8 @@
             }
 
             async function removeFromLibrary(readingStatusId) {
-                if (!confirm('Ви впевнені, що хочете видалити цю книгу з бібліотеки?')) {
+                const confirmed = await confirm('Ви впевнені, що хочете видалити цю книгу з бібліотеки?', 'Підтвердження', 'warning');
+                if (!confirmed) {
                     return;
                 }
                 
@@ -476,13 +478,13 @@
                         }
                     });
                     if (!statusResponse.data || !statusResponse.data.success) {
-                        alert('Помилка при завантаженні даних');
+                        alert('Помилка при завантаженні даних', 'Помилка', 'error');
                         return;
                     }
                     
                     const bookId = statusResponse.data.data.book_id;
                     if (!bookId) {
-                        alert('Помилка: не вдалося отримати ID книги');
+                        alert('Помилка: не вдалося отримати ID книги', 'Помилка', 'error');
                         return;
                     }
                     
@@ -495,14 +497,15 @@
                     });
                     
                     if (response.data.success) {
-                        alert('Книгу видалено з бібліотеки!');
-                        window.location.reload();
+                        alert('Книгу видалено з бібліотеки!', 'Успіх', 'success').then(() => {
+                            window.location.reload();
+                        });
                     } else {
-                        alert(response.data.message || 'Помилка при видаленні');
+                        alert(response.data.message || 'Помилка при видаленні', 'Помилка', 'error');
                     }
                 } catch (error) {
                     console.error('Error removing from library:', error);
-                    alert('Помилка при видаленні книги');
+                    alert('Помилка при видаленні книги', 'Помилка', 'error');
                 }
             }
 

@@ -116,7 +116,7 @@
                                                     <a href="{{ route('forum.posts.edit', $post) }}" class="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                                         Редактировать
                                                     </a>
-                                                    <form action="{{ route('forum.posts.destroy', $post) }}" method="POST" class="inline" onsubmit="return confirm('Вы уверены, что хотите удалить этот пост?')">
+                                                    <form action="{{ route('forum.posts.destroy', $post) }}" method="POST" class="inline" onsubmit="(function(e) { e.preventDefault(); (async function() { const confirmed = await confirm('Ви впевнені, що хочете видалити цей пост?', 'Підтвердження', 'warning'); if (confirmed) { e.target.submit(); } })(); })(event); return false;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">

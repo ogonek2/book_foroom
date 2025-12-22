@@ -176,8 +176,9 @@
 
 @push('scripts')
     <script>
-        function publishDraft(type, id) {
-            if (!confirm('Ви впевнені, що хочете опублікувати цю чернетку?')) {
+        async function publishDraft(type, id) {
+            const confirmed = await confirm('Ви впевнені, що хочете опублікувати цю чернетку?', 'Підтвердження', 'warning');
+            if (!confirmed) {
                 return;
             }
 
@@ -194,20 +195,22 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Чернетку опубліковано!');
-                    window.location.reload();
+                    alert('Чернетку опубліковано!', 'Успіх', 'success').then(() => {
+                        window.location.reload();
+                    });
                 } else {
-                    alert('Помилка: ' + (data.message || 'Не вдалося опублікувати чернетку'));
+                    alert('Помилка: ' + (data.message || 'Не вдалося опублікувати чернетку'), 'Помилка', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Помилка при публікації чернетки');
+                alert('Помилка при публікації чернетки', 'Помилка', 'error');
             });
         }
 
-        function deleteDraft(type, id) {
-            if (!confirm('Ви впевнені, що хочете видалити цю чернетку? Цю дію неможливо скасувати.')) {
+        async function deleteDraft(type, id) {
+            const confirmed = await confirm('Ви впевнені, що хочете видалити цю чернетку? Цю дію неможливо скасувати.', 'Підтвердження', 'warning');
+            if (!confirmed) {
                 return;
             }
 
@@ -224,15 +227,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Чернетку видалено!');
-                    window.location.reload();
+                    alert('Чернетку видалено!', 'Успіх', 'success').then(() => {
+                        window.location.reload();
+                    });
                 } else {
-                    alert('Помилка: ' + (data.message || 'Не вдалося видалити чернетку'));
+                    alert('Помилка: ' + (data.message || 'Не вдалося видалити чернетку'), 'Помилка', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Помилка при видаленні чернетки');
+                alert('Помилка при видаленні чернетки', 'Помилка', 'error');
             });
         }
 

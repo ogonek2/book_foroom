@@ -376,7 +376,8 @@
                         methods: {
                             showNotification(message, type = 'success') {
                                 // Простое уведомление
-                                alert(type.toUpperCase() + ': ' + message);
+                                const alertType = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+                                alert(message, type.toUpperCase(), alertType);
                             }
                         }
                     });

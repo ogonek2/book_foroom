@@ -119,7 +119,7 @@
 
                     <!-- Pagination -->
                     <div class="mt-8">
-                        {{ $books->links() }}
+                        {{ $books->links('vendor.pagination.custom') }}
                     </div>
                 @else
                     <!-- Empty State -->
@@ -220,7 +220,7 @@
                             navigator.clipboard.writeText(window.location.href).then(() => {
                                 this.showNotification('Посилання скопійовано в буфер обміну', 'success');
                             }).catch(() => {
-                                alert(`Посилання на добірку: ${window.location.href}`);
+                                alert(`Посилання на добірку: ${window.location.href}`, 'Посилання', 'info');
                             });
                         },
                         handleNotification(notification) {

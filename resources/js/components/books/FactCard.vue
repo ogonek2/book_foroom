@@ -231,7 +231,8 @@ export default {
             }
         },
         async deleteFact() {
-            if (!confirm('Ви впевнені, що хочете видалити цей факт?')) return;
+            const confirmed = await confirm('Ви впевнені, що хочете видалити цей факт?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
             try {
                 const response = await axios.delete(`/books/${this.bookSlug}/facts/${this.fact.id}`);
                 if (response.data.success) {

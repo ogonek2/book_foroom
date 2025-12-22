@@ -352,7 +352,7 @@
                     </button>
 
                     <!-- Dots Indicator -->
-                    <div class="flex justify-center mt-6 space-x-2">
+                    <div id="recommended-books-dots" class="flex justify-center mt-6 space-x-2">
                         @if (count($recommendedBooks) > 0)
                             @for ($i = 1; $i <= count($recommendedBooks); $i++)
                                 <button onclick="currentSlide({{ $i }})"
@@ -371,7 +371,8 @@
 
         function showSlide(n) {
             const slider = document.getElementById('bookSlider');
-            const dots = document.querySelectorAll('.flex.justify-center button');
+            const dotsContainer = document.getElementById('recommended-books-dots');
+            const dots = dotsContainer ? dotsContainer.querySelectorAll('button') : [];
 
             if (n > totalSlides) slideIndex = 1;
             if (n < 1) slideIndex = totalSlides;

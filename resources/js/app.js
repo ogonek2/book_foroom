@@ -38,6 +38,8 @@ import FeaturedQuotesCarousel from './components/quotes/FeaturedQuotesCarousel.v
 import LibrariesExplorer from './components/LibrariesExplorer.vue';
 import BookSearch from './components/BookSearch.vue';
 import DiscussionEditor from './components/DiscussionEditor.vue';
+import Pagination from './components/Pagination.vue';
+import AlertModal from './components/AlertModal.vue';
 
 // Экспортируем Vue глобально для использования в Blade шаблонах
 window.Vue = Vue;
@@ -77,6 +79,8 @@ Vue.component('featured-quotes-carousel', FeaturedQuotesCarousel);
 Vue.component('libraries-explorer', LibrariesExplorer);
 Vue.component('book-search', BookSearch);
 Vue.component('discussion-editor', DiscussionEditor);
+Vue.component('pagination', Pagination);
+Vue.component('alert-modal', AlertModal);
 
 // Импортируем Axios
 import axios from 'axios';
@@ -606,8 +610,9 @@ window.editReview = function(reviewId) {
     console.log('Edit review:', reviewId);
 };
 
-window.deleteReview = function(reviewId) {
-    if (confirm('Вы уверены, что хотите удалить эту рецензию?')) {
+window.deleteReview = async function(reviewId) {
+    const confirmed = await confirm('Ви впевнені, що хочете видалити цю рецензію?', 'Підтвердження', 'warning');
+    if (confirmed) {
         axios.delete(`/api/reviews/${reviewId}`)
             .then(response => {
                 const data = response.data;
@@ -641,6 +646,85 @@ window.showNotification = function(message, type = 'info') {
     setTimeout(() => {
         notification.remove();
     }, 3000);
+};
+
+// Global Alert Modal Instance
+window.alertModalInstance = null;
+
+// Initialize Alert Modal after Vue is loaded
+function initAlertModal() {
+    if (window.alertModalInstance) {
+        return window.alertModalInstance;
+    }
+    
+    const container = document.getElementById('global-alert-modal-container');
+    if (!container || !window.Vue) {
+        return null;
+    }
+    
+    window.alertModalInstance = new Vue({
+        el: container,
+        components: {
+            'alert-modal': AlertModal
+        },
+        template: '<alert-modal ref="modal"></alert-modal>'
+    });
+    
+    return window.alertModalInstance;
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAlertModal);
+} else {
+    // DOM already loaded
+    setTimeout(initAlertModal, 100);
+}
+
+// Replace window.alert
+const originalAlert = window.alert;
+window.alert = function(message, title, type) {
+    const instance = initAlertModal();
+    if (instance && instance.$refs.modal) {
+        return instance.$refs.modal.alert(message, title || 'Повідомлення', type || 'info');
+    }
+    // Fallback to original alert if Vue not loaded
+    if (originalAlert && typeof originalAlert === 'function') {
+        originalAlert(message);
+        return Promise.resolve(true);
+    }
+    console.warn('Alert:', message);
+    return Promise.resolve(true);
+};
+
+// Replace window.confirm
+const originalConfirm = window.confirm;
+window.confirm = function(message, title, type) {
+    const instance = initAlertModal();
+    if (instance && instance.$refs.modal) {
+        return instance.$refs.modal.confirm(message, title || 'Підтвердження', type || 'warning').catch(() => false);
+    }
+    // Fallback to original confirm if Vue not loaded
+    if (originalConfirm && typeof originalConfirm === 'function') {
+        return Promise.resolve(originalConfirm(message));
+    }
+    console.warn('Confirm:', message);
+    return Promise.resolve(false);
+};
+
+// Replace window.prompt
+const originalPrompt = window.prompt;
+window.prompt = function(message, defaultValue, title, placeholder) {
+    const instance = initAlertModal();
+    if (instance && instance.$refs.modal) {
+        return instance.$refs.modal.prompt(message, defaultValue || '', title || 'Введення', placeholder || '').catch(() => null);
+    }
+    // Fallback to original prompt if Vue not loaded
+    if (originalPrompt && typeof originalPrompt === 'function') {
+        return Promise.resolve(originalPrompt(message, defaultValue || ''));
+    }
+    console.warn('Prompt:', message);
+    return Promise.resolve(null);
 };
 
 // Инициализация при загрузке страницы

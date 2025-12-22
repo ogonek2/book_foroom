@@ -471,4 +471,15 @@ class User extends Authenticatable
                     ->withTimestamps()
                     ->orderBy('favorite_reviews.created_at', 'desc');
     }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
 }

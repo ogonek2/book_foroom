@@ -1,0 +1,92 @@
+@extends('layouts.app')
+
+@section('title', $author->full_name . ' — Цікаві факти з книг автора')
+
+@section('main')
+    <div id="author-facts-app" class="max-w-7xl mx-auto space-y-8">
+        <nav class="text-sm text-slate-500 dark:text-slate-400">
+            <ol class="flex flex-wrap gap-2">
+                <li><a href="{{ route('home') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">Головна</a></li>
+                <li>/</li>
+                <li><a href="{{ route('authors.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">Автори</a></li>
+                <li>/</li>
+                <li><a href="{{ route('authors.show', $author->slug) }}"
+                       class="hover:text-indigo-600 dark:hover:text-indigo-400">{{ $author->full_name }}</a></li>
+                <li>/</li>
+                <li class="font-semibold text-slate-900 dark:text-white">Цікаві факти</li>
+            </ol>
+        </nav>
+
+        <div class="w-full flex items-start">
+            <div class="w-full max-w-[220px] hidden md:block lg:sticky sm:sticky top-4">
+                @if ($author->photo_url)
+                    <img src="{{ $author->photo_url }}" alt="{{ $author->full_name }}" class="w-full object-cover rounded-lg"
+                         style="aspect-ratio: 3 / 4;">
+                @else
+                    <div
+                        class="w-full aspect-[3/4] bg-slate-100 dark:bg-slate-700 flex items-center justify-center rounded-lg">
+                        <svg class="w-16 h-16 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor"
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                @endif
+                <div class="py-4 space-y-2">
+                    <p class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">Автор</p>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ $author->full_name }}</h2>
+                </div>
+            </div>
+
+            <div class="w-full flex-1 space-y-2">
+                <div class="lg:p-6">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
+                                Усі цікаві факти з книг автора
+                            </p>
+                            <h1 class="text-md md:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white">
+                                {{ $author->full_name }}
+                            </h1>
+                            <p class="text-sm text-slate-600 dark:text-slate-300 mt-2">
+                                Всього фактів: <span class="font-semibold">{{ $factsCount }}</span>
+                            </p>
+                        </div>
+                        <a href="{{ route('authors.show', $author->slug) }}"
+                           class="inline-flex items-center px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                            <i class="fas fa-user mr-2"></i> До автора
+                        </a>
+                    </div>
+                </div>
+
+                <div class="pt-4 lg:pt-0 p-0">
+                    <facts-page-list :facts='@json($factsData)'
+                        book-slug=""
+                        :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}"
+                        :is-moderator="{{ auth()->check() && auth()->user()->isModerator() ? 'true' : 'false' }}">
+                    </facts-page-list>
+
+                    @if(isset($factsPaginator) && $factsPaginator->hasPages())
+                        <div class="mt-6">
+                            {{ $factsPaginator->onEachSide(1)->links('vendor.pagination.custom') }}
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof Vue === 'undefined') return;
+
+            new Vue({
+                el: '#author-facts-app',
+            });
+        });
+    </script>
+@endpush
+
+

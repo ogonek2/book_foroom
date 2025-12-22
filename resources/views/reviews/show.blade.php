@@ -274,7 +274,7 @@ window.toggleLike = function(reviewId) {
         button.disabled = false;
     });
     @else
-    alert('Будь ласка, увійдіть в систему, щоб ставити лайки');
+    alert('Будь ласка, увійдіть в систему, щоб ставити лайки', 'Увага', 'warning');
     @endauth
 }
 

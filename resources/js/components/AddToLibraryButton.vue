@@ -191,7 +191,8 @@ export default {
             this.closeModal();
         },
         async removeStatus() {
-            if (!confirm('Ви впевнені, що хочете видалити статус для цієї книги?')) {
+            const confirmed = await confirm('Ви впевнені, що хочете видалити статус для цієї книги?', 'Підтвердження', 'warning');
+            if (!confirmed) {
                 return;
             }
 

@@ -537,13 +537,13 @@ export default {
 
             // Validate file type
             if (!file.type.match('image.*')) {
-                alert('Будь ласка, виберіть файл зображення');
+                alert('Будь ласка, виберіть файл зображення', 'Помилка валідації', 'error');
                 return;
             }
 
             // Validate file size (2MB)
             if (file.size > 2 * 1024 * 1024) {
-                alert('Розмір файлу не повинен перевищувати 2MB');
+                alert('Розмір файлу не повинен перевищувати 2MB', 'Помилка валідації', 'error');
                 return;
             }
 
@@ -568,13 +568,13 @@ export default {
                 if (data.success && data.url) {
                     this.imageUrl = data.url;
                 } else {
-                    alert(data.message || 'Помилка завантаження зображення');
+                    alert(data.message || 'Помилка завантаження зображення', 'Помилка', 'error');
                     this.imagePreview = null;
                     this.imageUrl = '';
                 }
             } catch (error) {
                 console.error('Error uploading image:', error);
-                alert('Помилка завантаження зображення');
+                alert('Помилка завантаження зображення', 'Помилка', 'error');
                 this.imagePreview = null;
                 this.imageUrl = '';
             } finally {

@@ -214,8 +214,9 @@
                 console.log('Edit quote:', quoteId);
             }
 
-            function deleteQuote(quoteId) {
-                if (confirm('Ви впевнені, що хочете видалити цю цитату? Цю дію неможливо скасувати.')) {
+            async function deleteQuote(quoteId) {
+                const confirmed = await confirm('Ви впевнені, що хочете видалити цю цитату? Цю дію неможливо скасувати.', 'Підтвердження', 'warning');
+                if (confirmed) {
                     // TODO: Implement delete quote
                     console.log('Delete quote:', quoteId);
                 }

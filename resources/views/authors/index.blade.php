@@ -133,7 +133,7 @@
 
                         <!-- Pagination -->
                         <div class="mt-12">
-                            {{ $authors->appends(request()->query())->links() }}
+                            {{ $authors->appends(request()->query())->links('vendor.pagination.custom') }}
                         </div>
                     @else
                         <div class="text-center py-12">

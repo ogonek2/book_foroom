@@ -192,7 +192,7 @@
                     <!-- Pagination -->
                     @if($books->hasPages())
                         <div class="mt-6">
-                            {{ $books->links() }}
+                            {{ $books->links('vendor.pagination.custom') }}
                         </div>
                     @endif
                 @else
@@ -233,7 +233,8 @@
                     },
                     methods: {
                         async removeBook(bookSlug) {
-                            if (confirm('Ви впевнені, що хочете видалити цю книгу з добірки?')) {
+                            const confirmed = await confirm('Ви впевнені, що хочете видалити цю книгу з добірки?', 'Підтвердження', 'warning');
+                            if (confirmed) {
                                 try {
                                     const response = await fetch(`/libraries/{{ $library->id }}/books/${bookSlug}`, {
                                         method: 'DELETE',
@@ -261,7 +262,8 @@
                             }
                         },
                         async deleteLibrary() {
-                            if (confirm('Ви впевнені, що хочете видалити цю добірку? Цю дію неможливо скасувати.')) {
+                            const confirmed = await confirm('Ви впевнені, що хочете видалити цю добірку? Цю дію неможливо скасувати.', 'Підтвердження', 'warning');
+                            if (confirmed) {
                                 try {
                                     const response = await fetch(`/libraries/{{ $library->id }}`, {
                                         method: 'DELETE',

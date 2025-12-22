@@ -315,7 +315,8 @@ export default {
         },
         
         async deleteReply() {
-            if (!confirm('Ви впевнені, що хочете видалити цю відповідь?')) return;
+            const confirmed = await confirm('Ви впевнені, що хочете видалити цю відповідь?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
 
             try {
                 const response = await axios.delete(`/discussions/${this.discussionId}/replies/${this.reply.id}`);

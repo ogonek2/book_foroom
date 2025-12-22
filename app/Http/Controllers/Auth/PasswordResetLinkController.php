@@ -6,17 +6,16 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-use Inertia\Inertia;
-use Inertia\Response;
+use Illuminate\View\View;
 
 class PasswordResetLinkController extends Controller
 {
     /**
      * Show the password reset link request page.
      */
-    public function create(Request $request): Response
+    public function create(Request $request): View
     {
-        return Inertia::render('auth/ForgotPassword', [
+        return view('auth.forgot-password', [
             'status' => $request->session()->get('status'),
         ]);
     }
@@ -32,10 +31,15 @@ class PasswordResetLinkController extends Controller
             'email' => 'required|email',
         ]);
 
-        Password::sendResetLink(
+        $status = Password::sendResetLink(
             $request->only('email')
         );
 
-        return back()->with('status', __('A reset link will be sent if the account exists.'));
+        if ($status == Password::RESET_LINK_SENT) {
+            return back()->with('status', 'Якщо вказана електронна адреса зареєстрована в системі, ми надіслали вам посилання для відновлення пароля.');
+        }
+
+        return back()->withInput($request->only('email'))
+            ->withErrors(['email' => 'Якщо вказана електронна адреса зареєстрована в системі, ми надіслали вам посилання для відновлення пароля.']);
     }
 }

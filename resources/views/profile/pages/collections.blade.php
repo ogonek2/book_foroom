@@ -378,9 +378,12 @@
                             window.location.href = `/libraries/${libraryId}/edit`;
                         },
                         async deleteLibrary(libraryId) {
-                            if (confirm(
-                                    'Ви впевнені, що хочете видалити цю добірку? Цю дію неможливо скасувати.'
-                                    )) {
+                            const confirmed = await confirm(
+                                    'Ви впевнені, що хочете видалити цю добірку? Цю дію неможливо скасувати.',
+                                    'Підтвердження',
+                                    'warning'
+                                    );
+                            if (confirmed) {
                                 try {
                                     const response = await fetch(`/libraries/${libraryId}`, {
                                         method: 'DELETE',
@@ -411,7 +414,8 @@
                             this.activeMenuId = null;
                         },
                         async unsaveLibrary(libraryId) {
-                            if (confirm('Ви впевнені, що хочете прибрати цю добірку з збережених?')) {
+                            const confirmed = await confirm('Ви впевнені, що хочете прибрати цю добірку з збережених?', 'Підтвердження', 'warning');
+                            if (confirmed) {
                                 try {
                                     const response = await fetch(`/libraries/${libraryId}/unsave`, {
                                         method: 'POST',

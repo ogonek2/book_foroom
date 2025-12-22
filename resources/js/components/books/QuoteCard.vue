@@ -272,7 +272,8 @@ export default {
             }
         },
         async deleteQuote() {
-            if (!confirm('Ви впевнені, що хочете видалити цю цитату?')) return;
+            const confirmed = await confirm('Ви впевнені, що хочете видалити цю цитату?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
             try {
                 const response = await axios.delete(`/books/${this.bookSlug}/quotes/${this.quote.id}`);
                 if (response.data.success) {

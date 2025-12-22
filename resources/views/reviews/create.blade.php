@@ -484,7 +484,7 @@
                                     });
 
                                     if (!textContent || textContent.length === 0) {
-                                        alert('Будь ласка, введіть текст рецензії');
+                                        alert('Будь ласка, введіть текст рецензії', 'Помилка валідації', 'error');
                                         return;
                                     }
 
@@ -506,7 +506,7 @@
                                     // Если Quill не инициализирован, используем текущий контент
                                     contentToSend = this.content || '';
                                     if (!contentToSend || !contentToSend.trim()) {
-                                        alert('Будь ласка, введіть текст рецензії');
+                                        alert('Будь ласка, введіть текст рецензії', 'Помилка валідації', 'error');
                                         return;
                                     }
                                 }
@@ -520,7 +520,7 @@
 
                                 if (!isDraft) {
                                     if (!this.rating || this.rating === 0) {
-                                        alert('Будь ласка, поставте оцінку перед публікацією');
+                                        alert('Будь ласка, поставте оцінку перед публікацією', 'Помилка валідації', 'error');
                                         return;
                                     }
                                 }
@@ -533,7 +533,7 @@
                                 // Убеждаемся, что контент не пустой
                                 if (!contentToSend || contentToSend.trim() === '' || contentToSend === '<p><br></p>' || contentToSend === '<p></p>') {
                                     console.error('Content is empty after processing:', contentToSend);
-                                    alert('Помилка: контент не може бути порожнім');
+                                    alert('Помилка: контент не може бути порожнім', 'Помилка', 'error');
                                     this.isSubmitting = false;
                                     return;
                                 }
@@ -549,7 +549,7 @@
                                         contentToSend: contentToSend,
                                         checkContent: checkContent
                                     });
-                                    alert('Помилка: не вдалося встановити контент у форму');
+                                    alert('Помилка: не вдалося встановити контент у форму', 'Помилка', 'error');
                                     this.isSubmitting = false;
                                     return;
                                 }
@@ -577,7 +577,7 @@
                                         finalContent: finalContent,
                                         finalText: finalText
                                     });
-                                    alert('Помилка: контент порожній перед відправкою');
+                                    alert('Помилка: контент порожній перед відправкою', 'Помилка', 'error');
                                     this.isSubmitting = false;
                                     return;
                                 }
@@ -597,7 +597,7 @@
                                             quillText: this.quillInstance ? this.quillInstance.getText() : 'no quill',
                                             quillHTML: this.quillInstance ? this.quillInstance.root.innerHTML : 'no quill'
                                         });
-                                        alert('Помилка: контент не може бути порожнім. Перевірте, що ви ввели текст рецензії.');
+                                        alert('Помилка: контент не може бути порожнім. Перевірте, що ви ввели текст рецензії.', 'Помилка', 'error');
                                         this.isSubmitting = false;
                                         return;
                                     }
@@ -636,12 +636,12 @@
                                             @endif
                                             }
                                     } else {
-                                        alert(data.message || 'Помилка при збереженні рецензії');
+                                        alert(data.message || 'Помилка при збереженні рецензії', 'Помилка', 'error');
                                         this.isSubmitting = false;
                                     }
                                 } catch (error) {
                                     console.error('Error submitting review:', error);
-                                    alert('Помилка при додаванні рецензії');
+                                    alert('Помилка при додаванні рецензії', 'Помилка', 'error');
                                     this.isSubmitting = false;
                                 }
                             }

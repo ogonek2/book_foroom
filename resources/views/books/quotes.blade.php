@@ -103,7 +103,7 @@
 
                     @if(isset($quotesPaginator) && $quotesPaginator->hasPages())
                         <div class="mt-6">
-                            {{ $quotesPaginator->onEachSide(1)->links() }}
+                            {{ $quotesPaginator->onEachSide(1)->links('vendor.pagination.custom') }}
                         </div>
                     @endif
                 </div>

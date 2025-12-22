@@ -272,6 +272,9 @@
             @include('layouts.footer')
         </div>
         
+        <!-- Global Alert Modal -->
+        <div id="global-alert-modal-container"></div>
+        
         <script src="{{ mix('js/app.js') }}"></script>
         
         <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>

@@ -681,7 +681,7 @@ export default {
                 // Fallback to clipboard
                 try {
                     await navigator.clipboard.writeText(window.location.origin + (item.url || '#'));
-                    alert('Посилання скопійовано в буфер обміну!');
+                    alert('Посилання скопійовано в буфер обміну!', 'Успіх', 'success');
                 } catch (error) {
                     console.error('Failed to copy to clipboard:', error);
                 }

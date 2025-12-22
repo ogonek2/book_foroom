@@ -1041,7 +1041,7 @@
                         console.error('Error:', error);
                     });
             @else
-                alert('Будь ласка, увійдіть в систему, щоб ставити лайки');
+                alert('Будь ласка, увійдіть в систему, щоб ставити лайки', 'Увага', 'warning');
             @endauth
             }
 
@@ -1205,16 +1205,17 @@
             } else {
                 // Fallback to clipboard
                 navigator.clipboard.writeText(`${text}\n\n${url}`).then(() => {
-                    alert('Посилання скопійовано в буфер обміну!');
+                    alert('Посилання скопійовано в буфер обміну!', 'Успіх', 'success');
                 });
             }
         }
 
         // Report Review Function
-        function reportReview(reviewId) {
-            if (!confirm('Ви впевнені, що хочете поскаржитись на цю рецензію?')) return;
+        async function reportReview(reviewId) {
+            const confirmed = await confirm('Ви впевнені, що хочете поскаржитись на цю рецензію?', 'Підтвердження', 'warning');
+            if (!confirmed) return;
 
-            const reason = prompt('Вкажіть причину скарги (необов\'язково):');
+            const reason = await prompt('Вкажіть причину скарги (необов\'язково):', '', 'Причина скарги', 'Введіть причину...');
 
             fetch(`/books/{{ $book->slug }}/reviews/${reviewId}/report`, {
                     method: 'POST',
@@ -1224,20 +1225,20 @@
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        reason: reason
+                        reason: reason || ''
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Дякуємо за повідомлення. Ми розглянемо вашу скаргу.');
+                        alert('Дякуємо за повідомлення. Ми розглянемо вашу скаргу.', 'Успіх', 'success');
                     } else {
-                        alert(data.message || 'Помилка при відправці скарги.');
+                        alert(data.message || 'Помилка при відправці скарги.', 'Помилка', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Помилка при відправці скарги.');
+                    alert('Помилка при відправці скарги.', 'Помилка', 'error');
                 });
         }
 
@@ -1331,7 +1332,8 @@
                         if (window.showNotification) {
                             window.showNotification(message, type);
                         } else {
-                            alert(message);
+                            const alertType = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+                            alert(message, 'Повідомлення', alertType);
                         }
                     }
                 }

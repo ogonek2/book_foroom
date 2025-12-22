@@ -566,12 +566,12 @@
                         const max = 3500;
 
                         if (textLength < min) {
-                            alert(`Текст обговорення повинен містити мінімум ${min} символів. Зараз: ${textLength}`);
+                            alert(`Текст обговорення повинен містити мінімум ${min} символів. Зараз: ${textLength}`, 'Помилка валідації', 'error');
                             return;
                         }
 
                         if (textLength > max) {
-                            alert(`Текст обговорення повинен містити максимум ${max} символів. Зараз: ${textLength}`);
+                            alert(`Текст обговорення повинен містити максимум ${max} символів. Зараз: ${textLength}`, 'Помилка валідації', 'error');
                             return;
                         }
                     }
@@ -579,7 +579,7 @@
                     // Validate title
                     const titleInput = document.getElementById('title');
                     if (titleInput && !titleInput.value.trim()) {
-                        alert('Будь ласка, введіть заголовок обговорення');
+                        alert('Будь ласка, введіть заголовок обговорення', 'Помилка валідації', 'error');
                         titleInput.focus();
                         return;
                     }

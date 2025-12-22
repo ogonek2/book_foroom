@@ -159,25 +159,6 @@
                                 :is-authenticated="isAuthenticated" @notification="handleNotification" />
                         </div>
 
-                        <div class="mt-8 flex items-center justify-between bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30 rounded-2xl px-4 py-3"
-                            v-if="pagination.last_page > 1">
-                            <button class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200"
-                                :class="pagination.current_page === 1 ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' :
-                                        'text-purple-600 hover:text-purple-700 dark:text-purple-300 dark:hover:text-purple-200'"
-                                :disabled="pagination.current_page === 1" @click="changePage(pagination.current_page - 1)">
-                                Попередня
-                            </button>
-                            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                Сторінка @{{ pagination.current_page }} з @{{ pagination.last_page }}
-                            </div>
-                            <button class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200"
-                                :class="pagination.current_page === pagination.last_page ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' :
-                                        'text-purple-600 hover:text-purple-700 dark:text-purple-300 dark:hover:text-purple-200'"
-                                :disabled="pagination.current_page === pagination.last_page"
-                                @click="changePage(pagination.current_page + 1)">
-                                Наступна
-                            </button>
-                        </div>
                     </div>
                     <div v-else key="empty"
                         class="text-center py-12 bg-white/60 dark:bg-gray-800/60 rounded-2xl border border-gray-200/30 dark:border-gray-700/30">
@@ -192,6 +173,13 @@
                         <p class="text-gray-500 dark:text-gray-400">Спробуйте змінити параметри пошуку або рейтинг</p>
                     </div>
                 </transition>
+                
+                <!-- Pagination for initial load -->
+                @if($books->hasPages())
+                    <div class="mt-8">
+                        {{ $books->appends(request()->query())->links('vendor.pagination.custom') }}
+                    </div>
+                @endif
             </div>
         </div>
 

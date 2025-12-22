@@ -23,6 +23,9 @@ Route::middleware(['auth'])->group(function () {
 // Authors routes
 Route::get('/authors', [AuthorController::class, 'index'])->name('authors.index');
 Route::get('/authors/{author:slug}', [AuthorController::class, 'show'])->name('authors.show');
+Route::get('/authors/{author:slug}/reviews', [AuthorController::class, 'reviews'])->name('authors.reviews.index');
+Route::get('/authors/{author:slug}/quotes', [AuthorController::class, 'quotes'])->name('authors.quotes.index');
+Route::get('/authors/{author:slug}/facts', [AuthorController::class, 'facts'])->name('authors.facts.index');
 
 // Users routes
 Route::get('/users', [UserController::class, 'index'])->name('users.index');

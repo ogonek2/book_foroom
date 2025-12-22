@@ -147,7 +147,7 @@
                                                     2MB. Підтримувані формати: JPEG, PNG, GIF, WebP</p>
                                                 @if ($user->avatar)
                                                     <button type="button"
-                                                        onclick="if(confirm('Видалити аватарку?')) { document.getElementById('delete-avatar-form').submit(); }"
+                                                        onclick="(async function() { const confirmed = await confirm('Видалити аватарку?', 'Підтвердження', 'warning'); if (confirmed) { document.getElementById('delete-avatar-form').submit(); } })();"
                                                         class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors">
                                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
@@ -533,15 +533,18 @@
                     'dark:text-gray-300');
             }
 
-            function exportUserData() {
-                if (confirm('Ви впевнені, що хочете експортувати свої дані?')) {
+            async function exportUserData() {
+                const confirmed = await confirm('Ви впевнені, що хочете експортувати свої дані?', 'Підтвердження', 'warning');
+                if (confirmed) {
                     window.location.href = '{{ route('profile.export') }}';
                 }
             }
 
-            function deleteAccount() {
-                if (confirm('Ви впевнені, що хочете видалити свій акаунт? Цю дію неможливо скасувати!')) {
-                    if (confirm('Це останнє попередження. Всі ваші дані будуть видалені назавжди. Продовжити?')) {
+            async function deleteAccount() {
+                const confirmed1 = await confirm('Ви впевнені, що хочете видалити свій акаунт? Цю дію неможливо скасувати!', 'Підтвердження', 'warning');
+                if (confirmed1) {
+                    const confirmed2 = await confirm('Це останнє попередження. Всі ваші дані будуть видалені назавжди. Продовжити?', 'Останнє попередження', 'error');
+                    if (confirmed2) {
                         document.getElementById('delete-account-form').submit();
                     }
                 }
