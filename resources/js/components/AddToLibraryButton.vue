@@ -151,6 +151,13 @@ export default {
     },
     methods: {
         openReadingStatusModal() {
+            // Проверяем авторизацию перед открытием модального окна
+            if (!this.isAuthenticated) {
+                // Сохраняем текущий URL для редиректа после логина
+                const currentUrl = window.location.href;
+                window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+                return;
+            }
             this.showModal = true;
         },
         closeModal() {
@@ -235,6 +242,13 @@ export default {
             this.openCustomLibraryModal();
         },
         openCustomLibraryModal() {
+            // Проверяем авторизацию перед открытием модального окна
+            if (!this.isAuthenticated) {
+                // Сохраняем текущий URL для редиректа после логина
+                const currentUrl = window.location.href;
+                window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+                return;
+            }
             this.showCustomLibraryModal = true;
         },
         closeCustomLibraryModal() {

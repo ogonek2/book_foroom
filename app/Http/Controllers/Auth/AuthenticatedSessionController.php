@@ -17,6 +17,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): View
     {
+        // Сохраняем redirect URL в сессии, если он передан
+        if ($request->has('redirect')) {
+            $request->session()->put('url.intended', $request->get('redirect'));
+        }
+        
         return view('auth.login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
