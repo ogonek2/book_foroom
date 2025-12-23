@@ -10,7 +10,9 @@
                         <div class="text-4xl text-orange-500/30 mb-4">"</div>
                         
                         <!-- Quote Content -->
-                        <blockquote class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1" v-text="quote.content">
+                        <blockquote class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1 break-words" 
+                                    style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
+                                    v-text="quote.content">
                         </blockquote>
                         
                         <!-- Page Number -->

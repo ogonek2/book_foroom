@@ -66,7 +66,7 @@
 
     <!-- Review Text (Truncated) -->
     <div class="mb-4">
-        <p class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium line-clamp-3">
+        <p class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium line-clamp-3 break-words" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
             {{ Str::limit(strip_tags($review->content), 300) }}
         </p>
         @if(mb_strlen(strip_tags($review->content)) > 300)

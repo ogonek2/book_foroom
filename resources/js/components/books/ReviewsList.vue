@@ -132,7 +132,8 @@
                                 <!-- Blurred text background -->
                                 <div class="relative overflow-hidden">
                                     <p
-                                        class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3 blur-sm filter">
+                                        class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3 blur-sm filter break-words"
+                                        style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                         {{ stripHTML(review.content) }}
                                     </p>
                                     <!-- Dark overlay -->
@@ -151,7 +152,8 @@
                             <!-- Normal Content -->
                             <div v-else>
                                 <p
-                                    class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium line-clamp-3">
+                                    class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium line-clamp-3 break-words"
+                                    style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                     {{ truncateText(stripHTML(review.content), 300) }}
                                 </p>
                                 <p v-if="stripHTML(review.content).length > 300"

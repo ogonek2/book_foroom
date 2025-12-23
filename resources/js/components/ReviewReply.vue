@@ -66,7 +66,8 @@
 
             <!-- Reply Content -->
             <div v-if="!isEditing" 
-                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm">
+                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm break-words" 
+                 style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                 {{ reply.content }}
             </div>
 

@@ -28,7 +28,8 @@
 
         </div>
         <!-- Reply Content -->
-        <div class="text-light-text-primary dark:text-dark-text-primary leading-relaxed mb-3 sm:mb-4 whitespace-pre-wrap text-sm sm:text-base"
+        <div class="text-light-text-primary dark:text-dark-text-primary leading-relaxed mb-3 sm:mb-4 whitespace-pre-wrap text-sm sm:text-base break-words" 
+            style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
             id="replyContent{{ $reply->id }}">{!! \App\Helpers\TextHelper::formatMentions($reply->content) !!}</div>
 
         @auth

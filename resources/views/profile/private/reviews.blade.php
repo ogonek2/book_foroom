@@ -73,7 +73,8 @@
                                     <!-- Header -->
                                     <div class="flex items-start justify-between mb-3">
                                         <div>
-                                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 break-words" 
+                                                style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                                 <a href="{{ route('books.show', $review->book->slug) }}" 
                                                    class="hover:text-orange-500 transition-colors">
                                                     {{ $review->book->title }}
@@ -116,7 +117,8 @@
                                     @endif
 
                                     <!-- Review Text -->
-                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4">
+                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4 break-words" 
+                                         style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                         {!! Str::limit($review->content, 300) !!}
                                         @if(strlen($review->content) > 300)
                                             <br><a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}" 

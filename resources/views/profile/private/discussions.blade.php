@@ -103,7 +103,8 @@
                                     <!-- Header -->
                                     <div class="flex items-start justify-between mb-3">
                                         <div>
-                                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 break-words" 
+                                                style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                                 <a href="{{ route('discussions.show', $discussion->slug) }}" 
                                                    class="hover:text-orange-500 transition-colors">
                                                     {{ $discussion->title }}

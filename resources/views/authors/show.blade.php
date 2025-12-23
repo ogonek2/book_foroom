@@ -122,7 +122,7 @@
                         </div>
 
                         @if ($books->count() > 0)
-                            <div class="grid grid-cols-2 lg:grid-cols-2 gap-6" id="author-books-section">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="author-books-section">
                                 @foreach ($books as $book)
                                     <book-card
                                         :book="{{ json_encode([

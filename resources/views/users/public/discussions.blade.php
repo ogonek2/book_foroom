@@ -14,7 +14,8 @@
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex-1">
                                     <a href="{{ route('discussions.show', $discussion->slug) }}"
-                                        class="text-xl font-semibold text-gray-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-200 transition-colors">
+                                        class="text-xl font-semibold text-gray-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-200 transition-colors break-words" 
+                                        style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                         {{ $discussion->title }}
                                     </a>
                                     <p class="text-gray-600 dark:text-gray-300 text-sm mt-1">
@@ -22,7 +23,8 @@
                                 </div>
                             </div>
 
-                            <div class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                            <div class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4 break-words" 
+                                 style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                 {{ Str::limit(strip_tags($discussion->content), 200) }}
                             </div>
 

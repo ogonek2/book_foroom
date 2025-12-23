@@ -46,7 +46,8 @@
 
             <!-- Reply Content -->
             <div v-if="!isEditing" 
-                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm sm:text-base"
+                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm sm:text-base break-words"
+                 style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
                  v-html="formatContent(reply.content)">
             </div>
 

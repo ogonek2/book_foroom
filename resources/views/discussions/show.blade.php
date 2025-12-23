@@ -66,7 +66,8 @@
                         <!-- Content -->
                         <div class="prose dark:prose-invert max-w-none">
                             <div
-                                class="text-light-text-primary dark:text-dark-text-primary leading-relaxed rich-content text-sm">
+                                class="text-light-text-primary dark:text-dark-text-primary leading-relaxed rich-content text-sm break-words" 
+                                style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                 {!! $discussion->content !!}
                             </div>
                             <!-- Actions -->

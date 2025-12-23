@@ -6,7 +6,9 @@
                 <div v-for="quote in quotes" :key="quote.id" class="flex-shrink-0 w-80">
                     <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg p-6 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors duration-200 h-full flex flex-col shadow-sm hover:shadow-md">
                         <div class="text-4xl text-orange-500/30 mb-4">"</div>
-                        <blockquote class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1" v-text="quote.content">
+                        <blockquote class="text-light-text-secondary dark:text-dark-text-secondary text-lg italic leading-relaxed mb-4 flex-1 break-words" 
+                                    style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
+                                    v-text="quote.content">
                         </blockquote>
                         
                         <!-- Page Number -->

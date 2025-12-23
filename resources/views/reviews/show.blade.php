@@ -128,7 +128,7 @@
                 @endif
                 
                 <!-- Review Content -->
-                <div class="lg:px-6 py-6 leading-7 text-slate-900 dark:text-slate-100 prose prose-slate dark:prose-invert max-w-none">
+                <div class="lg:px-6 py-6 leading-7 text-slate-900 dark:text-slate-100 prose prose-slate dark:prose-invert max-w-none break-words" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                     {!! $review->content !!}
                 </div>
                 

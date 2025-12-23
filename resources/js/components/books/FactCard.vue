@@ -51,7 +51,8 @@
                 </div>
             </div>
             <!-- Fact Text -->
-            <div v-if="!isEditing" class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium my-4">
+            <div v-if="!isEditing" class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium my-4 break-words"
+                style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                 {{ fact.content }}
             </div>
             

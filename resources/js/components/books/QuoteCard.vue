@@ -60,7 +60,8 @@
             </div>
             <!-- Quote Text -->
             <div v-if="!isEditing">
-                <blockquote class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium italic my-4">
+                <blockquote class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium italic my-4 break-words"
+                    style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                     "{{ quote.content }}"
                 </blockquote>
             </div>

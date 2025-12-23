@@ -14,7 +14,8 @@
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex-1">
                                     <a href="{{ route('books.show', $review->book->slug) }}"
-                                        class="text-xl font-semibold text-black dark:text-white hover:text-purple-200 transition-colors">
+                                        class="text-xl font-semibold text-black dark:text-white hover:text-purple-200 transition-colors break-words" 
+                                        style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                         {{ $review->book->title }}
                                     </a>
                                     <p class="text-gray-600 dark:text-gray-300 text-sm mt-1">{{ $review->book->author }}</p>
@@ -31,7 +32,8 @@
                             </div>
 
                             <!-- Review Text -->
-                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4">
+                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4 break-words" 
+                                         style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                         {!! Str::limit($review->content, 300) !!}
                                         <br><a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}" 
                                                class="text-orange-500 hover:text-orange-600 font-medium">

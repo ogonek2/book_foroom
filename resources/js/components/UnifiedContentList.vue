@@ -103,7 +103,8 @@
 
                 <!-- Title (for Discussions) -->
                 <h3 v-if="item.type === 'discussion'" 
-                    class="text-lg font-bold text-light-text-primary dark:text-dark-text-primary mb-3 hover:text-brand-500 dark:hover:text-brand-400 transition-colors">
+                    class="text-lg font-bold text-light-text-primary dark:text-dark-text-primary mb-3 hover:text-brand-500 dark:hover:text-brand-400 transition-colors break-words"
+                    style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                     <a :href="getItemUrl(item)">
                         {{ item.title }}
                     </a>
@@ -111,8 +112,9 @@
 
                 <!-- Content Preview -->
                 <div class="text-light-text-primary dark:text-dark-text-primary leading-relaxed mb-4 relative">
-                    <div class="text-sm content-preview" 
+                    <div class="text-sm content-preview break-words" 
                          :class="{ 'content-fade': !isExpanded(item) && getTextLength(item.content) > 150 }"
+                         style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
                          v-html="getProcessedContent(item)">
                     </div>
                     <div v-if="!isExpanded(item) && getTextLength(item.content) >250" 
