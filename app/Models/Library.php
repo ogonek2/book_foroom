@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class Library extends Model
 {
     protected $fillable = [
         'name',
+        'slug',
         'description',
         'is_private',
         'user_id',
@@ -18,6 +20,52 @@ class Library extends Model
     protected $casts = [
         'is_private' => 'boolean',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($library) {
+            if (empty($library->slug)) {
+                $baseSlug = Str::slug($library->name);
+                $slug = $baseSlug;
+                $counter = 1;
+                
+                // Проверяем уникальность slug
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+                
+                $library->slug = $slug;
+            }
+        });
+
+        static::updating(function ($library) {
+            // Обновляем slug если изменилось название
+            if ($library->isDirty('name') && empty($library->slug)) {
+                $baseSlug = Str::slug($library->name);
+                $slug = $baseSlug;
+                $counter = 1;
+                
+                // Проверяем уникальность slug (исключая текущую запись)
+                while (static::where('slug', $slug)->where('id', '!=', $library->id)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+                
+                $library->slug = $slug;
+            }
+        });
+    }
+
+    /**
+     * Получить имя маршрута для модели
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
 
     /**
      * Владелец библиотеки

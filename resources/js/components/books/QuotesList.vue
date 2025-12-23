@@ -20,10 +20,6 @@
                     :current-user-id="currentUserId" @like-toggled="handleLikeToggled" @quote-deleted="handleQuoteDeleted"
                     @quote-updated="handleQuoteUpdated" @show-notification="showNotification" />
             </div>
-            <a :href="`/books/${bookSlug}/quotes`"
-                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-center mt-4">
-                Всі цитати
-            </a>
         </div>
         <div v-else class="text-center py-20">
             <div
@@ -56,7 +52,7 @@ export default {
         },
         bookSlug: {
             type: String,
-            required: true
+            default: ''
         },
         currentUserId: {
             type: Number,

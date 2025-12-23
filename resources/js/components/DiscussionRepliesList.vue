@@ -18,18 +18,38 @@
             </form>
         </div>
 
-        <div v-else-if="!isAuthenticated" class="mt-8 pt-8 text-center">
-            <p class="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-                Увійдіть в систему, щоб відповісти на обговорення
-            </p>
-            <a href="/login"
-               class="bg-gradient-to-r from-brand-500 to-accent-500 text-white px-6 py-3 rounded-xl font-medium hover:from-brand-600 hover:to-accent-600 transition-all duration-300 inline-block">
-                Войти
-            </a>
+        <!-- CTA для неавторизованных пользователей -->
+        <div v-if="!isAuthenticated" class="mb-8">
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl p-8 text-center">
+                <div class="max-w-md mx-auto">
+                    <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-comments text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                        Увійдіть, щоб читати та писати коментарі
+                    </h3>
+                    <p class="text-slate-600 dark:text-slate-400 mb-6">
+                        Зареєструйтеся або увійдіть в систему, щоб брати участь в обговоренні та читати всі коментарі
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <a href="/login"
+                           class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Увійти
+                        </a>
+                        <a href="/register"
+                           class="inline-flex items-center justify-center px-6 py-3 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border-2 border-indigo-500 dark:border-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-300">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Зареєструватися
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div v-else-if="isDiscussionClosed" class="mt-8 pt-8 text-center">
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+        <!-- Сообщение о закрытом обсуждении (только для авторизованных) -->
+        <div v-if="isAuthenticated && isDiscussionClosed" class="mb-8">
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-center">
                 <i class="fas fa-lock text-red-500 dark:text-red-400 text-2xl mb-2"></i>
                 <p class="text-red-600 dark:text-red-400">
                     Це обговорення закрито для нових відповідей
@@ -38,7 +58,7 @@
         </div>
 
         <!-- Replies Section -->
-        <div id="replies-section">
+        <div v-if="isAuthenticated" id="replies-section">
             <div class="flex items-center justify-between mb-6">
                 <span class="text-lg font-bold text-light-text-primary dark:text-dark-text-primary">
                     Відповіді (<span id="replies-count">{{ localReplies.length }}</span>)
@@ -125,7 +145,7 @@ export default {
     },
     computed: {
         isAuthenticated() {
-            return this.currentUserId !== null;
+            return this.currentUserId !== null && this.currentUserId !== undefined && this.currentUserId !== '';
         }
     },
     mounted() {

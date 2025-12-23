@@ -1,15 +1,15 @@
 <template>
     <div class="min-h-screen">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mx-auto py-8">
             <!-- Header -->
             <div class="mb-8">
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-4">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Сповіщення</h1>
                         <p class="text-gray-600 dark:text-gray-400 mt-1">Відстежуйте всі оновлення та активність</p>
                     </div>
                     
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3 mt-2 lg:mt-0 ">
                         <button v-if="unreadCount > 0" @click="markAllAsRead" class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors text-sm">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

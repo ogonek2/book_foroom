@@ -143,6 +143,15 @@
                             <span id="likes-count-{{ $review->id }}">{{ $review->likes_count ?? 0 }}</span>
                         </button>
                         
+                        <button onclick="shareReview()" 
+                                class="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200"
+                                title="Поділитися рецензією">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Поділитися</span>
+                        </button>
+                        
                         <!-- Review Controls (only for own reviews) -->
                         @if(auth()->check() && $review->user_id == auth()->id())
                             <div class="flex items-center gap-2">
@@ -200,7 +209,7 @@
                         :replies="{{ json_encode($repliesData) }}"
                         book-slug="{{ $book->slug }}"
                         :review-id="{{ $review->id }}"
-                        :current-user-id="{{ auth()->id() }}"
+                        :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}"
                         :is-moderator="{{ auth()->check() && auth()->user()->isModerator() ? 'true' : 'false' }}">
                     </reviews-replies-list>
                 </div>
@@ -299,6 +308,50 @@ window.editComment = function(commentId) {
 window.deleteComment = function(commentId) {
     // Эта функция больше не используется для ответов (обрабатывается Vue)
     // Оставляем только для совместимости, если используется где-то еще
+}
+
+// Функция для шаринга рецензии
+window.shareReview = async function() {
+    try {
+        // Используем shareContent из app.js если доступен
+        if (window.shareContent) {
+            await window.shareContent({
+                title: '{{ $review->review_type === "review" ? "Рецензія" : "Відгук" }} на {{ addslashes($book->title) }}',
+                text: '{{ $review->review_type === "review" ? "Рецензія" : "Відгук" }} від {{ $review->isGuest() ? "Гість" : addslashes($review->user->name) }}',
+                url: window.location.href
+            });
+            return;
+        }
+
+        // Fallback к нативному шарингу или буферу обмена
+        if (navigator.share) {
+            await navigator.share({
+                title: '{{ $review->review_type === "review" ? "Рецензія" : "Відгук" }} на {{ addslashes($book->title) }}',
+                text: '{{ $review->review_type === "review" ? "Рецензія" : "Відгук" }} від {{ $review->isGuest() ? "Гість" : addslashes($review->user->name) }}',
+                url: window.location.href
+            });
+        } else {
+            // Копируем ссылку в буфер обмена
+            await navigator.clipboard.writeText(window.location.href);
+            // Показываем уведомление
+            if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                window.alertModalInstance.$refs.modal.alert('Посилання скопійовано в буфер обміну!', 'Успіх', 'success');
+            } else {
+                alert('Посилання скопійовано в буфер обміну!');
+            }
+        }
+    } catch (error) {
+        console.error('Error sharing review:', error);
+        // Если пользователь отменил шаринг, не показываем ошибку
+        if (error.name !== 'AbortError') {
+            // Показываем ссылку в alert как последний fallback
+            if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                window.alertModalInstance.$refs.modal.alert(`Посилання: ${window.location.href}`, 'Посилання', 'info');
+            } else {
+                alert(`Посилання: ${window.location.href}`);
+            }
+        }
+    }
 }
 </script>
 @endpush

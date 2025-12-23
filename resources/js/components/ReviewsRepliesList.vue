@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- Main Reply Form -->
-        <div class="reply-form active">
+        <div v-if="isAuthenticated" class="reply-form active">
             <div class="reply-form-content">
                 <h4 class="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Ваша відповідь</h4>
                 <div class="reply-input-wrapper">
@@ -39,8 +39,37 @@
             </div>
         </div>
         
+        <!-- CTA для неавторизованных пользователей -->
+        <div v-else class="mb-8">
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl p-8 text-center">
+                <div class="max-w-md mx-auto">
+                    <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-comments text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                        Увійдіть, щоб читати та писати коментарі
+                    </h3>
+                    <p class="text-slate-600 dark:text-slate-400 mb-6">
+                        Зареєструйтеся або увійдіть в систему, щоб брати участь в обговоренні та читати всі коментарі
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <a href="/login"
+                           class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Увійти
+                        </a>
+                        <a href="/register"
+                           class="inline-flex items-center justify-center px-6 py-3 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border-2 border-indigo-500 dark:border-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-300">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Зареєструватися
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Comments Section -->
-        <div class="comments-section">
+        <div v-if="isAuthenticated" class="comments-section">
             <h2 class="text-md font-bold mb-4 flex items-center gap-2">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -114,7 +143,7 @@ export default {
     },
     computed: {
         isAuthenticated() {
-            return this.currentUserId !== null;
+            return this.currentUserId !== null && this.currentUserId !== undefined && this.currentUserId !== '';
         }
     },
     methods: {

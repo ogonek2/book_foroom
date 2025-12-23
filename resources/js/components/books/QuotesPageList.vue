@@ -44,7 +44,7 @@ export default {
         },
         bookSlug: {
             type: String,
-            required: true,
+            default: '',
         },
         currentUserId: {
             type: Number,

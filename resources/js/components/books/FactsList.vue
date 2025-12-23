@@ -44,10 +44,6 @@
                     @fact-deleted="handleFactDeleted" @fact-updated="handleFactUpdated">
                 </fact-card>
             </div>
-            <a :href="`/books/${bookSlug}/facts`"
-                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-center mt-4">
-                Всі факти
-            </a>
         </div>
 
         <div v-else class="text-center py-8">

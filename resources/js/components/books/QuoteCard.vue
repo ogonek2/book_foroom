@@ -120,11 +120,6 @@
                     <i class="fas fa-share-alt"></i>
                 </button>
 
-                <!-- Edit Button (for owner) -->
-                <button v-if="canEdit" @click="startEdit"
-                    class="text-slate-600 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
-                    <i class="fas fa-edit text-sm"></i>
-                </button>
 
                 <!-- Delete Button (for owner) -->
                 <button v-if="canDelete" @click="deleteQuote"
@@ -157,7 +152,7 @@ export default {
         },
         bookSlug: {
             type: String,
-            required: true
+            default: ''
         },
         currentUserId: {
             type: Number,
@@ -182,6 +177,10 @@ export default {
         },
         canEdit() {
             return this.currentUserId && this.quote.user_id === this.currentUserId;
+        },
+        effectiveBookSlug() {
+            // Используем bookSlug из prop, если он передан, иначе используем slug из quote.book
+            return this.bookSlug || (this.quote.book && this.quote.book.slug) || '';
         }
     },
     methods: {
@@ -207,7 +206,12 @@ export default {
                 return;
             }
             try {
-                const response = await axios.post(`/books/${this.bookSlug}/quotes/${this.quote.id}/like`);
+                const bookSlug = this.effectiveBookSlug;
+                if (!bookSlug) {
+                    this.$emit('show-notification', 'Помилка: не вдалося визначити книгу.', 'error');
+                    return;
+                }
+                const response = await axios.post(`/books/${bookSlug}/quotes/${this.quote.id}/like`);
                 if (response.data.success) {
                     this.isLiked = response.data.is_liked;
                     this.likesCount = response.data.likes_count;
@@ -295,7 +299,8 @@ export default {
 
         getContentUrl() {
             // Возвращаем URL контента
-            return `/books/${this.bookSlug}#quote-${this.quote.id}`;
+            const bookSlug = this.effectiveBookSlug;
+            return bookSlug ? `/books/${bookSlug}#quote-${this.quote.id}` : '#';
         },
         async toggleFavorite() {
             if (!this.currentUserId) {
@@ -303,7 +308,12 @@ export default {
                 return;
             }
             try {
-                const response = await axios.post(`/books/${this.bookSlug}/quotes/${this.quote.id}/favorite`);
+                const bookSlug = this.effectiveBookSlug;
+                if (!bookSlug) {
+                    this.$emit('show-notification', 'Помилка: не вдалося визначити книгу.', 'error');
+                    return;
+                }
+                const response = await axios.post(`/books/${bookSlug}/quotes/${this.quote.id}/favorite`);
                 if (response.data.success) {
                     this.isFavorited = response.data.is_favorited;
                     this.$emit('show-notification', response.data.message, 'success');

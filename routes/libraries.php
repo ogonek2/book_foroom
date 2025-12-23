@@ -26,5 +26,8 @@ Route::middleware(['web'])->group(function () {
     });
     
     // Public routes that need to be after specific routes
+    // Новый маршрут с username и slug
+    Route::get('/users/{username}/libraries/{library:slug}', [LibraryController::class, 'showBySlug'])->name('libraries.show.slug');
+    // Старый маршрут для обратной совместимости
     Route::get('/libraries/{library}', [LibraryController::class, 'show'])->name('libraries.show');
 });

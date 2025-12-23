@@ -10,7 +10,7 @@
                     </div>
                     <div v-if="!hideHeader">
                         <div v-if="isAuthenticated && !hideAddButton">
-                            <a v-if="!userReview" :href="`/books/${bookSlug}/reviews/create`"
+                            <a v-if="!userReview && bookSlug" :href="`/books/${bookSlug}/reviews/create`"
                                 class="bg-gradient-to-r \ from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 inline-block">
                                 <i class="fas fa-plus mr-2"></i>
                                 Написати рецензію
@@ -276,7 +276,7 @@ export default {
         },
         bookSlug: {
             type: String,
-            required: true
+            default: ''
         },
         currentUserId: {
             type: Number,
@@ -309,19 +309,31 @@ export default {
             console.log('Reviews data sample:', this.localReviews[0]);
             console.log('Has opinion_type:', this.localReviews.some(r => r.opinion_type));
         }
+        // Слушаем глобальные события для обновления списка рецензий
+        window.addEventListener('review-added', (event) => {
+            this.handleReviewAdded(event.detail);
+        });
     },
     computed: {
         isAuthenticated() {
             return this.currentUserId !== null;
         }
     },
-    mounted() {
-        // Слушаем глобальные события для обновления списка рецензий
-        window.addEventListener('review-added', (event) => {
-            this.handleReviewAdded(event.detail);
-        });
-    },
     methods: {
+        getBookSlug(review) {
+            // Используем bookSlug из prop, если он передан, иначе используем slug из review
+            if (this.bookSlug) {
+                return this.bookSlug;
+            }
+            // Пробуем разные варианты получения slug книги
+            if (review && review.book_slug) {
+                return review.book_slug;
+            }
+            if (review && review.book && review.book.slug) {
+                return review.book.slug;
+            }
+            return '';
+        },
         openReportModal(review) {
             const plainText = this.stripHTML(review.content);
             this.reportData = {
@@ -367,17 +379,27 @@ export default {
             return text.substring(0, length);
         },
         goToReview(reviewId) {
-            window.location.href = `/books/${this.bookSlug}/reviews/${reviewId}`;
+            const review = this.localReviews.find(r => r.id === reviewId);
+            const bookSlug = this.getBookSlug(review || {});
+            if (!bookSlug) {
+                console.error('Cannot determine book slug for review:', reviewId);
+                return;
+            }
+            window.location.href = `/books/${bookSlug}/reviews/${reviewId}`;
         },
         async toggleLike(reviewId) {
             if (!this.isAuthenticated) {
-                this.showNotification('Будь ласка, увійдіть, щоб поставити лайк.', 'error');
                 return;
             }
             try {
-                const response = await axios.post(`/books/${this.bookSlug}/reviews/${reviewId}/like`);
+                const review = this.localReviews.find(r => r.id === reviewId);
+                const bookSlug = this.getBookSlug(review || {});
+                if (!bookSlug) {
+                    console.error('Cannot determine book slug for review:', reviewId);
+                    return;
+                }
+                const response = await axios.post(`/books/${bookSlug}/reviews/${reviewId}/like`);
                 if (response.data.success) {
-                    const review = this.localReviews.find(r => r.id === reviewId);
                     if (review) {
                         this.$set(review, 'is_liked', response.data.is_liked);
                         this.$set(review, 'likes_count', response.data.likes_count);
@@ -385,13 +407,13 @@ export default {
                 }
             } catch (error) {
                 console.error('Error toggling like:', error);
-                this.showNotification('Помилка при зміні лайка.', 'error');
             }
         },
         async shareReview(review) {
             const plainText = this.stripHTML(review.content);
             const text = this.truncateText(plainText, 200) + (plainText.length > 200 ? '...' : '');
-            const url = review.url || `${window.location.origin}/books/${this.bookSlug}/reviews/${review.id}`;
+            const bookSlug = this.getBookSlug(review);
+            const url = review.url || (bookSlug ? `${window.location.origin}/books/${bookSlug}/reviews/${review.id}` : window.location.href);
             
             const { shareContent } = await import('../../utils/shareHelper');
             await shareContent({
@@ -405,7 +427,12 @@ export default {
         },
         editReview(review) {
             // Перенаправляем на страницу редактирования
-            window.location.href = `/books/${review.book_slug || this.bookSlug}/reviews/${review.id}/edit`;
+            const bookSlug = this.getBookSlug(review);
+            if (!bookSlug) {
+                this.showNotification('Помилка: не вдалося визначити книгу.', 'error');
+                return;
+            }
+            window.location.href = `/books/${bookSlug}/reviews/${review.id}/edit`;
             this.activeMenu = null; // Закрываем меню
         },
         async deleteReview(reviewId) {
@@ -413,7 +440,13 @@ export default {
             if (!confirmed) return;
 
             try {
-                const response = await axios.delete(`/books/${this.bookSlug}/reviews/${reviewId}`);
+                const review = this.localReviews.find(r => r.id === reviewId);
+                const bookSlug = this.getBookSlug(review || {});
+                if (!bookSlug) {
+                    this.showNotification('Помилка: не вдалося визначити книгу.', 'error');
+                    return;
+                }
+                const response = await axios.delete(`/books/${bookSlug}/reviews/${reviewId}`);
                 if (response.data.success) {
                     this.showNotification('Рецензію видалено!', 'success');
                     // Удаляем рецензию из локального списка
@@ -437,7 +470,13 @@ export default {
             const reason = await prompt('Вкажіть причину скарги (необов\'язково):', '', 'Причина скарги', 'Введіть причину...');
 
             try {
-                const response = await axios.post(`/books/${this.bookSlug}/reviews/${reviewId}/report`, {
+                const review = this.localReviews.find(r => r.id === reviewId);
+                const bookSlug = this.getBookSlug(review || {});
+                if (!bookSlug) {
+                    this.showNotification('Помилка: не вдалося визначити книгу.', 'error');
+                    return;
+                }
+                const response = await axios.post(`/books/${bookSlug}/reviews/${reviewId}/report`, {
                     reason: reason
                 });
                 if (response.data.success) {
@@ -456,7 +495,12 @@ export default {
             if (!confirmed) return;
 
             try {
-                const response = await axios.delete(`/books/${this.bookSlug}/reviews/${this.userReview.id}`);
+                const bookSlug = this.getBookSlug(this.userReview);
+                if (!bookSlug) {
+                    this.showNotification('Помилка: не вдалося визначити книгу.', 'error');
+                    return;
+                }
+                const response = await axios.delete(`/books/${bookSlug}/reviews/${this.userReview.id}`);
                 if (response.data.success) {
                     this.showNotification('Рецензію видалено!', 'success');
                     setTimeout(() => {
@@ -472,7 +516,12 @@ export default {
         },
         editUserReview() {
             // Перенаправляем на страницу редактирования
-            window.location.href = `/books/${this.bookSlug}/reviews/${this.userReview.id}/edit`;
+            const bookSlug = this.getBookSlug(this.userReview);
+            if (!bookSlug) {
+                this.showNotification('Помилка: не вдалося визначити книгу.', 'error');
+                return;
+            }
+            window.location.href = `/books/${bookSlug}/reviews/${this.userReview.id}/edit`;
         },
         openReviewModal() {
             // Вызываем метод модального Vue приложения
@@ -485,21 +534,23 @@ export default {
         },
         async toggleFavorite(reviewId) {
             if (!this.isAuthenticated) {
-                this.showNotification('Будь ласка, увійдіть, щоб додати до избранного.', 'error');
                 return;
             }
             try {
-                const response = await axios.post(`/books/${this.bookSlug}/reviews/${reviewId}/favorite`);
+                const review = this.localReviews.find(r => r.id === reviewId);
+                const bookSlug = this.getBookSlug(review || {});
+                if (!bookSlug) {
+                    console.error('Cannot determine book slug for review:', reviewId);
+                    return;
+                }
+                const response = await axios.post(`/books/${bookSlug}/reviews/${reviewId}/favorite`);
                 if (response.data.success) {
-                    const review = this.localReviews.find(r => r.id === reviewId);
                     if (review) {
                         this.$set(review, 'is_favorited', response.data.is_favorited);
                     }
-                    this.showNotification(response.data.message, 'success');
                 }
             } catch (error) {
                 console.error('Error toggling favorite:', error);
-                this.showNotification('Помилка при зміні избранного.', 'error');
             }
         },
         profileUrl(username) {

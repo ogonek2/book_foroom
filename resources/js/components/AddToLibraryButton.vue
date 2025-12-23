@@ -3,7 +3,7 @@
         <!-- Кнопка добавления в список чтения -->
         <div v-if="currentStatus" class="w-full">
             <div
-                class="flex items-center gap-2 rounded-2xl bg-slate-900/70 dark:bg-slate-800/80 border border-white/5 dark:border-slate-700/60 shadow-inner shadow-black/20">
+                class="flex items-center gap-2 rounded-2xl light:bg-slate-900/70 dark:bg-slate-800/80 border border-white/5 dark:border-slate-700/60">
                 <button @click="openReadingStatusModal"
                     class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm uppercase tracking-wide transition-all duration-300 shadow-[0_15px_40px_-25px_rgba(147,51,234,0.9)] hover:scale-[1.01]"
                     :class="statusColors[currentStatus] || statusColors.default">

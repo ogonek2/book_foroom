@@ -108,16 +108,18 @@
                     type="url"
                     placeholder="https://example.com"
                     class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    @keyup.enter="insertLink"
+                    @keyup.enter.prevent="insertLink"
                 />
                 <div class="flex gap-2 mt-4">
                     <button
+                        type="button"
                         @click="insertLink"
                         class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
                     >
                         Додати
                     </button>
                     <button
+                        type="button"
                         @click="closeLinkModal"
                         class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white rounded-lg transition-colors"
                     >
@@ -135,12 +137,14 @@
                 <!-- Tabs for upload method -->
                 <div class="flex gap-2 mb-4 border-b border-slate-200 dark:border-slate-700">
                     <button
+                        type="button"
                         @click="imageUploadMethod = 'file'"
                         :class="['px-4 py-2 text-sm font-medium transition-colors', imageUploadMethod === 'file' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white']"
                     >
                         З галереї
                     </button>
                     <button
+                        type="button"
                         @click="imageUploadMethod = 'url'"
                         :class="['px-4 py-2 text-sm font-medium transition-colors', imageUploadMethod === 'url' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white']"
                     >
@@ -158,6 +162,7 @@
                         class="hidden"
                     />
                     <button
+                        type="button"
                         @click="$refs.imageFileInput.click()"
                         class="w-full px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors text-slate-700 dark:text-slate-300"
                     >
@@ -182,12 +187,13 @@
                         type="url"
                         placeholder="https://example.com/image.jpg"
                         class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        @keyup.enter="insertImage"
+                        @keyup.enter.prevent="insertImage"
                     />
                 </div>
 
                 <div class="flex gap-2 mt-4">
                     <button
+                        type="button"
                         @click="insertImage"
                         :disabled="imageUploading || (!imageUrl && !imagePreview)"
                         class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
@@ -195,6 +201,7 @@
                         Додати
                     </button>
                     <button
+                        type="button"
                         @click="closeImageModal"
                         class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white rounded-lg transition-colors"
                     >
@@ -532,6 +539,8 @@ export default {
             this.editor.chain().focus().run();
         },
         async handleImageFileSelect(event) {
+            event.preventDefault();
+            event.stopPropagation();
             const file = event.target.files[0];
             if (!file) return;
 

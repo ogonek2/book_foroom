@@ -4,17 +4,21 @@
 
 @section('main')
     <div id="author-reviews-app" class="max-w-7xl mx-auto space-y-8">
-        <nav class="text-sm text-slate-500 dark:text-slate-400">
-            <ol class="flex flex-wrap gap-2">
-                <li><a href="{{ route('home') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">Головна</a></li>
-                <li>/</li>
-                <li><a href="{{ route('authors.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">Автори</a></li>
-                <li>/</li>
-                <li><a href="{{ route('authors.show', $author->slug) }}"
-                       class="hover:text-indigo-600 dark:hover:text-indigo-400">{{ $author->full_name }}</a></li>
-                <li>/</li>
-                <li class="font-semibold text-slate-900 dark:text-white">Рецензії</li>
-            </ol>
+        <nav class="text-sm text-slate-500 dark:text-slate-400 relative mb-8">
+            <div class="relative overflow-x-auto scrollbar-hide">
+                <ol class="flex items-center gap-2 flex-nowrap min-w-max">
+                    <li><a href="{{ route('home') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 whitespace-nowrap">Головна</a></li>
+                    <li class="flex-shrink-0">/</li>
+                    <li><a href="{{ route('authors.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 whitespace-nowrap">Автори</a></li>
+                    <li class="flex-shrink-0">/</li>
+                    <li><a href="{{ route('authors.show', $author->slug) }}"
+                           class="hover:text-indigo-600 dark:hover:text-indigo-400 whitespace-nowrap">{{ $author->full_name }}</a></li>
+                    <li class="flex-shrink-0">/</li>
+                    <li class="font-semibold text-slate-900 dark:text-white whitespace-nowrap">Рецензії</li>
+                </ol>
+            </div>
+            <!-- Gradient fade on the right -->
+            <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-light-bg to-transparent dark:from-dark-bg pointer-events-none"></div>
         </nav>
 
         <div class="w-full flex items-start">

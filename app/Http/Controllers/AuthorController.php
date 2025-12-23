@@ -39,7 +39,7 @@ class AuthorController extends Controller
             $query->orderBy($sortBy, $sortDirection);
         }
 
-        $authors = $query->paginate(12);
+        $authors = $query->paginate(24);
 
         // Получаем уникальные национальности для фильтра
         $nationalities = Author::select('nationality')

@@ -134,7 +134,12 @@ export default {
             return d.toLocaleDateString('uk-UA');
         },
         openLibrary() {
-            window.location.href = `/libraries/${this.library.id}`;
+            if (this.library.slug && this.library.user && this.library.user.username) {
+                window.location.href = `/users/${this.library.user.username}/libraries/${this.library.slug}`;
+            } else {
+                // Fallback для старых данных
+                window.location.href = `/libraries/${this.library.id}`;
+            }
         },
         toggleMenu() {
             // TODO: Implement menu functionality
@@ -184,10 +189,17 @@ export default {
         },
         async shareLibrary() {
             const { shareContent } = await import('../utils/shareHelper');
+            let url;
+            if (this.library.slug && this.library.user && this.library.user.username) {
+                url = `${window.location.origin}/users/${this.library.user.username}/libraries/${this.library.slug}`;
+            } else {
+                // Fallback для старых данных
+                url = `${window.location.origin}/libraries/${this.library.id}`;
+            }
             await shareContent({
                 title: this.library.name,
                 text: this.library.description || `Добірка "${this.library.name}" від ${this.library.user.name}`,
-                url: `${window.location.origin}/libraries/${this.library.id}`
+                url: url
             });
         }
     }

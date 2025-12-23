@@ -10,7 +10,7 @@
                 <ol class="flex items-center space-x-2 text-sm">
                     <li><a href="{{ route('libraries.index') }}" class="text-slate-600 dark:text-slate-400 hover:text-orange-500">Добірки</a></li>
                     <li><span class="text-slate-400 dark:text-slate-500">/</span></li>
-                    <li><a href="{{ route('libraries.show', $library) }}" class="text-slate-600 dark:text-slate-400 hover:text-orange-500">{{ $library->name }}</a></li>
+                    <li><a href="{{ route('libraries.show.slug', ['username' => $library->user->username, 'library' => $library->slug]) }}" class="text-slate-600 dark:text-slate-400 hover:text-orange-500">{{ $library->name }}</a></li>
                     <li><span class="text-slate-400 dark:text-slate-500">/</span></li>
                     <li class="text-slate-900 dark:text-white font-medium">Редагувати</li>
                 </ol>
@@ -107,7 +107,7 @@
 
                     <!-- Action Buttons -->
                     <div class="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-slate-700">
-                        <a href="{{ route('libraries.show', $library) }}" 
+                        <a href="{{ route('libraries.show.slug', ['username' => $library->user->username, 'library' => $library->slug]) }}" 
                            class="px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium transition-colors">
                             Скасувати
                         </a>

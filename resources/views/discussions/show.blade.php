@@ -132,7 +132,7 @@
                         <discussion-replies-list 
                             :replies="{{ json_encode($replies->values()->toArray()) }}"
                             :discussion-slug="'{{ $discussion->slug }}'"
-                            :current-user-id="{{ auth()->id() }}"
+                            :current-user-id="{{ auth()->check() ? auth()->id() : null }}"
                             :is-discussion-closed="{{ $discussion->is_closed ? 'true' : 'false' }}"
                             :is-moderator="{{ auth()->check() && auth()->user()->isModerator() ? 'true' : 'false' }}">
                         </discussion-replies-list>

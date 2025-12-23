@@ -7,29 +7,25 @@
         class="min-h-screen from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
         <div class="">
             <!-- Breadcrumb -->
-            <nav class="mb-8">
-                <ol class="flex items-center space-x-3 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                    <li><a href="{{ route('home') }}"
-                            class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">Головна</a>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 mx-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <a href="{{ route('authors.index') }}"
-                            class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">Автори</a>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 mx-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <span class="text-slate-900 dark:text-white font-bold">{{ $author->full_name }}</span>
-                    </li>
-                </ol>
+            <nav class="mb-8 relative">
+                <div class="relative overflow-x-auto scrollbar-hide">
+                    <ol class="flex items-center space-x-3 text-sm text-slate-500 dark:text-slate-400 font-medium flex-nowrap min-w-max">
+                        <li><a href="{{ route('home') }}"
+                                class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 whitespace-nowrap">Головна</a>
+                        </li>
+                        <li class="flex-shrink-0">/</li>
+                        <li class="flex items-center flex-shrink-0">
+                            <a href="{{ route('authors.index') }}"
+                                class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 whitespace-nowrap">Автори</a>
+                        </li>
+                        <li class="flex-shrink-0">/</li>
+                        <li class="flex items-center flex-shrink-0">
+                            <span class="text-slate-900 dark:text-white font-bold whitespace-nowrap">{{ $author->full_name }}</span>
+                        </li>
+                    </ol>
+                </div>
+                <!-- Gradient fade on the right -->
+                <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-light-bg to-transparent dark:from-dark-bg pointer-events-none"></div>
             </nav>
 
             <!-- Main Grid -->
@@ -191,7 +187,7 @@
                                 </a>
                             </div>
 
-                            <reviews-list book-slug="{{ $reviews->first()->book->slug ?? '' }}"
+                            <reviews-list book-slug=""
                                 :current-user-id="{{ auth()->id() ?? 'null' }}" 
                                 :user-review="null"
                                 :hide-header="true"
@@ -203,6 +199,7 @@
                                                 'content' => $review->content,
                                                 'rating' => $review->rating,
                                                 'contains_spoiler' => $review->contains_spoiler ?? false,
+                                                'book_slug' => $review->book->slug,
                                                 'user' => $review->user
                                                     ? [
                                                         'id' => $review->user->id,
@@ -218,7 +215,8 @@
                                                 ],
                                                 'likes_count' => $review->likes_count ?? 0,
                                                 'replies_count' => $review->replies_count ?? 0,
-                                                'is_liked' => false,
+                                                'is_liked' => auth()->check() ? $review->isLikedBy(auth()->id()) : false,
+                                                'is_favorited' => auth()->check() && method_exists($review, 'isFavoritedBy') ? $review->isFavoritedBy(auth()->id()) : false,
                                                 'created_at' => $review->created_at->toIso8601String(),
                                             ];
                                         })->values(),
@@ -256,7 +254,7 @@
                                 </a>
                             </div>
 
-                            <quotes-list book-slug="{{ $quotes->first()->book->slug ?? '' }}"
+                            <quotes-list book-slug=""
                                 :current-user-id="{{ auth()->id() ?? 'null' }}"
                                 :hide-header="true"
                                 :quotes="{{ json_encode(
@@ -264,6 +262,8 @@
                                             return [
                                                 'id' => $quote->id,
                                                 'content' => $quote->content,
+                                                'page_number' => $quote->page_number,
+                                                'is_public' => $quote->is_public,
                                                 'book' => [
                                                     'id' => $quote->book->id,
                                                     'title' => $quote->book->title,
@@ -274,10 +274,14 @@
                                                         'id' => $quote->user->id,
                                                         'name' => $quote->user->name,
                                                         'username' => $quote->user->username,
+                                                        'avatar_display' => $quote->user->avatar_display ?? null,
                                                     ]
                                                     : null,
-                                                'likes_count' => $quote->likes_count ?? 0,
-                                                'created_at' => $quote->created_at,
+                                                'user_id' => $quote->user_id,
+                                                'is_liked_by_current_user' => auth()->check() ? $quote->isLikedBy(auth()->id()) : false,
+                                                'is_favorited_by_current_user' => auth()->check() && method_exists($quote, 'isFavoritedBy') ? $quote->isFavoritedBy(auth()->id()) : false,
+                                                'likes_count' => $quote->likes()->where('vote', 1)->count(),
+                                                'created_at' => $quote->created_at->toISOString(),
                                             ];
                                         })->values(),
                                 ) }}"></quotes-list>

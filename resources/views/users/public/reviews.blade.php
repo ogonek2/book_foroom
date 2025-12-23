@@ -33,7 +33,7 @@
                             <!-- Review Text -->
                                     <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4">
                                         {!! Str::limit($review->content, 300) !!}
-                                        <br><a href="{{ route('books.show', $review->book->slug) }}#review-{{ $review->id }}" 
+                                        <br><a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}" 
                                                class="text-orange-500 hover:text-orange-600 font-medium">
                                             До рецензії →
                                         </a>

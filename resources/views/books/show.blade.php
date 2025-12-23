@@ -26,29 +26,25 @@
     <div id="app" class="min-h-screen">
         <div class="mx-auto">
             <!-- Breadcrumb -->
-            <nav class="mb-8">
-                <ol class="flex items-center space-x-3 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                    <li><a href="{{ route('home') }}"
-                            class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">Головна</a>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 mx-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <a href="{{ route('books.index') }}"
-                            class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200">Книги</a>
-                    </li>
-                    <li class="flex items-center">
-                        <svg class="w-5 h-5 mx-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <span class="text-slate-900 dark:text-white font-bold">{{ $book->title }}</span>
-                    </li>
-                </ol>
+            <nav class="mb-8 relative">
+                <div class="relative overflow-x-auto scrollbar-hide">
+                    <ol class="flex items-center space-x-3 text-sm text-slate-500 dark:text-slate-400 font-medium flex-nowrap min-w-max">
+                        <li><a href="{{ route('home') }}"
+                                class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 whitespace-nowrap">Головна</a>
+                        </li>
+                        <li class="flex-shrink-0">/</li>
+                        <li class="flex items-center flex-shrink-0">
+                            <a href="{{ route('books.index') }}"
+                                class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 whitespace-nowrap">Книги</a>
+                        </li>
+                        <li class="flex-shrink-0">/</li>
+                        <li class="flex items-center flex-shrink-0">
+                            <span class="text-slate-900 dark:text-white font-bold whitespace-nowrap">{{ $book->title }}</span>
+                        </li>
+                    </ol>
+                </div>
+                <!-- Gradient fade on the right -->
+                <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-light-bg to-transparent dark:from-dark-bg pointer-events-none"></div>
             </nav>
 
             <!-- Main Grid -->
@@ -139,11 +135,11 @@
                                                 {{ $book->description }}
                                             </div>
                                             <div id="description-gradient"
-                                                class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent dark:from-slate-900 dark:via-slate-800/80 dark:to-transparent pointer-events-none"
+                                                class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-light-bg via-light-bg/80 to-transparent dark:from-dark-bg dark:via-dark-bg/80 dark:to-transparent pointer-events-none"
                                                 style="top: 200px;"></div>
                                             <div id="description-toggle-container" class="text-left mt-4 hidden">
                                                 <button onclick="toggleDescription()"
-                                                    class=" text-white rounded-lg font-bold  transition-all duration-300 transform hover:scale-105 flex items-center justify-start">
+                                                    class="light:text-black dark:text-white rounded-lg font-bold  transition-all duration-300 transform hover:scale-105 flex items-center justify-start">
                                                     <span id="description-toggle-text">Розгорнути</span>
                                                     <svg class="w-5 h-5 ml-2 transition-transform duration-300"
                                                         id="description-arrow" fill="none" stroke="currentColor"
@@ -215,14 +211,15 @@
                             ->toArray();
                     @endphp
 
-                    <div class="flex justify-end mb-4">
-                        <a href="{{ route('books.reviews.index', $book) }}"
-                            class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
-                            Переглянути всі рецензії
-                            <i class="fas fa-arrow-right text-xs"></i>
-                        </a>
-                    </div>
-
+                    @if ($reviews->count() > 0)
+                        <div class="flex justify-end mb-4">
+                            <a href="{{ route('books.reviews.index', $book) }}"
+                                class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                Переглянути всі рецензії
+                                <i class="fas fa-arrow-right text-xs"></i>
+                            </a>
+                        </div>
+                    @endif
                     <book-reviews-list :reviews="{{ json_encode($reviewsData) }}" book-slug="{{ $book->slug }}"
                         :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}"
                         :user-review="{{ $userReview
@@ -265,7 +262,15 @@
                             })
                             ->toArray();
                     @endphp
-
+                    @if ($quotes->count() > 0)
+                        <div class="flex justify-end mb-4">
+                            <a href="{{ route('books.quotes.index', $book) }}"
+                                class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                Переглянути всі цитати
+                                <i class="fas fa-arrow-right text-xs"></i>
+                            </a>
+                        </div>
+                    @endif
                     <div id="quotes-app">
                         <quotes-list :quotes="{{ json_encode($quotesData) }}" book-slug="{{ $book->slug }}"
                             :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}">
@@ -295,6 +300,16 @@
                             })
                             ->toArray();
                     @endphp
+
+                    @if ($facts->count() > 0)
+                        <div class="flex justify-end mb-4">
+                            <a href="{{ route('books.facts.index', $book) }}"
+                                class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
+                                Переглянути всі факти
+                                <i class="fas fa-arrow-right text-xs"></i>
+                            </a>
+                        </div>
+                    @endif
                     <div id="facts-app">
                         <facts-list :facts="{{ json_encode($factsData) }}" book-slug="{{ $book->slug }}"
                             :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}"

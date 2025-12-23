@@ -104,7 +104,7 @@
     </nav>
 
     <!-- Mobile Bottom Menu -->
-    <div id="mobile-menu" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 h-full max-h-[85vh] ease-in-out md:hidden" style="transform: translateY(100%);">
+    <div id="mobile-menu" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 h-full max-h-[85vh] ease-in-out md:hidden">
         <div class="bg-light-bg dark:bg-dark-bg border-t border-light-border dark:border-dark-border shadow-2xl rounded-t-3xl h-full overflow-hidden flex flex-col">
             <!-- Menu Header -->
             <div class="flex items-center justify-between p-4 border-b border-light-border dark:border-dark-border">
@@ -269,7 +269,14 @@
 
             // Open menu functions
             function openMobileMenu(tab = 'navigation') {
+                if (!mobileMenu || !mobileMenuOverlay) {
+                    console.error('Mobile menu elements not found');
+                    return;
+                }
+                
+                // Remove translate-y-full class and any inline transform styles
                 mobileMenu.classList.remove('translate-y-full');
+                mobileMenu.style.transform = 'translateY(0)';
                 mobileMenuOverlay.classList.remove('opacity-0', 'pointer-events-none');
                 mobileMenuOverlay.classList.add('opacity-100', 'pointer-events-auto');
                 document.body.style.overflow = 'hidden';
@@ -282,7 +289,12 @@
 
             // Close menu function
             function closeMobileMenu() {
+                if (!mobileMenu || !mobileMenuOverlay) {
+                    return;
+                }
+                
                 mobileMenu.classList.add('translate-y-full');
+                mobileMenu.style.transform = 'translateY(100%)';
                 mobileMenuOverlay.classList.remove('opacity-100', 'pointer-events-auto');
                 mobileMenuOverlay.classList.add('opacity-0', 'pointer-events-none');
                 document.body.style.overflow = '';
@@ -313,11 +325,22 @@
 
             // Event listeners
             if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', () => openMobileMenu('navigation'));
+                mobileMenuButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Mobile menu button clicked');
+                    openMobileMenu('navigation');
+                });
+            } else {
+                console.error('Mobile menu button not found');
             }
 
             if (mobileSearchButton) {
-                mobileSearchButton.addEventListener('click', () => openMobileMenu('search'));
+                mobileSearchButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openMobileMenu('search');
+                });
             }
 
             if (closeMobileMenuButton) {

@@ -68,15 +68,22 @@ class LibraryController extends Controller
             'user_id' => Auth::id(),
         ]);
 
-        return redirect()->route('libraries.show', $library)
-            ->with('success', 'Добірку створено успішно!');
+        return redirect()->route('libraries.show.slug', [
+            'username' => Auth::user()->username,
+            'library' => $library->slug
+        ])->with('success', 'Добірку створено успішно!');
     }
 
     /**
-     * Display the specified library
+     * Display the specified library by slug with username
      */
-    public function show(Library $library)
+    public function showBySlug($username, Library $library)
     {
+        // Проверяем, что библиотека принадлежит пользователю с указанным username
+        if ($library->user->username !== $username) {
+            abort(404);
+        }
+
         // Check if user can view this library
         if (!$library->canBeViewedBy(Auth::user())) {
             abort(403, 'Ця добірка є приватною');
@@ -95,6 +102,23 @@ class LibraryController extends Controller
         }
 
         return view('libraries.show', compact('library', 'books', 'isSaved'));
+    }
+
+    /**
+     * Display the specified library (legacy route with ID)
+     */
+    public function show(Library $library)
+    {
+        // Check if user can view this library
+        if (!$library->canBeViewedBy(Auth::user())) {
+            abort(403, 'Ця добірка є приватною');
+        }
+
+        // Redirect to new slug-based route
+        return redirect()->route('libraries.show.slug', [
+            'username' => $library->user->username,
+            'library' => $library->slug
+        ], 301);
     }
 
     /**
@@ -130,8 +154,10 @@ class LibraryController extends Controller
             'is_private' => $request->boolean('is_private', false),
         ]);
 
-        return redirect()->route('libraries.show', $library)
-            ->with('success', 'Добірку оновлено успішно!');
+        return redirect()->route('libraries.show.slug', [
+            'username' => $library->user->username,
+            'library' => $library->slug
+        ])->with('success', 'Добірку оновлено успішно!');
     }
 
     /**
@@ -400,6 +426,7 @@ class LibraryController extends Controller
             return [
                 'id' => $library->id,
                 'name' => $library->name,
+                'slug' => $library->slug,
                 'description' => $library->description,
                 'created_at' => optional($library->created_at)->toIso8601String(),
                 'books_count' => (int) ($library->books_count ?? $library->books->count()),

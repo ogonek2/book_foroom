@@ -20,7 +20,11 @@
             <!-- Reviews Stats -->
             <div class="grid grid-cols-3 gap-2 lg:gap-4">
                 @php
-                    $reviews = $user->reviews()->with('book')->get();
+                    $reviews = $user->reviews()
+                        ->with('book')
+                        ->whereNull('parent_id')
+                        ->where('is_draft', false)
+                        ->get();
                     $totalReviews = $reviews->count();
                     $averageLength = $reviews->avg('length');
                     $totalLikes = $reviews->sum('likes_count');
@@ -54,6 +58,8 @@
                 @php
                     $reviews = $user->reviews()
                         ->with(['book.author', 'book.categories'])
+                        ->whereNull('parent_id')
+                        ->where('is_draft', false)
                         ->orderBy('created_at', 'desc')
                         ->paginate(10);
                 @endphp
@@ -113,7 +119,7 @@
                                     <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4">
                                         {!! Str::limit($review->content, 300) !!}
                                         @if(strlen($review->content) > 300)
-                                            <br><a href="{{ route('books.show', $review->book->slug) }}#review-{{ $review->id }}" 
+                                            <br><a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}" 
                                                class="text-orange-500 hover:text-orange-600 font-medium">
                                                 Читати повністю →
                                             </a>
