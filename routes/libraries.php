@@ -16,8 +16,8 @@ Route::middleware(['web'])->group(function () {
         Route::delete('/libraries/{library}', [LibraryController::class, 'destroy'])->name('libraries.destroy');
         
         // Book management in libraries
-        Route::post('/libraries/{library}/add-book', [LibraryController::class, 'addBook'])->name('libraries.add-book');
-        Route::delete('/libraries/{library}/books/{book}', [LibraryController::class, 'removeBook'])->name('libraries.remove-book');
+        Route::post('/libraries/{library:id}/add-book', [LibraryController::class, 'addBook'])->name('libraries.add-book');
+        Route::delete('/libraries/{library:id}/books/{book}', [LibraryController::class, 'removeBook'])->name('libraries.remove-book');
         
         // User interactions with libraries
         Route::post('/libraries/{library}/save', [LibraryController::class, 'toggleSave'])->name('libraries.toggle-save');

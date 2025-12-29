@@ -37,8 +37,8 @@
 
         <!-- Модальное окно статусов чтения -->
         <add-to-library-modal v-if="isAuthenticated" :show="showModal" :book="book" :user-libraries="userLibraries"
-            @close="closeModal" @status-selected="handleStatusSelected" @open-custom-library="handleOpenCustomLibrary"
-            @notification="$emit('notification', $event)" />
+            :current-status="currentStatus"
+            @close="closeModal" @status-selected="handleStatusSelected" @open-custom-library="handleOpenCustomLibrary" />
 
         <!-- Модальное окно выбора добірки -->
         <div v-if="showCustomLibraryModal"
@@ -57,6 +57,33 @@
                         </button>
                     </div>
 
+                    <!-- Список существующих добірок, где уже есть книга -->
+                    <div v-if="currentBookLibraries.length > 0" class="mb-6">
+                        <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-3">
+                            Книга вже в добірках:
+                        </label>
+                        <div class="space-y-2">
+                            <div v-for="library in currentBookLibraries" :key="library.id"
+                                class="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-folder text-orange-500"></i>
+                                    <span class="text-slate-900 dark:text-white font-medium">{{ library.name }}</span>
+                                    <span v-if="library.is_private"
+                                        class="text-xs text-slate-500 dark:text-slate-400">(Приватна)</span>
+                                    <span v-else class="text-xs text-slate-500 dark:text-slate-400">(Публічна)</span>
+                                </div>
+                                <button @click="removeFromLibrary(library)"
+                                    class="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+                                    title="Видалити з добірки">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <form @submit.prevent="submitToCustomLibrary">
                         <div class="mb-6">
                             <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-3">Оберіть
@@ -64,7 +91,7 @@
                             <select v-model="selectedLibraryId" required
                                 class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-slate-900 dark:text-white">
                                 <option value="">-- Оберіть добірку --</option>
-                                <option v-for="library in userLibraries" :key="library.id" :value="library.id">
+                                <option v-for="library in availableLibraries" :key="library.id" :value="library.id">
                                     {{ library.name }}
                                     <span v-if="library.is_private">(Приватна)</span>
                                     <span v-else>(Публічна)</span>
@@ -126,6 +153,7 @@ export default {
             showCustomLibraryModal: false,
             selectedLibraryId: '',
             currentStatus: this.initialStatus,
+            currentBookLibraries: [],
             statusTexts: {
                 'read': 'Прочитано',
                 'reading': 'Читаю',
@@ -141,12 +169,22 @@ export default {
             }
         }
     },
+    mounted() {
+        if (this.isAuthenticated) {
+            this.loadBookLibraries();
+        }
+    },
     computed: {
         profileCollectionsUrl() {
             if (this.$root.$data.user && this.$root.$data.user.username) {
                 return `/users/${this.$root.$data.user.username}/collections`;
             }
             return '#';
+        },
+        availableLibraries() {
+            // Доборки, в которых книга еще не добавлена
+            const bookLibraryIds = this.currentBookLibraries.map(lib => lib.id);
+            return this.userLibraries.filter(lib => !bookLibraryIds.includes(lib.id));
         }
     },
     methods: {
@@ -176,31 +214,34 @@ export default {
 
                 if (response.data.success) {
                     this.currentStatus = normalizedStatus;
-                    this.$emit('notification', {
-                        message: 'Книга додана до списку!',
-                        type: 'success'
-                    });
+                    this.showAlert('Книга додана до списку!', 'Успіх', 'success');
                     this.$emit('status-updated', this.currentStatus);
                 } else {
-                    this.$emit('notification', {
-                        message: response.data.message || 'Помилка при збереженні статусу',
-                        type: 'error'
-                    });
+                    this.showAlert(response.data.message || 'Помилка при збереженні статусу', 'Помилка', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                this.$emit('notification', {
-                    message: 'Помилка при збереженні статусу',
-                    type: 'error'
-                });
+                this.showAlert('Помилка при збереженні статусу', 'Помилка', 'error');
             }
 
             this.closeModal();
         },
         async removeStatus() {
-            const confirmed = await confirm('Ви впевнені, що хочете видалити статус для цієї книги?', 'Підтвердження', 'warning');
-            if (!confirmed) {
-                return;
+            try {
+                if (!window.alertModalInstance || !window.alertModalInstance.$refs || !window.alertModalInstance.$refs.modal) {
+                    if (!confirm('Ви впевнені, що хочете видалити статус для цієї книги?')) {
+                        return;
+                    }
+                } else {
+                    const confirmed = await window.alertModalInstance.$refs.modal.confirm('Ви впевнені, що хочете видалити статус для цієї книги?', 'Підтвердження', 'warning');
+                    if (!confirmed) {
+                        return;
+                    }
+                }
+            } catch (e) {
+                if (!confirm('Ви впевнені, що хочете видалити статус для цієї книги?')) {
+                    return;
+                }
             }
 
             try {
@@ -209,23 +250,14 @@ export default {
 
                 if (response.data.success) {
                     this.currentStatus = null;
-                    this.$emit('notification', {
-                        message: 'Статус видалено!',
-                        type: 'success'
-                    });
+                    this.showAlert('Статус видалено!', 'Успіх', 'success');
                     this.$emit('status-updated', null);
                 } else {
-                    this.$emit('notification', {
-                        message: response.data.message || 'Помилка при видаленні статусу',
-                        type: 'error'
-                    });
+                    this.showAlert(response.data.message || 'Помилка при видаленні статусу', 'Помилка', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                this.$emit('notification', {
-                    message: 'Помилка при видаленні статусу',
-                    type: 'error'
-                });
+                this.showAlert('Помилка при видаленні статусу', 'Помилка', 'error');
             }
         },
         async getBookIdBySlug(slug) {
@@ -241,7 +273,7 @@ export default {
             this.closeModal();
             this.openCustomLibraryModal();
         },
-        openCustomLibraryModal() {
+        async openCustomLibraryModal() {
             // Проверяем авторизацию перед открытием модального окна
             if (!this.isAuthenticated) {
                 // Сохраняем текущий URL для редиректа после логина
@@ -249,6 +281,7 @@ export default {
                 window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
                 return;
             }
+            await this.loadBookLibraries(); // Загружаем актуальный список библиотек
             this.showCustomLibraryModal = true;
         },
         closeCustomLibraryModal() {
@@ -257,7 +290,7 @@ export default {
         },
         async submitToCustomLibrary() {
             if (!this.selectedLibraryId) {
-                this.$emit('notification', { message: 'Оберіть добірку', type: 'error' });
+                this.showAlert('Оберіть добірку', 'Помилка', 'error');
                 return;
             }
 
@@ -269,14 +302,57 @@ export default {
                 const response = await axios.post(url, formData);
 
                 if (response.data.success) {
-                    this.$emit('notification', { message: 'Книга успішно додана до добірки!', type: 'success' });
-                    this.closeCustomLibraryModal();
+                    await this.loadBookLibraries(); // Обновляем список библиотек
+                    this.showAlert('Книга успішно додана до добірки!', 'Успіх', 'success');
+                    this.selectedLibraryId = '';
                 } else {
-                    this.$emit('notification', { message: response.data.message || 'Помилка при додаванні книги', type: 'error' });
+                    this.showAlert(response.data.message || 'Помилка при додаванні книги', 'Помилка', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                this.$emit('notification', { message: 'Помилка при додаванні книги', type: 'error' });
+                this.showAlert('Помилка при додаванні книги', 'Помилка', 'error');
+            }
+        },
+        async loadBookLibraries() {
+            if (!this.isAuthenticated) return;
+            
+            try {
+                const response = await axios.get(`/api/books/${this.book.slug}/libraries`);
+                if (response.data && response.data.success) {
+                    this.currentBookLibraries = response.data.libraries || [];
+                }
+            } catch (error) {
+                // Игнорируем ошибку, если библиотеки не найдены
+                if (error.response && error.response.status !== 404) {
+                    console.error('Error loading book libraries:', error);
+                }
+            }
+        },
+        async removeFromLibrary(library) {
+            try {
+                const response = await axios.delete(`/libraries/${library.id}/books/${this.book.slug}`);
+
+                if (response.data.success) {
+                    this.currentBookLibraries = this.currentBookLibraries.filter(lib => lib.id !== library.id);
+                    this.showAlert(`Книгу видалено з добірки "${library.name}"`, 'Успіх', 'success');
+                } else {
+                    this.showAlert(response.data.message || 'Помилка при видаленні книги', 'Помилка', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showAlert(error.response?.data?.message || 'Помилка при видаленні книги', 'Помилка', 'error');
+            }
+        },
+        showAlert(message, title, type = 'info') {
+            if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                window.alertModalInstance.$refs.modal.alert(message, title, type);
+            } else {
+                // Fallback если модалка не готова
+                setTimeout(() => {
+                    if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                        window.alertModalInstance.$refs.modal.alert(message, title, type);
+                    }
+                }, 100);
             }
         }
     }

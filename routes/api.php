@@ -21,6 +21,8 @@ Route::middleware('web')->group(function () {
         Route::get('/{slug}/id', [App\Http\Controllers\BookController::class, 'getIdBySlug'])->name('id');
         // Поиск с подсказками
         Route::get('/search/suggestions', [App\Http\Controllers\BookController::class, 'searchSuggestions'])->name('search.suggestions');
+        // Получение библиотек, в которых находится книга (требует авторизации)
+        Route::middleware(['auth'])->get('/{slug}/libraries', [App\Http\Controllers\LibraryController::class, 'getBookLibraries'])->name('libraries');
     });
 
     // Маршруты для рецензий
@@ -73,16 +75,31 @@ Route::middleware('web')->group(function () {
     Route::get('/users/search', function (Request $request) {
         $query = $request->get('q', '');
         
-        if (strlen($query) < 2) {
-            return response()->json(['users' => []]);
+        // Если запрос пустой, возвращаем топ-5 активных пользователей
+        if (empty($query)) {
+            $users = \App\Models\User::orderBy('created_at', 'desc')
+                ->select('id', 'username', 'name', 'avatar')
+                ->limit(5)
+                ->get()
+                ->map(function($user) {
+                    return [
+                        'id' => $user->id,
+                        'username' => $user->username,
+                        'name' => $user->name,
+                        'avatar' => $user->avatar,
+                        'avatar_display' => $user->avatar_display ?? null,
+                    ];
+                });
+            return response()->json(['users' => $users]);
         }
 
+        // Если есть запрос, ищем по username и name
         $users = \App\Models\User::where(function($q) use ($query) {
                 $q->where('username', 'like', "%{$query}%")
                   ->orWhere('name', 'like', "%{$query}%");
             })
             ->select('id', 'username', 'name', 'avatar')
-            ->limit(10)
+            ->limit(5)
             ->get()
             ->map(function($user) {
                 return [

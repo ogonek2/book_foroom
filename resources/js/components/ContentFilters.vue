@@ -41,7 +41,7 @@
                     <option value="newest">Найновіші</option>
                     <option value="oldest">Найстаріші</option>
                     <option value="popular">Популярні</option>
-                    <option value="trending">Трендові</option>
+                    <option value="pinned">Закріплені</option>
                 </select>
                 <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
                     <i class="fas fa-chevron-down text-slate-500 dark:text-slate-400 text-sm"></i>

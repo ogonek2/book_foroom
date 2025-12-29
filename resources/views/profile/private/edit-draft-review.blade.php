@@ -218,12 +218,7 @@
                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Зберегти як чернетку</span>
                 </label>
             </div>
-            <button type="submit" 
-                        name="action" 
-                        value="save"
-                        class="mb-2 text-blue-400 dark:text-blue-400 font-medium transition-colors">
-                    Зберегти чернетку
-                </button>
+
             <!-- Submit Buttons -->
             <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex space-x-2">
@@ -611,9 +606,6 @@
                     if (submitButton.value === 'publish') {
                         // При публикации снимаем флаг черновика
                         if (isDraftCheckbox) isDraftCheckbox.checked = false;
-                    } else if (submitButton.value === 'save') {
-                        // При сохранении как черновик ставим флаг
-                        if (isDraftCheckbox) isDraftCheckbox.checked = true;
                     }
                 }
             });

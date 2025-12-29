@@ -96,6 +96,17 @@
 
                                         <!-- Actions -->
                                         <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onclick="editQuote({{ $quote->id }}, '{{ $quote->book->slug }}', {{ json_encode([
+                                                'content' => $quote->content,
+                                                'page_number' => $quote->page_number,
+                                                'is_public' => $quote->is_public
+                                            ]) }})" 
+                                                    class="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                                                    title="Редагувати цитату">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
                                             <button onclick="deleteQuote({{ $quote->id }}, '{{ $quote->book->slug }}')" 
                                                     class="p-2 text-gray-400 hover:text-red-400 transition-colors"
                                                     title="Видалити цитату">
@@ -184,6 +195,87 @@
         </div>
     </div>
 
+    <!-- Edit Quote Modal -->
+    <div id="editQuoteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Редагувати цитату</h3>
+                    <button onclick="closeEditQuoteModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="editQuoteForm" onsubmit="submitEditQuote(event)">
+                    <input type="hidden" id="editQuoteId" name="quote_id">
+                    <input type="hidden" id="editQuoteBookSlug" name="book_slug">
+
+                    <!-- Quote Content -->
+                    <div class="mb-6">
+                        <label for="editQuoteContent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Текст цитати <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="editQuoteContent" 
+                                  name="content" 
+                                  rows="4" 
+                                  required
+                                  minlength="20"
+                                  maxlength="500"
+                                  class="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"></textarea>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Мінімум: 20 символів, Максимум: 500 символів
+                        </p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" id="editQuoteContentLength">0 / 500</p>
+                    </div>
+
+                    <!-- Page Number -->
+                    <div class="mb-6">
+                        <label for="editQuotePageNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Номер сторінки (необов'язково)
+                        </label>
+                        <input type="number" 
+                               id="editQuotePageNumber" 
+                               name="page_number" 
+                               min="1"
+                               class="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    </div>
+
+                    <!-- Public Status -->
+                    <div class="mb-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" 
+                                   id="editQuoteIsPublic" 
+                                   name="is_public" 
+                                   value="1"
+                                   class="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Публічна цитата</span>
+                        </label>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Публічні цитати відображаються на вашому публічному профілі
+                        </p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end space-x-4">
+                        <button type="button" 
+                                onclick="closeEditQuoteModal()"
+                                class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            Скасувати
+                        </button>
+                        <button type="submit" 
+                                id="editQuoteSubmitBtn"
+                                class="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-medium hover:from-orange-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span id="editQuoteSubmitText">Зберегти</span>
+                            <span id="editQuoteSubmitLoading" class="hidden">Збереження...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
         <script>
             function addNewQuote() {
@@ -205,6 +297,127 @@
             function sortQuotes(sortBy) {
                 // TODO: Implement client-side sorting or AJAX request
                 console.log('Sort quotes by:', sortBy);
+            }
+
+            // Edit Quote Modal Functions
+            function editQuote(quoteId, bookSlug, quoteData) {
+                document.getElementById('editQuoteId').value = quoteId;
+                document.getElementById('editQuoteBookSlug').value = bookSlug;
+                document.getElementById('editQuoteContent').value = quoteData.content || '';
+                document.getElementById('editQuotePageNumber').value = quoteData.page_number || '';
+                document.getElementById('editQuoteIsPublic').checked = quoteData.is_public !== false;
+
+                // Update character counter
+                updateEditQuoteContentLength();
+
+                // Show modal
+                const modal = document.getElementById('editQuoteModal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function closeEditQuoteModal() {
+                const modal = document.getElementById('editQuoteModal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                
+                // Reset form
+                document.getElementById('editQuoteForm').reset();
+            }
+
+            function updateEditQuoteContentLength() {
+                const content = document.getElementById('editQuoteContent').value;
+                const length = content.length;
+                const lengthDisplay = document.getElementById('editQuoteContentLength');
+                lengthDisplay.textContent = `${length} / 500`;
+                
+                if (length < 20 || length > 500) {
+                    lengthDisplay.classList.add('text-red-500');
+                    lengthDisplay.classList.remove('text-gray-500');
+                } else {
+                    lengthDisplay.classList.remove('text-red-500');
+                    lengthDisplay.classList.add('text-gray-500');
+                }
+            }
+
+            // Add event listener for content length
+            document.addEventListener('DOMContentLoaded', function() {
+                const contentTextarea = document.getElementById('editQuoteContent');
+                if (contentTextarea) {
+                    contentTextarea.addEventListener('input', updateEditQuoteContentLength);
+                }
+            });
+
+            async function submitEditQuote(event) {
+                event.preventDefault();
+
+                const quoteId = document.getElementById('editQuoteId').value;
+                const bookSlug = document.getElementById('editQuoteBookSlug').value;
+                const content = document.getElementById('editQuoteContent').value.trim();
+                const pageNumber = document.getElementById('editQuotePageNumber').value;
+                const isPublic = document.getElementById('editQuoteIsPublic').checked;
+
+                // Validate content length
+                if (content.length < 20 || content.length > 500) {
+                    if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                        window.alertModalInstance.$refs.modal.alert('Цитата повинна містити від 20 до 500 символів.', 'Помилка валідації', 'error');
+                    } else {
+                        alert('Цитата повинна містити від 20 до 500 символів.');
+                    }
+                    return;
+                }
+
+                const submitBtn = document.getElementById('editQuoteSubmitBtn');
+                const submitText = document.getElementById('editQuoteSubmitText');
+                const submitLoading = document.getElementById('editQuoteSubmitLoading');
+
+                submitBtn.disabled = true;
+                submitText.classList.add('hidden');
+                submitLoading.classList.remove('hidden');
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const response = await fetch(`/books/${bookSlug}/quotes/${quoteId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            content: content,
+                            page_number: pageNumber ? parseInt(pageNumber) : null,
+                            is_public: isPublic
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Close modal
+                        closeEditQuoteModal();
+
+                        // Reload page to show updated quote
+                        window.location.reload();
+                    } else {
+                        if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                            window.alertModalInstance.$refs.modal.alert(data.message || 'Помилка при збереженні цитати.', 'Помилка', 'error');
+                        } else {
+                            alert(data.message || 'Помилка при збереженні цитати.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating quote:', error);
+                    if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                        window.alertModalInstance.$refs.modal.alert('Помилка при збереженні цитати.', 'Помилка', 'error');
+                    } else {
+                        alert('Помилка при збереженні цитати.');
+                    }
+                } finally {
+                    submitBtn.disabled = false;
+                    submitText.classList.remove('hidden');
+                    submitLoading.classList.add('hidden');
+                }
             }
 
             async function deleteQuote(quoteId, bookSlug) {

@@ -125,6 +125,14 @@
                                     <span>{{ $discussion->likes_count }} Лайків</span>
                                 </div>
                             </div>
+                            <div class="flex items-center space-x-4">
+                                <button onclick="shareDiscussion()" 
+                                        type="button"
+                                        class="flex items-center space-x-2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-brand-500 dark:hover:text-brand-400 transition-colors cursor-pointer">
+                                    <i class="fas fa-share"></i>
+                                    <span class="text-sm">Поділитися</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -382,8 +390,8 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                const button = document.getElementById(`likeButton${discussionId}`);
-                                const count = document.getElementById(`likeCount${discussionId}`);
+                                const button = document.getElementById(`likeButton{{ $discussion->id }}`);
+                                const count = document.getElementById(`likeCount{{ $discussion->id }}`);
                                 const icon = button.querySelector('i');
 
                                 if (data.liked) {
@@ -401,6 +409,43 @@
                             console.error('Error:', error);
                         });
                 }
+
+                // Share discussion function
+                window.shareDiscussion = async function() {
+                    try {
+                        // Используем shareContent из app.js если доступен
+                        if (window.shareContent) {
+                            await window.shareContent({
+                                title: '{{ addslashes($discussion->title) }}',
+                                text: '{{ addslashes(strip_tags($discussion->content)) }}'.substring(0, 200),
+                                url: window.location.href
+                            });
+                            return;
+                        }
+
+                        // Fallback к нативному шарингу или буферу обмена
+                        if (navigator.share) {
+                            await navigator.share({
+                                title: '{{ addslashes($discussion->title) }}',
+                                text: '{{ addslashes(strip_tags($discussion->content)) }}'.substring(0, 200),
+                                url: window.location.href
+                            });
+                        } else {
+                            // Копируем ссылку в буфер обмена
+                            await navigator.clipboard.writeText(window.location.href);
+                            // Показываем уведомление
+                            if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                                window.alertModalInstance.$refs.modal.alert('Посилання скопійовано в буфер обміну!', 'Успіх', 'success');
+                            } else {
+                                alert('Посилання скопійовано в буфер обміну!');
+                            }
+                        }
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            console.error('Error sharing discussion:', error);
+                        }
+                    }
+                };
             </script>
         @endpush
         

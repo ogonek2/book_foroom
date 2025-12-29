@@ -4,18 +4,54 @@
         <div v-if="isAuthenticated" class="reply-form active">
             <div class="reply-form-content">
                 <h4 class="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Ваша відповідь</h4>
-                <div class="reply-input-wrapper">
-                    <textarea v-model="mainReplyContent" 
-                              ref="mainReplyTextarea"
-                              rows="1"
-                              :maxlength="maxLength"
-                              class="reply-textarea w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none"
-                              :class="{ 'border-red-300 dark:border-red-700 focus:ring-red-500': mainReplyContent.length >= maxLength }"
-                              placeholder="Напишіть вашу відповідь..." 
-                              @focus="expandTextarea"
-                              @blur="collapseTextarea"
-                              @input="validateLength"
-                              required></textarea>
+                <div class="reply-input-wrapper relative">
+                    <div class="relative">
+                        <textarea v-model="mainReplyContent" 
+                                  ref="mainReplyTextarea"
+                                  rows="1"
+                                  :maxlength="maxLength"
+                                  class="reply-textarea w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none"
+                                  :class="{ 'border-red-300 dark:border-red-700 focus:ring-red-500': mainReplyContent.length >= maxLength }"
+                                  placeholder="Напишіть вашу відповідь... (використовуйте @ для згадування користувачів)" 
+                                  @focus="expandTextarea"
+                                  @blur="collapseTextarea"
+                                  @input="handleMainReplyInput"
+                                  @keydown="handleMainReplyKeydown"
+                                  required></textarea>
+                        
+                        <!-- Mention Dropdown -->
+                        <div v-if="showMentionDropdown && mentionUsers.length > 0" 
+                             class="absolute z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-h-60 overflow-y-auto mt-1"
+                             :style="{ 
+                                 top: '100%',
+                                 left: '0px', 
+                                 minWidth: '250px',
+                                 maxWidth: '300px'
+                             }">
+                        <div v-for="(user, index) in mentionUsers" 
+                             :key="user.id"
+                             @click="insertMainMention(user.username)"
+                             @mouseenter="selectedMentionIndex = index"
+                             :class="[
+                                 'px-4 py-3 flex items-center space-x-3 cursor-pointer transition-colors',
+                                 selectedMentionIndex === index 
+                                     ? 'bg-brand-50 dark:bg-brand-900/20' 
+                                     : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                             ]">
+                            <img :src="user.avatar_display || user.avatar || '/storage/avatars/default.png'" 
+                                 :alt="user.name"
+                                 class="w-8 h-8 rounded-full flex-shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {{ user.name }}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    @{{ user.username }}
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
                     <div class="flex items-center justify-between mt-2">
                         <div class="text-xs text-slate-500 dark:text-slate-400" :class="{ 'text-red-500 dark:text-red-400': mainReplyContent.length >= maxLength }">
                             {{ mainReplyContent.length }}/{{ maxLength }} символів
@@ -139,6 +175,14 @@ export default {
             mainReplyContent: '',
             isMainReplySubmitting: false,
             maxLength: 400,
+            // Mention autocomplete
+            mentionUsers: [],
+            showMentionDropdown: false,
+            mentionPosition: { top: 0, left: 0 },
+            mentionQuery: '',
+            selectedMentionIndex: -1,
+            mentionStartPos: -1,
+            mentionSearchTimeout: null,
         };
     },
     computed: {
@@ -162,6 +206,158 @@ export default {
                 this.mainReplyContent = this.mainReplyContent.substring(0, this.maxLength);
             }
         },
+        
+        handleMainReplyInput(event) {
+            this.validateLength();
+            
+            const textarea = event.target;
+            if (!textarea) return;
+            
+            // Используем setTimeout вместо $nextTick для гарантии обновления
+            setTimeout(() => {
+                const cursorPos = textarea.selectionStart;
+                const currentValue = textarea.value || this.mainReplyContent;
+                const textBeforeCursor = currentValue.substring(0, cursorPos);
+                
+                console.log('Input detected:', { cursorPos, currentValue, textBeforeCursor });
+                
+                const atIndex = textBeforeCursor.lastIndexOf('@');
+                
+                if (atIndex === -1) {
+                    console.log('No @ found, hiding dropdown');
+                    this.hideMentionDropdown();
+                    return;
+                }
+                
+                const textAfterAt = textBeforeCursor.substring(atIndex + 1);
+                // Если после @ есть пробел или перенос строки, скрываем dropdown
+                if (textAfterAt.includes(' ') || textAfterAt.includes('\n')) {
+                    console.log('Space or newline after @, hiding dropdown');
+                    this.hideMentionDropdown();
+                    return;
+                }
+                
+                // Показываем dropdown сразу после @, без требования минимального количества символов
+                const query = textAfterAt.trim();
+                console.log('Searching users with query:', query);
+                this.mentionQuery = query;
+                this.mentionStartPos = atIndex;
+                this.searchUsers(query);
+                this.calculateMentionPosition(textarea);
+            }, 10);
+        },
+        
+        async searchUsers(query) {
+            if (this.mentionSearchTimeout) {
+                clearTimeout(this.mentionSearchTimeout);
+            }
+            
+            console.log('searchUsers called with query:', query);
+            
+            // Уменьшаем задержку для более быстрой реакции
+            this.mentionSearchTimeout = setTimeout(async () => {
+                try {
+                    const url = `/api/users/search${query ? '?q=' + encodeURIComponent(query) : ''}`;
+                    console.log('Fetching from URL:', url);
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log('Users received:', data.users);
+                    this.mentionUsers = data.users || [];
+                    this.showMentionDropdown = this.mentionUsers.length > 0;
+                    this.selectedMentionIndex = -1;
+                    
+                    console.log('Dropdown state:', { 
+                        showMentionDropdown: this.showMentionDropdown, 
+                        usersCount: this.mentionUsers.length 
+                    });
+                    
+                    // Recalculate position after dropdown appears
+                    if (this.showMentionDropdown) {
+                        this.$nextTick(() => {
+                            const textarea = this.$refs.mainReplyTextarea;
+                            if (textarea) {
+                                this.calculateMentionPosition(textarea);
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error searching users:', error);
+                    this.mentionUsers = [];
+                    this.showMentionDropdown = false;
+                }
+            }, 200);
+        },
+        
+        calculateMentionPosition(textarea) {
+            // Позиционирование не нужно, используется top: 100% для размещения под textarea
+            // Метод оставлен для совместимости, но не используется
+        },
+        
+        insertMainMention(username) {
+            const textarea = this.$refs.mainReplyTextarea;
+            if (!textarea) return;
+            
+            const cursorPos = textarea.selectionStart;
+            const currentValue = textarea.value || this.mainReplyContent;
+            const textBeforeCursor = currentValue.substring(0, cursorPos);
+            const textAfterCursor = currentValue.substring(cursorPos);
+            
+            const atIndex = textBeforeCursor.lastIndexOf('@');
+            if (atIndex === -1) return;
+            
+            const beforeMention = currentValue.substring(0, atIndex);
+            const afterMention = textAfterCursor;
+            
+            this.mainReplyContent = beforeMention + '@' + username + ' ' + afterMention;
+            
+            this.$nextTick(() => {
+                const newCursorPos = atIndex + username.length + 2;
+                textarea.setSelectionRange(newCursorPos, newCursorPos);
+                textarea.focus();
+            });
+            
+            this.hideMentionDropdown();
+        },
+        
+        handleMainReplyKeydown(event) {
+            if (!this.showMentionDropdown || this.mentionUsers.length === 0) {
+                return;
+            }
+            
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                this.selectedMentionIndex = Math.min(
+                    this.selectedMentionIndex + 1,
+                    this.mentionUsers.length - 1
+                );
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                this.selectedMentionIndex = Math.max(this.selectedMentionIndex - 1, -1);
+            } else if (event.key === 'Enter' || event.key === 'Tab') {
+                if (this.selectedMentionIndex >= 0 && this.selectedMentionIndex < this.mentionUsers.length) {
+                    event.preventDefault();
+                    const selectedUser = this.mentionUsers[this.selectedMentionIndex];
+                    this.insertMainMention(selectedUser.username);
+                }
+            } else if (event.key === 'Escape') {
+                this.hideMentionDropdown();
+            }
+        },
+        
+        hideMentionDropdown() {
+            this.showMentionDropdown = false;
+            this.mentionUsers = [];
+            this.selectedMentionIndex = -1;
+            this.mentionQuery = '';
+            this.mentionStartPos = -1;
+            if (this.mentionSearchTimeout) {
+                clearTimeout(this.mentionSearchTimeout);
+                this.mentionSearchTimeout = null;
+            }
+        },
         async submitMainReply() {
             if (!this.mainReplyContent.trim()) {
                 this.showNotification('Будь ласка, введіть текст відповіді.', 'error');
@@ -171,6 +367,7 @@ export default {
                 this.showNotification(`Відповідь не може перевищувати ${this.maxLength} символів.`, 'error');
                 return;
             }
+            this.hideMentionDropdown();
             this.isMainReplySubmitting = true;
             try {
                 const response = await axios.post(`/books/${this.bookSlug}/reviews/${this.reviewId}/replies`, {

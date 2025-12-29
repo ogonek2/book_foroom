@@ -256,8 +256,8 @@ class ReviewController extends Controller
             return redirect()->back()->with('error', 'Спочатку поставте оцінку книзі, а потім напишіть рецензію.');
         }
 
-        // Sanitize HTML content
-        $content = $this->sanitizeHTML($request->input('content'));
+        // Контент уже санитизирован в middleware, используем напрямую
+        $content = $request->input('content');
 
         $review = Review::create([
             'content' => $content,
@@ -462,8 +462,9 @@ class ReviewController extends Controller
             $parentId = $review->getKey();
         }
 
+        // Контент уже санитизирован в middleware
         $reply = Review::create([
-            'content' => $request->input('content'),
+            'content' => $request->input('content'), // Уже санитизирован в middleware
             'rating' => null, // Відповіді не мають рейтингу
             'book_id' => $book->getKey(),
             'user_id' => $userId, // null для гостей, ID користувача для авторизованих
@@ -752,8 +753,8 @@ class ReviewController extends Controller
 
         $wasDraft = $review->is_draft;
         
-        // Sanitize HTML content
-        $content = $this->sanitizeHTML($request->input('content'));
+        // Контент уже санитизирован в middleware, используем напрямую
+        $content = $request->input('content');
         
         // Подготавливаем данные для обновления
         $updateData = [
@@ -881,8 +882,9 @@ class ReviewController extends Controller
             'content' => 'required|string|max:5000'
         ]);
 
+        // Контент уже санитизирован в middleware
         $review->update([
-            'content' => $request->input('content')
+            'content' => $request->input('content') // Уже санитизирован в middleware
         ]);
 
         return response()->json([
@@ -937,62 +939,5 @@ class ReviewController extends Controller
         ]);
     }
 
-    /**
-     * Sanitize HTML content - remove dangerous tags and attributes
-     */
-    private function sanitizeHTML($html)
-    {
-        if (empty($html)) {
-            return $html;
-        }
-        
-        // Allowed tags
-        $allowedTags = '<p><br><strong><b><em><i><u><ul><ol><li><a><img>';
-        
-        // Strip all tags except allowed ones
-        $html = strip_tags($html, $allowedTags);
-        
-        // Remove all style attributes and event handlers using regex
-        $html = preg_replace('/\s*style\s*=\s*["\'][^"\']*["\']/i', '', $html);
-        $html = preg_replace('/\s*on\w+\s*=\s*["\'][^"\']*["\']/i', '', $html);
-        
-        // Validate and clean links
-        $html = preg_replace_callback('/<a\s+([^>]*)>(.*?)<\/a>/is', function($matches) {
-            $attrs = $matches[1];
-            $text = $matches[2];
-            
-            // Extract href
-            if (preg_match('/href\s*=\s*["\']([^"\']*)["\']/i', $attrs, $hrefMatch)) {
-                $href = $hrefMatch[1];
-                // Only allow http, https, or relative URLs
-                if (preg_match('/^(https?:\/\/|\/)/i', $href)) {
-                    return '<a href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '">' . $text . '</a>';
-                }
-            }
-            // If href is invalid, return just the text
-            return $text;
-        }, $html);
-        
-        // Validate and clean images
-        $html = preg_replace_callback('/<img\s+([^>]*)>/is', function($matches) {
-            $attrs = $matches[1];
-            
-            // Extract src
-            if (preg_match('/src\s*=\s*["\']([^"\']*)["\']/i', $attrs, $srcMatch)) {
-                $src = $srcMatch[1];
-                // Only allow http, https, relative URLs, or data URIs for images
-                if (preg_match('/^(https?:\/\/|\/|data:image)/i', $src)) {
-                    $alt = '';
-                    if (preg_match('/alt\s*=\s*["\']([^"\']*)["\']/i', $attrs, $altMatch)) {
-                        $alt = htmlspecialchars($altMatch[1], ENT_QUOTES, 'UTF-8');
-                    }
-                    return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' . $alt . '">';
-                }
-            }
-            // If src is invalid, remove the image
-            return '';
-        }, $html);
-        
-        return $html;
-    }
+    // Метод sanitizeHTML удален - теперь используется middleware SanitizeHtmlContent и helper App\Helpers\HtmlSanitizer
 }

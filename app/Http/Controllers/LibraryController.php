@@ -185,8 +185,9 @@ class LibraryController extends Controller
     /**
      * Add a book to the library
      */
-    public function addBook(Request $request, Library $library)
+    public function addBook(Request $request, $libraryId)
     {
+        $library = Library::findOrFail($libraryId);
         if (!$library->canBeEditedBy(Auth::user())) {
             return response()->json(['success' => false, 'message' => 'У вас нет прав на редактирование этой библиотеки'], 403);
         }
@@ -214,8 +215,9 @@ class LibraryController extends Controller
     /**
      * Remove a book from the library
      */
-    public function removeBook(Request $request, Library $library, Book $book)
+    public function removeBook(Request $request, $libraryId, Book $book)
     {
+        $library = Library::findOrFail($libraryId);
         if (!$library->canBeEditedBy(Auth::user())) {
             return response()->json(['success' => false, 'message' => 'У вас нет прав на редактирование этой библиотеки'], 403);
         }
@@ -225,6 +227,38 @@ class LibraryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Книга "' . $book->title . '" удалена из библиотеки'
+        ]);
+    }
+
+    /**
+     * Get libraries that contain a specific book
+     */
+    public function getBookLibraries(Request $request, $bookSlug)
+    {
+        if (!Auth::check()) {
+            return response()->json(['success' => false, 'message' => 'Необходима авторизация'], 401);
+        }
+
+        $book = Book::where('slug', $bookSlug)->first();
+        if (!$book) {
+            return response()->json(['success' => false, 'message' => 'Книга не найдена'], 404);
+        }
+
+        $bookLibraries = $book->libraries()
+            ->where('user_id', Auth::id())
+            ->get()
+            ->map(function ($library) {
+                return [
+                    'id' => $library->id,
+                    'name' => $library->name,
+                    'slug' => $library->slug,
+                    'is_private' => $library->is_private,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'libraries' => $bookLibraries
         ]);
     }
 

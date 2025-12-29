@@ -108,6 +108,7 @@ export default {
             promptPlaceholder: '',
             resolve: null,
             reject: null,
+            autoCloseTimer: null,
         }
     },
     computed: {
@@ -130,6 +131,12 @@ export default {
     },
     methods: {
         alert(message, title = 'Повідомлення', type = 'info') {
+            // Очищаем предыдущий таймер, если он есть
+            if (this.autoCloseTimer) {
+                clearTimeout(this.autoCloseTimer);
+                this.autoCloseTimer = null;
+            }
+
             return new Promise((resolve) => {
                 this.mode = 'alert';
                 this.type = type;
@@ -138,9 +145,20 @@ export default {
                 this.confirmText = 'OK';
                 this.show = true;
                 this.resolve = () => {
+                    if (this.autoCloseTimer) {
+                        clearTimeout(this.autoCloseTimer);
+                        this.autoCloseTimer = null;
+                    }
                     this.show = false;
                     resolve(true);
                 };
+                
+                // Автоматически закрываем через 6 секунд
+                this.autoCloseTimer = setTimeout(() => {
+                    if (this.resolve) {
+                        this.resolve();
+                    }
+                }, 6000);
             });
         },
         confirm(message, title = 'Підтвердження', type = 'warning') {
@@ -187,11 +205,19 @@ export default {
             });
         },
         handleConfirm() {
+            if (this.autoCloseTimer) {
+                clearTimeout(this.autoCloseTimer);
+                this.autoCloseTimer = null;
+            }
             if (this.resolve) {
                 this.resolve();
             }
         },
         handleCancel() {
+            if (this.autoCloseTimer) {
+                clearTimeout(this.autoCloseTimer);
+                this.autoCloseTimer = null;
+            }
             if (this.mode === 'alert') {
                 this.handleConfirm();
             } else if (this.reject) {

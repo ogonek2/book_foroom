@@ -40,7 +40,21 @@
         <!-- Content List -->
         <transition-group name="fade-in" tag="div" class="space-y-4" v-if="filteredContent.length > 0">
             <div v-for="(item, index) in filteredContent" :key="`${item.type}-${item.id}-${index}`" 
-                 class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                 :class="[
+                     'bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border hover:shadow-md transition-shadow',
+                     item.type === 'discussion' && item.is_pinned 
+                         ? 'border-yellow-400 dark:border-yellow-500 border-1 bg-yellow-50/50 dark:bg-yellow-900/10' 
+                         : 'border-gray-200 dark:border-gray-700'
+                 ]">
+                
+                <!-- Pinned Badge for Discussions -->
+                <div v-if="item.type === 'discussion' && item.is_pinned" 
+                     class="flex items-center gap-2 mb-3 pb-3 border-b border-yellow-200 dark:border-yellow-800">
+                    <span class="inline-flex items-center gap-1.5 bg-yellow-500 text-yellow-900 dark:bg-yellow-600 dark:text-yellow-100 px-3 py-1 rounded-full text-xs font-bold">
+                        <i class="fas fa-thumbtack"></i>
+                        Закріплено
+                    </span>
+                </div>
                 
                 <!-- Header with Avatar and Action -->
                 <div class="flex items-start justify-between mb-4">
@@ -107,6 +121,15 @@
                     style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                     <a :href="getItemUrl(item)">
                         {{ item.title }}
+                    </a>
+                </h3>
+
+                <!-- Book Title (for Reviews) -->
+                <h3 v-if="item.type === 'review' && item.book && item.book.slug" 
+                    class="text-sm font-bold text-light-text-primary dark:text-brand-400/50 mb-3 hover:text-brand-500 dark:hover:text-brand-400 transition-colors break-words"
+                    style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                    <a :href="`/books/${item.book.slug}`">
+                        {{ item.book.title }}
                     </a>
                 </h3>
 
@@ -541,18 +564,17 @@ export default {
                     return sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
                 case 'popular':
                     return sorted.sort((a, b) => (b.likes_count + b.replies_count + b.comments_count) - (a.likes_count + a.replies_count + a.comments_count));
-                case 'trending':
-                    // Сортировка по активности за последние 7 дней
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
+                case 'pinned':
+                    // Сортировка закрепленных обсуждений (сначала закрепленные, потом остальные)
                     return sorted.sort((a, b) => {
-                        const aRecent = new Date(a.updated_at) > weekAgo;
-                        const bRecent = new Date(b.updated_at) > weekAgo;
+                        const aPinned = a.is_pinned || false;
+                        const bPinned = b.is_pinned || false;
                         
-                        if (aRecent && !bRecent) return -1;
-                        if (!aRecent && bRecent) return 1;
+                        if (aPinned && !bPinned) return -1;
+                        if (!aPinned && bPinned) return 1;
                         
-                        return (b.likes_count + b.replies_count + b.comments_count) - (a.likes_count + a.replies_count + a.comments_count);
+                        // Если оба закреплены или оба не закреплены, сортируем по дате создания (новые сверху)
+                        return new Date(b.created_at) - new Date(a.created_at);
                     });
                 default:
                     return sorted;
@@ -636,7 +658,11 @@ export default {
             try {
                 let url;
                 if (item.type === 'discussion') {
-                    url = `/discussions/${item.id}/like`;
+                    if (!item.slug) {
+                        console.error('Discussion slug is missing:', item);
+                        return;
+                    }
+                    url = `/discussions/${item.slug}/like`;
                 } else {
                     if (!item.book || !item.book.slug) {
                         console.error('Book slug is missing for review:', item);
@@ -677,9 +703,21 @@ export default {
         async shareItem(item) {
             const { shareContent } = await import('../utils/shareHelper');
             const url = item.url ? (item.url.startsWith('http') ? item.url : window.location.origin + item.url) : window.location.href;
+            
+            // Strip HTML from content for sharing
+            let shareText = '';
+            if (item.content) {
+                const div = document.createElement('div');
+                div.innerHTML = item.content;
+                shareText = (div.textContent || div.innerText || '').trim();
+                if (shareText.length > 200) {
+                    shareText = shareText.substring(0, 200) + '...';
+                }
+            }
+            
             await shareContent({
                 title: item.title || (item.type === 'review' ? 'Рецензія' : item.type === 'discussion' ? 'Обговорення' : 'Контент'),
-                text: item.content ? this.stripHTML(item.content).substring(0, 200) : '',
+                text: shareText,
                 url: url
             });
         },

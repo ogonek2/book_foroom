@@ -53,7 +53,21 @@
                                 </div>
                             </div>
                             <!-- Add Button -->
-                            <button v-if="isAuthenticated" @click="openReadingStatusModal"
+                            <div v-if="currentStatus && isAuthenticated" class="flex items-center gap-2">
+                                <button @click="openReadingStatusModal"
+                                    class="inline-flex items-center justify-center px-3 py-2 rounded-xl font-semibold text-xs whitespace-nowrap transition-all duration-300 shadow-lg hover:opacity-90"
+                                    :class="getStatusButtonClass(currentStatus)">
+                                    <span class="text-white">{{ statusTexts[currentStatus] }}</span>
+                                </button>
+                                <button @click="openReadingStatusModal"
+                                    class="w-8 h-8 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white flex items-center justify-center transition-all duration-200 shadow-lg">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <button v-else-if="isAuthenticated" @click="openReadingStatusModal"
                                 class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 font-bold py-2 px-4 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg">
                                 <div class="flex items-center space-x-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,6 +95,7 @@
 
         <!-- Reading Status Modal -->
         <add-to-library-modal v-if="isAuthenticated" :show="showModal" :book="book" :user-libraries="userLibraries"
+            :current-status="currentStatus"
             @close="closeModal" @status-selected="handleStatusSelected" @open-custom-library="openCustomLibraryModal"
             @notification="$emit('notification', $event)" />
 
@@ -101,6 +116,33 @@
                         </button>
                     </div>
 
+                    <!-- Список существующих добірок, где уже есть книга -->
+                    <div v-if="currentBookLibraries.length > 0" class="mb-6">
+                        <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-3">
+                            Книга вже в добірках:
+                        </label>
+                        <div class="space-y-2">
+                            <div v-for="library in currentBookLibraries" :key="library.id"
+                                class="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-folder text-orange-500"></i>
+                                    <span class="text-slate-900 dark:text-white font-medium">{{ library.name }}</span>
+                                    <span v-if="library.is_private"
+                                        class="text-xs text-slate-500 dark:text-slate-400">(Приватна)</span>
+                                    <span v-else class="text-xs text-slate-500 dark:text-slate-400">(Публічна)</span>
+                                </div>
+                                <button @click="removeFromLibrary(library)"
+                                    class="p-1 text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+                                    title="Видалити з добірки">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <form @submit.prevent="submitToCustomLibrary">
                         <div class="mb-6">
                             <label class="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-3">Оберіть
@@ -108,7 +150,7 @@
                             <select v-model="selectedLibraryId" required
                                 class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-slate-900 dark:text-white">
                                 <option value="">-- Оберіть добірку --</option>
-                                <option v-for="library in userLibraries" :key="library.id" :value="library.id">
+                                <option v-for="library in availableLibraries" :key="library.id" :value="library.id">
                                     {{ library.name }}
                                     <span v-if="library.is_private">(Приватна)</span>
                                     <span v-else>(Публічна)</span>
@@ -168,7 +210,15 @@ export default {
         return {
             showModal: false,
             showCustomLibraryModal: false,
-            selectedLibraryId: ''
+            selectedLibraryId: '',
+            currentStatus: null,
+            currentBookLibraries: [],
+            statusTexts: {
+                'read': 'Прочитано',
+                'reading': 'Читаю',
+                'want_to_read': 'Планую',
+                'abandoned': 'Закинуто'
+            }
         }
     },
     computed: {
@@ -184,13 +234,18 @@ export default {
                 return `/users/${this.user.username}/collections`;
             }
             return '#';
+        },
+        availableLibraries() {
+            // Доборки, в которых книга еще не добавлена
+            const bookLibraryIds = this.currentBookLibraries.map(lib => lib.id);
+            return this.userLibraries.filter(lib => !bookLibraryIds.includes(lib.id));
         }
     },
     mounted() {
-        console.log('BookCard mounted with book:', this.book);
-        console.log('Is authenticated:', this.isAuthenticated);
-        console.log('User:', this.user);
-        console.log('User libraries:', this.userLibraries);
+        if (this.isAuthenticated) {
+            this.loadReadingStatus();
+            this.loadBookLibraries();
+        }
     },
     methods: {
         formatRating(rating) {
@@ -210,30 +265,56 @@ export default {
                 const bookId = await this.getBookIdBySlug(this.book.slug);
 
                 // Отправляем запрос на сервер
+                const normalizedStatus = status === 'want-to-read' ? 'want_to_read' : status;
                 const response = await axios.post(`/api/reading-status/book/${bookId}`, {
-                    status: status === 'want-to-read' ? 'want_to_read' : status
+                    status: normalizedStatus
                 });
 
                 if (response.data.success) {
-                    this.$emit('notification', {
-                        message: 'Книга додана до списку!',
-                        type: 'success'
-                    });
+                    this.currentStatus = normalizedStatus;
+                    this.showAlert('Книга додана до списку!', 'Успіх', 'success');
                 } else {
-                    this.$emit('notification', {
-                        message: response.data.message || 'Помилка при збереженні статусу',
-                        type: 'error'
-                    });
+                    this.showAlert(response.data.message || 'Помилка при збереженні статусу', 'Помилка', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                this.$emit('notification', {
-                    message: 'Помилка при збереженні статусу',
-                    type: 'error'
-                });
+                this.showAlert('Помилка при збереженні статусу', 'Помилка', 'error');
             }
 
             this.closeModal();
+        },
+        async loadReadingStatus() {
+            if (!this.isAuthenticated) return;
+            
+            try {
+                const bookId = await this.getBookIdBySlug(this.book.slug);
+                if (!bookId) return;
+                
+                const response = await axios.get(`/api/reading-status/book/${bookId}`);
+                if (response.data && response.data.status) {
+                    this.currentStatus = response.data.status;
+                }
+            } catch (error) {
+                // Игнорируем ошибку, если статус не найден
+                if (error.response && error.response.status !== 404) {
+                    console.error('Error loading reading status:', error);
+                }
+            }
+        },
+        async loadBookLibraries() {
+            if (!this.isAuthenticated) return;
+            
+            try {
+                const response = await axios.get(`/api/books/${this.book.slug}/libraries`);
+                if (response.data && response.data.success) {
+                    this.currentBookLibraries = response.data.libraries || [];
+                }
+            } catch (error) {
+                // Игнорируем ошибку, если библиотеки не найдены
+                if (error.response && error.response.status !== 404) {
+                    console.error('Error loading book libraries:', error);
+                }
+            }
         },
         async getBookIdBySlug(slug) {
             try {
@@ -244,8 +325,9 @@ export default {
                 return null;
             }
         },
-        openCustomLibraryModal() {
+        async openCustomLibraryModal() {
             this.showModal = false; // Закрываем модальное окно статусов
+            await this.loadBookLibraries(); // Загружаем актуальный список библиотек
             this.showCustomLibraryModal = true; // Открываем модальное окно кастомных библиотек
         },
         closeCustomLibraryModal() {
@@ -254,7 +336,7 @@ export default {
         },
         async submitToCustomLibrary() {
             if (!this.selectedLibraryId) {
-                this.$emit('notification', { message: 'Оберіть добірку', type: 'error' });
+                this.showAlert('Оберіть добірку', 'Помилка', 'error');
                 return;
             }
 
@@ -266,14 +348,51 @@ export default {
                 const response = await axios.post(url, formData);
 
                 if (response.data.success) {
-                    this.$emit('notification', { message: 'Книга успішно додана до добірки!', type: 'success' });
-                    this.closeCustomLibraryModal();
+                    await this.loadBookLibraries(); // Обновляем список библиотек
+                    this.showAlert('Книга успішно додана до добірки!', 'Успіх', 'success');
+                    this.selectedLibraryId = '';
                 } else {
-                    this.$emit('notification', { message: response.data.message || 'Помилка при додаванні книги', type: 'error' });
+                    this.showAlert(response.data.message || 'Помилка при додаванні книги', 'Помилка', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                this.$emit('notification', { message: 'Помилка при додаванні книги', type: 'error' });
+                this.showAlert('Помилка при додаванні книги', 'Помилка', 'error');
+            }
+        },
+        async removeFromLibrary(library) {
+            try {
+                const response = await axios.delete(`/libraries/${library.id}/books/${this.book.slug}`);
+
+                if (response.data.success) {
+                    this.currentBookLibraries = this.currentBookLibraries.filter(lib => lib.id !== library.id);
+                    this.showAlert(`Книгу видалено з добірки "${library.name}"`, 'Успіх', 'success');
+                } else {
+                    this.showAlert(response.data.message || 'Помилка при видаленні книги', 'Помилка', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showAlert(error.response?.data?.message || 'Помилка при видаленні книги', 'Помилка', 'error');
+            }
+        },
+        getStatusButtonClass(status) {
+            const classes = {
+                'read': 'bg-green-500 hover:bg-green-600 text-white',
+                'reading': 'bg-blue-500 hover:bg-blue-600 text-white',
+                'want_to_read': 'bg-purple-500 hover:bg-purple-600 text-white',
+                'abandoned': 'bg-red-500 hover:bg-red-600 text-white'
+            };
+            return classes[status] || classes['want_to_read'];
+        },
+        showAlert(message, title, type = 'info') {
+            if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                window.alertModalInstance.$refs.modal.alert(message, title, type);
+            } else {
+                // Fallback если модалка не готова
+                setTimeout(() => {
+                    if (window.alertModalInstance && window.alertModalInstance.$refs && window.alertModalInstance.$refs.modal) {
+                        window.alertModalInstance.$refs.modal.alert(message, title, type);
+                    }
+                }, 100);
             }
         }
     }

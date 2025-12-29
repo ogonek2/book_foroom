@@ -59,6 +59,12 @@ class Discussion extends Model
                 $discussion->slug = $slug;
             }
             $discussion->last_activity_at = now();
+            
+            // Гарантируем, что новые обсуждения НЕ закрепляются автоматически при создании
+            // Пользователи не могут закреплять обсуждения - это может делать только админ через админку
+            // Админка может закрепить обсуждение через update() после создания или через toggle_pin действие
+            // Всегда сбрасываем is_pinned на false при создании, даже если оно было передано в запросе
+            $discussion->is_pinned = false;
         });
 
         static::updating(function ($discussion) {

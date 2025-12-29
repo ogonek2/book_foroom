@@ -335,7 +335,7 @@
                                 <span class="text-xs font-normal text-slate-500 dark:text-slate-400 ml-2"
                                     id="content-counter">
                                     (<span id="content-length">0</span> /
-                                    <span id="content-max">3500</span> символів)
+                                    <span id="content-max">40000</span> символів)
                                 </span>
                             </label>
 
@@ -356,7 +356,7 @@
                                 style="display: none !important; visibility: hidden !important; position: absolute !important; left: -9999px !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none !important;">{{ old('content', $discussion->content) }}</textarea>
 
                             <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                Мінімум: 300 символів, Максимум: 3500 символів. Використовуйте <strong>@username</strong>
+                                Мінімум: 300 символів, Максимум: 40000 символів. Використовуйте <strong>@username</strong>
                                 для згадки користувачів та <strong>#hashtag</strong> для тегів.
                             </div>
 
@@ -505,7 +505,7 @@
                         if (lengthEl) {
                             lengthEl.textContent = length;
                             const min = 300;
-                            const max = 3500;
+                            const max = 40000;
 
                             if (length < min || length > max) {
                                 lengthEl.classList.add('text-red-500', 'font-semibold');

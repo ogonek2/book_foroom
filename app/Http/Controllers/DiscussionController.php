@@ -70,13 +70,12 @@ class DiscussionController extends Controller
                 $discussionsQuery->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
                 $reviewsQuery->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
                 break;
-            case 'trending':
-                // Сортировка по активности за последние 7 дней
-                $weekAgo = now()->subDays(7);
-                $discussionsQuery->where('updated_at', '>=', $weekAgo)
-                    ->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
-                $reviewsQuery->where('updated_at', '>=', $weekAgo)
-                    ->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
+            case 'pinned':
+                // Сортируем так, чтобы закрепленные были первыми
+                $discussionsQuery->orderByRaw('CASE WHEN is_pinned = 1 THEN 0 ELSE 1 END')
+                    ->orderBy('created_at', 'desc');
+                // Для рецензий сортируем по дате (рецензии не имеют is_pinned)
+                $reviewsQuery->orderBy('created_at', 'desc');
                 break;
         }
 
@@ -111,6 +110,7 @@ class DiscussionController extends Controller
                     'updated_at' => $discussion->updated_at,
                     'likes_count' => $discussion->likes_count,
                     'replies_count' => $discussion->replies_count,
+                    'is_pinned' => $discussion->is_pinned ?? false,
                 ]);
             }
             
@@ -135,9 +135,24 @@ class DiscussionController extends Controller
                     $allContent = $allContent->sortBy('created_at');
                     break;
                 case 'popular':
-                case 'trending':
                     $allContent = $allContent->sortByDesc(function ($item) {
                         return $item['likes_count'] + $item['replies_count'];
+                    });
+                    break;
+                case 'pinned':
+                    // Сначала закрепленные, потом остальные, внутри каждой группы по дате создания (новые сверху)
+                    $allContent = $allContent->sort(function ($a, $b) {
+                        $aPinned = $a['is_pinned'] ?? false;
+                        $bPinned = $b['is_pinned'] ?? false;
+                        
+                        // Закрепленные первыми
+                        if ($aPinned && !$bPinned) return -1;
+                        if (!$aPinned && $bPinned) return 1;
+                        
+                        // Если оба закреплены или оба не закреплены, сортируем по дате (новые сверху)
+                        $aDate = $a['created_at'] ?? now();
+                        $bDate = $b['created_at'] ?? now();
+                        return strtotime($bDate) - strtotime($aDate);
                     });
                     break;
             }
@@ -228,12 +243,12 @@ class DiscussionController extends Controller
                         $allDiscussionsQuery->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
                         $allReviewsQuery->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
                         break;
-                    case 'trending':
-                        $weekAgo = now()->subDays(7);
-                        $allDiscussionsQuery->where('updated_at', '>=', $weekAgo)
-                            ->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
-                        $allReviewsQuery->where('updated_at', '>=', $weekAgo)
-                            ->orderBy('likes_count', 'desc')->orderBy('replies_count', 'desc');
+                    case 'pinned':
+                        // Сортируем так, чтобы закрепленные были первыми
+                        $allDiscussionsQuery->orderByRaw('CASE WHEN is_pinned = 1 THEN 0 ELSE 1 END')
+                            ->orderBy('created_at', 'desc');
+                        // Для рецензий сортируем по дате (рецензии не имеют is_pinned)
+                        $allReviewsQuery->orderBy('created_at', 'desc');
                         break;
                 }
                 
@@ -251,6 +266,7 @@ class DiscussionController extends Controller
                         'updated_at' => $discussion->updated_at,
                         'likes_count' => $discussion->likes_count ?? 0,
                         'replies_count' => $discussion->replies_count ?? 0,
+                        'is_pinned' => $discussion->is_pinned ?? false,
                     ]);
                 }
                 
@@ -274,9 +290,24 @@ class DiscussionController extends Controller
                         $allContent = $allContent->sortBy('created_at');
                         break;
                     case 'popular':
-                    case 'trending':
                         $allContent = $allContent->sortByDesc(function ($item) {
                             return ($item['likes_count'] ?? 0) + ($item['replies_count'] ?? 0);
+                        });
+                        break;
+                    case 'pinned':
+                        // Сначала закрепленные, потом остальные, внутри каждой группы по дате создания (новые сверху)
+                        $allContent = $allContent->sort(function ($a, $b) {
+                            $aPinned = $a['is_pinned'] ?? false;
+                            $bPinned = $b['is_pinned'] ?? false;
+                            
+                            // Закрепленные первыми
+                            if ($aPinned && !$bPinned) return -1;
+                            if (!$aPinned && $bPinned) return 1;
+                            
+                            // Если оба закреплены или оба не закреплены, сортируем по дате (новые сверху)
+                            $aDate = $a['created_at'] ?? now();
+                            $bDate = $b['created_at'] ?? now();
+                            return strtotime($bDate) - strtotime($aDate);
                         });
                         break;
                 }
@@ -361,7 +392,7 @@ class DiscussionController extends Controller
             'title.max' => 'Назва обговорення повинна містити максимум 200 символів.',
         ]);
 
-        // Validate content length (text only, not HTML) - same as ReviewController
+        // Validate content length (text only, not HTML)
         $content = $request->input('content');
         
         if (empty($content)) {
@@ -374,7 +405,8 @@ class DiscussionController extends Controller
             return redirect()->back()->withErrors(['content' => 'Контент обговорення не може бути порожнім.'])->withInput();
         }
         
-        // Удаляем HTML-теги, но сохраняем переносы строк как пробелы
+        // Санитизация HTML происходит в middleware, здесь только проверяем длину
+        // Удаляем HTML-теги для подсчета длины текста
         $contentText = strip_tags($content);
         
         // Удаляем HTML entities
@@ -393,12 +425,12 @@ class DiscussionController extends Controller
         $contentLength = mb_strlen($contentText, 'UTF-8');
         
         $minChars = 300;
-        $maxChars = 3500;
+        $maxChars = 40000;
         
         if ($contentLength < $minChars || $contentLength > $maxChars) {
             $errorMessage = $contentLength < $minChars 
                 ? 'Текст обговорення повинен містити мінімум 300 символів.' 
-                : 'Текст обговорення повинен містити максимум 3500 символів.';
+                : 'Текст обговорення повинен містити максимум 40000 символів.';
             
             if ($request->expectsJson()) {
                 return response()->json([
@@ -415,12 +447,15 @@ class DiscussionController extends Controller
             return redirect()->back()->withErrors(['content' => $errorMessage])->withInput();
         }
 
+        // Контент уже санитизирован в middleware, используем напрямую
+        // Явно исключаем is_pinned из запроса, чтобы пользователи не могли его установить
         $discussion = Discussion::create([
             'title' => $request->title,
-            'content' => $request->content,
+            'content' => $request->content, // Уже санитизирован в middleware
             'user_id' => Auth::id(),
             'status' => 'active',
             'is_draft' => $isDraft,
+            'is_pinned' => false, // Пользователи не могут закреплять обсуждения, только админы через админку
         ]);
 
         // Process hashtags
@@ -615,8 +650,10 @@ class DiscussionController extends Controller
         }
 
         $topComments = $this->getTopDiscussionComments($collection->pluck('id'));
+        $currentUserId = Auth::id();
+        $isAuthenticated = Auth::check();
 
-        return $collection->map(function ($discussion) use ($topComments) {
+        return $collection->map(function ($discussion) use ($topComments, $currentUserId, $isAuthenticated) {
             $discussionArray = $this->modelToArray($discussion);
             $topComment = $topComments->get($discussionArray['id'] ?? null);
             $discussionArray['top_comment'] = $this->formatTopComment($topComment);
@@ -624,6 +661,13 @@ class DiscussionController extends Controller
             // Убеждаемся, что slug включен
             if (!isset($discussionArray['slug']) && is_object($discussion)) {
                 $discussionArray['slug'] = $discussion->slug ?? null;
+            }
+
+            // Добавляем поле is_liked для текущего пользователя
+            if ($isAuthenticated && is_object($discussion)) {
+                $discussionArray['is_liked'] = $discussion->isLikedBy($currentUserId);
+            } else {
+                $discussionArray['is_liked'] = false;
             }
 
             return $discussionArray;
@@ -639,8 +683,10 @@ class DiscussionController extends Controller
         }
 
         $topComments = $this->getTopReviewComments($collection->pluck('id'));
+        $currentUserId = Auth::id();
+        $isAuthenticated = Auth::check();
 
-        return $collection->map(function ($review) use ($topComments) {
+        return $collection->map(function ($review) use ($topComments, $currentUserId, $isAuthenticated) {
             $reviewArray = $this->modelToArray($review);
             $topComment = $topComments->get($reviewArray['id'] ?? null);
             $reviewArray['top_comment'] = $this->formatTopComment($topComment);
@@ -651,6 +697,13 @@ class DiscussionController extends Controller
             }
             if (!isset($reviewArray['review_type']) && is_object($review)) {
                 $reviewArray['review_type'] = $review->review_type ?? null;
+            }
+
+            // Добавляем поле is_liked для текущего пользователя
+            if ($isAuthenticated && is_object($review)) {
+                $reviewArray['is_liked'] = $review->isLikedBy($currentUserId);
+            } else {
+                $reviewArray['is_liked'] = false;
             }
 
             return $reviewArray;
@@ -857,7 +910,7 @@ class DiscussionController extends Controller
             'title.max' => 'Назва обговорення повинна містити максимум 200 символів.',
         ]);
 
-        // Validate content length (text only, not HTML) - same as store method
+        // Validate content length (text only, not HTML)
         $content = $request->input('content');
         
         if (empty($content)) {
@@ -870,7 +923,8 @@ class DiscussionController extends Controller
             return redirect()->back()->withErrors(['content' => 'Контент обговорення не може бути порожнім.'])->withInput();
         }
         
-        // Удаляем HTML-теги, но сохраняем переносы строк как пробелы
+        // Санитизация HTML происходит в middleware, здесь только проверяем длину
+        // Удаляем HTML-теги для подсчета длины текста
         $contentText = strip_tags($content);
         
         // Удаляем HTML entities
@@ -889,12 +943,12 @@ class DiscussionController extends Controller
         $contentLength = mb_strlen($contentText, 'UTF-8');
         
         $minChars = 300;
-        $maxChars = 3500;
+        $maxChars = 40000;
         
         if ($contentLength < $minChars || $contentLength > $maxChars) {
             $errorMessage = $contentLength < $minChars 
                 ? 'Текст обговорення повинен містити мінімум 300 символів.' 
-                : 'Текст обговорення повинен містити максимум 3500 символів.';
+                : 'Текст обговорення повинен містити максимум 40000 символів.';
             
             if ($request->expectsJson()) {
                 return response()->json([
@@ -912,10 +966,12 @@ class DiscussionController extends Controller
         }
 
         $wasDraft = $discussion->is_draft;
+        // Контент уже санитизирован в middleware, используем напрямую
         $discussion->update([
             'title' => $request->title,
-            'content' => $request->content,
+            'content' => $request->content, // Уже санитизирован в middleware
             'is_draft' => $isDraft,
+            // is_pinned не обновляется пользователями - только админами через админку
         ]);
 
         if ($isDraft) {
@@ -997,8 +1053,9 @@ class DiscussionController extends Controller
             'content.max' => 'Коментар повинен містити максимум 300 символів.',
         ]);
 
+        // Контент уже санитизирован в middleware
         $reply = DiscussionReply::create([
-            'content' => $request->content,
+            'content' => $request->content, // Уже санитизирован в middleware
             'discussion_id' => $discussion->id,
             'user_id' => Auth::id(),
             'parent_id' => $request->parent_id,
@@ -1033,7 +1090,8 @@ class DiscussionController extends Controller
             'content' => 'required|string|min:1',
         ]);
 
-        $reply->update($request->only(['content']));
+        // Контент уже санитизирован в middleware
+        $reply->update(['content' => $request->content]); // Уже санитизирован в middleware
 
         // Process mentions in updated reply
         $this->processReplyMentions($reply, $request->content);

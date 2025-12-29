@@ -3,11 +3,51 @@
         <!-- Reply Form -->
         <div v-if="isAuthenticated && !isDiscussionClosed" class="mb-6">
             <form @submit.prevent="submitMainReply" class="space-y-4">
-                <textarea v-model="mainReplyContent"
-                          rows="1" 
-                          placeholder="Що ви думаєте про це?"
-                          class="w-full px-4 py-4 bg-light-bg-secondary dark:bg-gray-700 border border-light-border dark:border-dark-border rounded-xl text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none transition-colors"
-                          required></textarea>
+                <div class="relative">
+                    <div class="relative">
+                        <textarea v-model="mainReplyContent"
+                                  @input="handleMainReplyInput"
+                                  @keydown="handleMainReplyKeydown"
+                                  ref="mainReplyTextarea"
+                                  rows="1" 
+                                  placeholder="Що ви думаєте про це? (використовуйте @ для згадування користувачів)"
+                                  class="w-full px-4 py-4 bg-light-bg-secondary dark:bg-gray-700 border border-light-border dark:border-dark-border rounded-xl text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none transition-colors"
+                                  required></textarea>
+                        
+                        <!-- Mention Dropdown -->
+                        <div v-if="showMentionDropdown && mentionUsers.length > 0" 
+                             class="absolute z-[9999] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-h-60 overflow-y-auto mt-1"
+                             :style="{ 
+                                 top: '100%',
+                                 left: '0px', 
+                                 minWidth: '250px',
+                                 maxWidth: '300px'
+                             }">
+                        <div v-for="(user, index) in mentionUsers" 
+                             :key="user.id"
+                             @click="insertMainMention(user.username)"
+                             @mouseenter="selectedMentionIndex = index"
+                             :class="[
+                                 'px-4 py-3 flex items-center space-x-3 cursor-pointer transition-colors',
+                                 selectedMentionIndex === index 
+                                     ? 'bg-brand-50 dark:bg-brand-900/20' 
+                                     : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                             ]">
+                            <img :src="user.avatar_display || user.avatar || '/storage/avatars/default.png'" 
+                                 :alt="user.name"
+                                 class="w-8 h-8 rounded-full flex-shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {{ user.name }}
+                                </div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                    @{{ user.username }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
                 <div class="flex justify-end">
                     <button type="submit"
                             :disabled="isSubmitting || !mainReplyContent.trim()"
@@ -140,7 +180,15 @@ export default {
         return {
             localReplies: Array.isArray(this.replies) ? [...this.replies] : Object.values(this.replies || {}),
             mainReplyContent: '',
-            isSubmitting: false
+            isSubmitting: false,
+            // Mention autocomplete
+            mentionUsers: [],
+            showMentionDropdown: false,
+            mentionPosition: { top: 0, left: 0 },
+            mentionQuery: '',
+            selectedMentionIndex: -1,
+            mentionStartPos: -1,
+            mentionSearchTimeout: null,
         };
     },
     computed: {
@@ -292,9 +340,155 @@ export default {
             }
         },
         
+        handleMainReplyInput(event) {
+            const textarea = event.target;
+            if (!textarea) return;
+            
+            setTimeout(() => {
+                const cursorPos = textarea.selectionStart;
+                const currentValue = textarea.value || this.mainReplyContent;
+                const textBeforeCursor = currentValue.substring(0, cursorPos);
+                
+                console.log('DiscussionRepliesList - Input detected:', { cursorPos, currentValue, textBeforeCursor });
+                
+                const atIndex = textBeforeCursor.lastIndexOf('@');
+                
+                if (atIndex === -1) {
+                    console.log('No @ found, hiding dropdown');
+                    this.hideMentionDropdown();
+                    return;
+                }
+                
+                const textAfterAt = textBeforeCursor.substring(atIndex + 1);
+                if (textAfterAt.includes(' ') || textAfterAt.includes('\n')) {
+                    console.log('Space or newline after @, hiding dropdown');
+                    this.hideMentionDropdown();
+                    return;
+                }
+                
+                const query = textAfterAt.trim();
+                console.log('Searching users with query:', query);
+                this.mentionQuery = query;
+                this.mentionStartPos = atIndex;
+                this.searchUsers(query);
+                this.calculateMentionPosition(textarea);
+            }, 10);
+        },
+        
+        async searchUsers(query) {
+            if (this.mentionSearchTimeout) {
+                clearTimeout(this.mentionSearchTimeout);
+            }
+            
+            console.log('DiscussionRepliesList - searchUsers called with query:', query);
+            
+            this.mentionSearchTimeout = setTimeout(async () => {
+                try {
+                    const url = `/api/users/search${query ? '?q=' + encodeURIComponent(query) : ''}`;
+                    console.log('Fetching from URL:', url);
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    console.log('Users received:', data.users);
+                    this.mentionUsers = data.users || [];
+                    this.showMentionDropdown = this.mentionUsers.length > 0;
+                    this.selectedMentionIndex = -1;
+                    
+                    console.log('Dropdown state:', { 
+                        showMentionDropdown: this.showMentionDropdown, 
+                        usersCount: this.mentionUsers.length 
+                    });
+                    
+                    if (this.showMentionDropdown) {
+                        this.$nextTick(() => {
+                            const textarea = this.$refs.mainReplyTextarea;
+                            if (textarea) {
+                                this.calculateMentionPosition(textarea);
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error searching users:', error);
+                    this.mentionUsers = [];
+                    this.showMentionDropdown = false;
+                }
+            }, 200);
+        },
+        
+        calculateMentionPosition(textarea) {
+            // Позиционирование не нужно, используется top: 100% для размещения под textarea
+            // Метод оставлен для совместимости, но не используется
+        },
+        
+        insertMainMention(username) {
+            const textarea = this.$refs.mainReplyTextarea;
+            if (!textarea) return;
+            
+            const cursorPos = textarea.selectionStart;
+            const currentValue = textarea.value || this.mainReplyContent;
+            const textBeforeCursor = currentValue.substring(0, cursorPos);
+            const textAfterCursor = currentValue.substring(cursorPos);
+            
+            const atIndex = textBeforeCursor.lastIndexOf('@');
+            if (atIndex === -1) return;
+            
+            const beforeMention = currentValue.substring(0, atIndex);
+            const afterMention = textAfterCursor;
+            
+            this.mainReplyContent = beforeMention + '@' + username + ' ' + afterMention;
+            
+            this.$nextTick(() => {
+                const newCursorPos = atIndex + username.length + 2;
+                textarea.setSelectionRange(newCursorPos, newCursorPos);
+                textarea.focus();
+            });
+            
+            this.hideMentionDropdown();
+        },
+        
+        handleMainReplyKeydown(event) {
+            if (!this.showMentionDropdown || this.mentionUsers.length === 0) {
+                return;
+            }
+            
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                this.selectedMentionIndex = Math.min(
+                    this.selectedMentionIndex + 1,
+                    this.mentionUsers.length - 1
+                );
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                this.selectedMentionIndex = Math.max(this.selectedMentionIndex - 1, -1);
+            } else if (event.key === 'Enter' || event.key === 'Tab') {
+                if (this.selectedMentionIndex >= 0 && this.selectedMentionIndex < this.mentionUsers.length) {
+                    event.preventDefault();
+                    const selectedUser = this.mentionUsers[this.selectedMentionIndex];
+                    this.insertMainMention(selectedUser.username);
+                }
+            } else if (event.key === 'Escape') {
+                this.hideMentionDropdown();
+            }
+        },
+        
+        hideMentionDropdown() {
+            this.showMentionDropdown = false;
+            this.mentionUsers = [];
+            this.selectedMentionIndex = -1;
+            this.mentionQuery = '';
+            this.mentionStartPos = -1;
+            if (this.mentionSearchTimeout) {
+                clearTimeout(this.mentionSearchTimeout);
+                this.mentionSearchTimeout = null;
+            }
+        },
+        
         async submitMainReply() {
             if (!this.mainReplyContent.trim() || this.isSubmitting) return;
 
+            this.hideMentionDropdown();
             this.isSubmitting = true;
 
             try {
