@@ -42,12 +42,38 @@ class ReviewController extends Controller
         $reviewsCount = $reviews->total();
 
         $userReview = null;
+        $lastReviewInfo = null;
         if (Auth::check()) {
             $userReview = $book->reviews()
                 ->where('user_id', Auth::id())
                 ->whereNull('parent_id')
                 ->where('is_draft', false)
                 ->first();
+            
+            // Get last review info for cooldown timer
+            $lastReview = $book->reviews()
+                ->where('user_id', Auth::id())
+                ->whereNull('parent_id')
+                ->where('is_draft', false)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if ($lastReview) {
+                $cooldownHours = config('reviews.cooldown_hours', 24);
+                $cooldownUntil = $lastReview->created_at->copy()->addHours($cooldownHours);
+                // diffInSeconds всегда возвращает положительное число, но нам нужно проверить, что cooldownUntil в будущем
+                if ($cooldownUntil->isFuture()) {
+                    $remainingSeconds = now()->diffInSeconds($cooldownUntil, false);
+                    // Если результат отрицательный, значит cooldown истек
+                    if ($remainingSeconds > 0) {
+                        $lastReviewInfo = [
+                            'last_review_at' => $lastReview->created_at->toISOString(),
+                            'cooldown_until' => $cooldownUntil->toISOString(),
+                            'remaining_seconds' => $remainingSeconds,
+                        ];
+                    }
+                }
+            }
         }
 
         $isAuthenticated = Auth::check();
@@ -100,6 +126,7 @@ class ReviewController extends Controller
             'reviewsData' => $reviewsData,
             'reviewsCount' => $reviewsCount,
             'userReviewData' => $userReviewData,
+            'lastReviewInfo' => $lastReviewInfo,
             'ratingDistribution' => $ratingDistribution,
             'readingStats' => $readingStats,
             'reviewsPaginator' => $reviews,
@@ -111,16 +138,31 @@ class ReviewController extends Controller
      */
     public function create(Book $book)
     {
-        // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
-        $existingReview = Review::where('book_id', $book->getKey())
-            ->where('user_id', Auth::id())
-            ->whereNull('parent_id')
-            ->where('is_draft', false)
-            ->first();
-
-        if ($existingReview) {
-            return redirect()->route('books.reviews.show', [$book, $existingReview])
-                ->with('info', 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
+        // Проверяем время последней рецензии для отображения таймера
+        $lastReviewInfo = null;
+        if (Auth::check()) {
+            $lastReview = $book->reviews()
+                ->where('user_id', Auth::id())
+                ->whereNull('parent_id')
+                ->where('is_draft', false)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if ($lastReview) {
+                $cooldownHours = config('reviews.cooldown_hours', 24);
+                $cooldownUntil = $lastReview->created_at->copy()->addHours($cooldownHours);
+                // Проверяем, что cooldown еще активен
+                if ($cooldownUntil->isFuture()) {
+                    $remainingSeconds = now()->diffInSeconds($cooldownUntil, false);
+                    if ($remainingSeconds > 0) {
+                        $lastReviewInfo = [
+                            'last_review_at' => $lastReview->created_at->toISOString(),
+                            'cooldown_until' => $cooldownUntil->toISOString(),
+                            'remaining_seconds' => $remainingSeconds,
+                        ];
+                    }
+                }
+            }
         }
 
         // Получаем статистику книги
@@ -132,7 +174,7 @@ class ReviewController extends Controller
         $book->load('author');
         $authorModel = $book->getRelation('author');
 
-        return view('reviews.create', compact('book', 'ratingDistribution', 'readingStats', 'userRating', 'authorModel'));
+        return view('reviews.create', compact('book', 'ratingDistribution', 'readingStats', 'userRating', 'authorModel', 'lastReviewInfo'));
     }
     
     /**
@@ -217,23 +259,44 @@ class ReviewController extends Controller
 
         // Для черновиков не проверяем существующие рецензии
         if (!$isDraft) {
-            // Проверяем, есть ли уже рецензия от этого пользователя на эту книгу
-            $existingReview = Review::where('book_id', $book->getKey())
+            // Проверяем время последней рецензии от этого пользователя на эту книгу
+            $cooldownHours = config('reviews.cooldown_hours', 24);
+            $cooldownStartTime = now()->subHours($cooldownHours);
+            
+            $lastReview = Review::where('book_id', $book->getKey())
                 ->where('user_id', Auth::id())
                 ->whereNull('parent_id') // Только основные рецензии, не комментарии
                 ->where('is_draft', false) // Исключаем черновики
+                ->orderBy('created_at', 'desc')
                 ->first();
 
-            if ($existingReview) {
+            if ($lastReview && $lastReview->created_at->isAfter($cooldownStartTime)) {
+                $cooldownUntil = $lastReview->created_at->copy()->addHours($cooldownHours);
+                $remainingSeconds = $cooldownUntil->isFuture() ? now()->diffInSeconds($cooldownUntil, false) : 0;
+                if ($remainingSeconds <= 0) {
+                    // Cooldown истек, можно писать
+                    $remainingSeconds = 0;
+                }
+                $remainingHours = floor($remainingSeconds / 3600);
+                $remainingMinutes = floor(($remainingSeconds % 3600) / 60);
+                
+                $message = sprintf(
+                    'Ви можете написати наступну рецензію на цю книгу через %d год. %d хв.',
+                    $remainingHours,
+                    $remainingMinutes
+                );
+                
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.',
-                        'existing_review' => $existingReview
+                        'message' => $message,
+                        'last_review_at' => $lastReview->created_at->toISOString(),
+                        'cooldown_until' => $cooldownUntil->toISOString(),
+                        'remaining_seconds' => $remainingSeconds,
                     ], 422);
                 }
 
-                return redirect()->back()->with('error', 'Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
+                return redirect()->back()->with('error', $message);
             }
         }
 

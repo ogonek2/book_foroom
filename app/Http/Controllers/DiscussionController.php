@@ -812,71 +812,44 @@ class DiscussionController extends Controller
         // Увеличиваем счетчик просмотров
         $discussion->incrementViews();
 
-        // Загружаем обсуждение с пользователем и статистикой
-        $discussion->load(['user' => function($query) {
-            $query->withCount([
-                'discussions as active_discussions_count' => function($query) {
-                    $query->where('status', 'active');
-                },
-                'discussionReplies as active_replies_count' => function($query) {
-                    $query->where('status', 'active');
-                },
-                'reviews as active_reviews_count' => function($query) {
-                    $query->where('status', 'active');
-                }
-            ]);
-        }]);
-
-        // Загружаем все ответы на обсуждение (как в обычном show)
-        $replies = $discussion->replies()
-            ->with([
-                'user',
-                'replies' => function ($query) {
-                    $query->with([
-                        'user',
-                        'replies' => function ($query) {
-                            $query->with([
-                                'user',
-                                'replies' => function ($query) {
-                                    $query->with([
-                                        'user',
-                                        'replies.user'
-                                    ])->withCount('likes')->orderBy('created_at', 'desc');
-                                }
-                            ])->withCount('likes')->orderBy('created_at', 'desc');
-                        }
-                    ])->withCount('likes')->orderBy('created_at', 'desc');
-                }
-            ])
-            ->withCount('likes')
-            ->whereNull('parent_id')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // Сортируем ответы по новизне
-        $replies = $replies->sortByDesc('created_at');
-
         // Загружаем конкретный ответ с его родителем (если есть) и пользователем
         $reply->load([
-            'user',
-            'parent',
+            'user' => function($query) {
+                $query->withCount([
+                    'discussions as active_discussions_count' => function($query) {
+                        $query->where('status', 'active');
+                    },
+                    'discussionReplies as active_replies_count' => function($query) {
+                        $query->where('status', 'active');
+                    },
+                    'reviews as active_reviews_count' => function($query) {
+                        $query->where('status', 'active');
+                    }
+                ]);
+            },
+            'parent.user',
             'replies' => function ($query) {
                 $query->with([
                     'user',
                     'replies' => function ($query) {
                         $query->with([
                             'user',
-                            'replies.user'
+                            'replies' => function ($query) {
+                                $query->with([
+                                    'user',
+                                    'replies.user'
+                                ])->withCount('likes')->orderBy('created_at', 'desc');
+                            }
                         ])->withCount('likes')->orderBy('created_at', 'desc');
                     }
                 ])->withCount('likes')->orderBy('created_at', 'desc');
             }
         ]);
+        
+        // Загружаем счетчик лайков для самого reply
+        $reply->loadCount('likes');
 
-        // Отмечаем этот ответ как целевой для подсветки на странице
-        $highlightedReplyId = $reply->id;
-
-        return view('discussions.reply', compact('discussion', 'replies', 'reply', 'highlightedReplyId'));
+        return view('discussions.reply', compact('discussion', 'reply'));
     }
 
     /**
@@ -971,6 +944,7 @@ class DiscussionController extends Controller
             'title' => $request->title,
             'content' => $request->content, // Уже санитизирован в middleware
             'is_draft' => $isDraft,
+            'is_closed' => $request->boolean('is_closed', false),
             // is_pinned не обновляется пользователями - только админами через админку
         ]);
 
@@ -994,10 +968,17 @@ class DiscussionController extends Controller
     public function close(Discussion $discussion)
     {
         if (!$discussion->canBeClosedBy(Auth::user())) {
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'У вас нет прав для закрытия этого обсуждения'], 403);
+            }
             abort(403, 'У вас нет прав для закрытия этого обсуждения');
         }
 
         $discussion->update(['is_closed' => true]);
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Обсуждение закрыто!', 'is_closed' => true]);
+        }
 
         return redirect()->route('discussions.show', $discussion)
             ->with('success', 'Обсуждение закрыто!');
@@ -1009,10 +990,17 @@ class DiscussionController extends Controller
     public function reopen(Discussion $discussion)
     {
         if (!$discussion->canBeClosedBy(Auth::user())) {
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'У вас нет прав для открытия этого обсуждения'], 403);
+            }
             abort(403, 'У вас нет прав для открытия этого обсуждения');
         }
 
         $discussion->update(['is_closed' => false]);
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Обсуждение открыто!', 'is_closed' => false]);
+        }
 
         return redirect()->route('discussions.show', $discussion)
             ->with('success', 'Обсуждение открыто!');

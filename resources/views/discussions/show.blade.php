@@ -410,6 +410,53 @@
                         });
                 }
 
+                // Toggle discussion status function
+                window.toggleDiscussionStatus = async function(discussionSlug, isClosed, event) {
+                    const checkbox = event ? event.target : document.querySelector(`input[onchange*="${discussionSlug}"]`);
+                    try {
+                        const url = isClosed 
+                            ? `/discussions/${discussionSlug}/close`
+                            : `/discussions/${discussionSlug}/reopen`;
+                        
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            // Update the label text
+                            const label = checkbox ? checkbox.closest('label').querySelector('span') : null;
+                            if (label) {
+                                label.textContent = isClosed ? 'Закрите' : 'Відкрите';
+                            }
+                            // Update the badge if it exists
+                            const badge = document.querySelector('.bg-red-500');
+                            if (badge) {
+                                if (isClosed) {
+                                    badge.style.display = 'inline-block';
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                            }
+                        } else {
+                            // Revert checkbox on error
+                            if (checkbox) checkbox.checked = !isClosed;
+                            alert('Помилка при зміні статусу обговорення', 'Помилка', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error toggling discussion status:', error);
+                        // Revert checkbox on error
+                        if (checkbox) checkbox.checked = !isClosed;
+                        alert('Помилка при зміні статусу обговорення', 'Помилка', 'error');
+                    }
+                }
+
                 // Share discussion function
                 window.shareDiscussion = async function() {
                     try {

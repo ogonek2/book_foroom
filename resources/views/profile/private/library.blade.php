@@ -23,10 +23,10 @@
                 @endphp
 
                 @foreach($readingStatuses as $status => $data)
-                    <div class="bg-white/5 rounded-xl p-4 text-center hover:bg-white/10 transition-all duration-200 cursor-pointer" 
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center hover:bg-white/10 transition-all duration-200 cursor-pointer" 
                          onclick="filterByStatus('{{ $status }}')">
                         <div class="text-2xl font-bold text-{{ $data['color'] }}-400 mb-1">{{ $data['count'] }}</div>
-                        <div class="text-sm text-gray-300">{{ $data['title'] }}</div>
+                        <div class="text-sm text-gray-900 dark:text-white">{{ $data['title'] }}</div>
                     </div>
                 @endforeach
             </div>

@@ -12,14 +12,14 @@
 
             <!-- Stats -->
             <div class="grid grid-cols-2 gap-2 lg:gap-4">
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-yellow-400 mb-1">{{ $favoriteQuotes->total() }}</div>
-                    <div class="text-sm text-gray-300">Збережених цитат</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Збережених цитат</div>
                 </div>
                 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-yellow-400 mb-1">{{ $favoriteReviews->total() }}</div>
-                    <div class="text-sm text-gray-300">Збережених рецензій</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Збережених рецензій</div>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
                 @if($favoriteQuotes->count() > 0)
                     <div class="space-y-6">
                         @foreach($favoriteQuotes as $quote)
-                            <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
+                            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 transition-all duration-200">
                                 <div class="flex items-start space-x-4">
                                     <!-- Quote Content -->
                                     <div class="flex-1 min-w-0">
@@ -112,7 +112,7 @@
                 @if($favoriteReviews->count() > 0)
                     <div class="space-y-6">
                         @foreach($favoriteReviews as $review)
-                            <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
+                            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 transition-all duration-200">
                                 <div class="flex items-start space-x-4">
 
                                     <!-- Review Content -->

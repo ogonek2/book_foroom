@@ -137,7 +137,72 @@
                             {{ isset($review) ? 'Редагувати рецензію' : 'Написати рецензію' }}</h2>
                     <div>
 
-                        <div id="review-form-app">
+                        @if(isset($lastReviewInfo) && $lastReviewInfo && isset($lastReviewInfo['remaining_seconds']) && $lastReviewInfo['remaining_seconds'] > 0)
+                            <!-- Cooldown Timer -->
+                            <div id="cooldown-timer-app" class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-8 text-center">
+                                <div class="flex flex-col items-center justify-center space-y-4">
+                                    <i class="fas fa-clock text-orange-500 dark:text-orange-400 text-5xl"></i>
+                                    <h3 class="text-xl font-bold text-orange-700 dark:text-orange-300">
+                                        Ви вже написали рецензію на цю книгу
+                                    </h3>
+                                    <p class="text-sm text-orange-600 dark:text-orange-400">
+                                        Ви можете написати наступну рецензію через:
+                                    </p>
+                                    <div class="text-3xl font-bold text-orange-700 dark:text-orange-300" id="cooldown-display">
+                                        <span id="cooldown-hours">0</span> год. 
+                                        <span id="cooldown-minutes">0</span> хв. 
+                                        <span id="cooldown-seconds">0</span> сек.
+                                    </div>
+                                    <a href="{{ route('books.show', $book) }}" 
+                                       class="mt-4 inline-flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-colors">
+                                        <i class="fas fa-arrow-left"></i>
+                                        Повернутися до книги
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            @push('scripts')
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const lastReviewInfo = @json($lastReviewInfo);
+                                        let remainingSeconds = parseInt(lastReviewInfo.remaining_seconds) || 0;
+                                        
+                                        function updateTimer() {
+                                            if (remainingSeconds <= 0) {
+                                                // Cooldown истек, перезагружаем страницу
+                                                window.location.reload();
+                                                return;
+                                            }
+                                            
+                                            const hours = Math.floor(remainingSeconds / 3600);
+                                            const minutes = Math.floor((remainingSeconds % 3600) / 60);
+                                            const seconds = remainingSeconds % 60;
+                                            
+                                            const hoursEl = document.getElementById('cooldown-hours');
+                                            const minutesEl = document.getElementById('cooldown-minutes');
+                                            const secondsEl = document.getElementById('cooldown-seconds');
+                                            
+                                            if (hoursEl) hoursEl.textContent = hours;
+                                            if (minutesEl) minutesEl.textContent = minutes;
+                                            if (secondsEl) secondsEl.textContent = seconds;
+                                            
+                                            remainingSeconds--;
+                                        }
+                                        
+                                        // Обновляем таймер каждую секунду
+                                        updateTimer();
+                                        const timerInterval = setInterval(updateTimer, 1000);
+                                        
+                                        // Очищаем интервал при размонтировании
+                                        window.addEventListener('beforeunload', function() {
+                                            clearInterval(timerInterval);
+                                        });
+                                    });
+                                </script>
+                            @endpush
+                        @else
+                            <!-- Review Form -->
+                            <div id="review-form-app">
                             <form id="review-form" method="POST"
                                 action="{{ isset($review) ? route('books.reviews.update', [$book, $review]) : route('books.reviews.store', $book) }}">
                                 @csrf
@@ -332,11 +397,13 @@
                                     </button>
                                 </div>
                             </form>
-                        </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
+        @if(!isset($lastReviewInfo) || !$lastReviewInfo || !isset($lastReviewInfo['remaining_seconds']) || $lastReviewInfo['remaining_seconds'] <= 0)
         @push('scripts')
             <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
             <script>
@@ -660,4 +727,5 @@
                 });
             </script>
         @endpush
+        @endif
 @endsection

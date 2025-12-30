@@ -10,17 +10,23 @@
                     </div>
                     <div v-if="!hideHeader">
                         <div v-if="isAuthenticated && !hideAddButton">
-                            <a v-if="!userReview && bookSlug" :href="`/books/${bookSlug}/reviews/create`"
-                                class="bg-gradient-to-r \ from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 inline-block">
-                                <i class="fas fa-plus mr-2"></i>
-                                Написати рецензію
-                            </a>
-                            <!-- Temporarily commented out modal button for testing -->
-                            <!-- <button v-if="!userReview" @click="openReviewModal"
-                                class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
-                                <i class="fas fa-plus mr-2"></i>
-                                Написати рецензію
-                            </button> -->
+                            <div v-if="lastReviewInfo && cooldownSeconds > 0" 
+                                 class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl px-4 py-3 inline-block">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-clock text-orange-500 dark:text-orange-400"></i>
+                                    <span class="text-sm text-orange-700 dark:text-orange-300 font-medium">
+                                        Ви можете написати наступну рецензію через: 
+                                        <span class="font-bold">{{ formattedCooldownTime }}</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div v-else-if="canWriteReview">
+                                <a v-if="bookSlug" :href="`/books/${bookSlug}/reviews/create`"
+                                    class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 inline-block">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Написати рецензію
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -258,9 +264,9 @@
             </div>
 
             <!-- Report Modal -->
-            <report-modal :show="showReportModal" :reportable-type="reportData ? reportData.type : ''"
-                :reportable-id="reportData ? reportData.id : null"
-                :content-preview="reportData ? reportData.content : ''" :content-url="reportData ? reportData.url : ''"
+            <report-modal v-if="reportData" :show="showReportModal" :reportable-type="reportData.type"
+                :reportable-id="reportData.id"
+                :content-preview="reportData.content" :content-url="reportData.url"
                 @close="closeReportModal">
             </report-modal>
         </div>
@@ -288,6 +294,10 @@ export default {
             type: Object,
             default: null
         },
+        lastReviewInfo: {
+            type: Object,
+            default: null
+        },
         hideHeader: {
             type: Boolean,
             default: false
@@ -302,7 +312,9 @@ export default {
             localReviews: [...this.reviews],
             activeMenu: null,
             showReportModal: false,
-            reportData: null
+            reportData: null,
+            cooldownSeconds: 0,
+            cooldownTimer: null
         };
     },
     mounted() {
@@ -315,13 +327,94 @@ export default {
         window.addEventListener('review-added', (event) => {
             this.handleReviewAdded(event.detail);
         });
+        
+        // Debug: проверяем данные о cooldown
+        console.log('ReviewsList mounted:', {
+            lastReviewInfo: this.lastReviewInfo,
+            cooldownSeconds: this.cooldownSeconds,
+            canWriteReview: this.canWriteReview,
+            remaining_seconds: this.lastReviewInfo ? this.lastReviewInfo.remaining_seconds : 'N/A'
+        });
+        
+        // Проверяем, что watch отработал
+        this.$nextTick(() => {
+            console.log('After nextTick:', {
+                cooldownSeconds: this.cooldownSeconds,
+                canWriteReview: this.canWriteReview
+            });
+        });
+    },
+    watch: {
+        lastReviewInfo: {
+            immediate: true,
+            handler(newVal) {
+                if (newVal && newVal.remaining_seconds) {
+                    this.cooldownSeconds = parseInt(newVal.remaining_seconds);
+                    if (this.cooldownSeconds > 0) {
+                        this.$nextTick(() => {
+                            this.startCooldownTimer();
+                        });
+                    }
+                } else {
+                    this.cooldownSeconds = 0;
+                    if (this.cooldownTimer) {
+                        clearInterval(this.cooldownTimer);
+                        this.cooldownTimer = null;
+                    }
+                }
+            }
+        }
+    },
+    beforeDestroy() {
+        if (this.cooldownTimer) {
+            clearInterval(this.cooldownTimer);
+        }
     },
     computed: {
         isAuthenticated() {
             return this.currentUserId !== null;
+        },
+        canWriteReview() {
+            // Если нет информации о последней рецензии, можно писать
+            if (!this.lastReviewInfo || !this.lastReviewInfo.remaining_seconds) {
+                return true;
+            }
+            // Используем cooldownSeconds (который обновляется через watch и таймер)
+            // Если cooldown истек (меньше или равно 0), можно писать
+            return this.cooldownSeconds <= 0;
+        },
+        formattedCooldownTime() {
+            if (this.cooldownSeconds <= 0) {
+                return '0 хв';
+            }
+            const hours = Math.floor(this.cooldownSeconds / 3600);
+            const minutes = Math.floor((this.cooldownSeconds % 3600) / 60);
+            const seconds = this.cooldownSeconds % 60;
+            
+            if (hours > 0) {
+                return `${hours} год. ${minutes} хв.`;
+            } else if (minutes > 0) {
+                return `${minutes} хв. ${seconds} сек.`;
+            } else {
+                return `${seconds} сек.`;
+            }
         }
     },
     methods: {
+        startCooldownTimer() {
+            if (this.cooldownTimer) {
+                clearInterval(this.cooldownTimer);
+            }
+            
+            this.cooldownTimer = setInterval(() => {
+                if (this.cooldownSeconds > 0) {
+                    this.cooldownSeconds--;
+                } else {
+                    clearInterval(this.cooldownTimer);
+                    this.cooldownTimer = null;
+                }
+            }, 1000);
+        },
         getBookSlug(review) {
             // Используем bookSlug из prop, если он передан, иначе используем slug из review
             if (this.bookSlug) {

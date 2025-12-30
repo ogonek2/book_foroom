@@ -20,19 +20,19 @@
                     $averageLength = $quotes->avg('length');
                 @endphp
 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-blue-400 mb-1">{{ $totalQuotes }}</div>
-                    <div class="text-sm text-gray-300">Всього цитат</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Всього цитат</div>
                 </div>
                 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-green-400 mb-1">{{ $averageLength ? number_format($averageLength) : 0 }}</div>
-                    <div class="text-sm text-gray-300">Середня довжина</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Середня довжина</div>
                 </div>
                 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-purple-400 mb-1">{{ $totalLikes }}</div>
-                    <div class="text-sm text-gray-300">Лайків отримано</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Лайків отримано</div>
                 </div>
             </div>
         </div>
@@ -44,7 +44,7 @@
                 <!-- Filter and Sort -->
                 <div class="flex items-center space-x-4 mt-2">
                     <select id="bookFilter" onchange="filterByBook(this.value)" 
-                            class="px-3 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <option value="">Всі книги</option>
                         @php
                             $books = $user->quotes()->with('book')->get()->pluck('book')->unique('id');
@@ -55,7 +55,7 @@
                     </select>
                     
                     <select id="sortBy" onchange="sortQuotes(this.value)" 
-                            class="px-3 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            class="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <option value="created_at">Дата додавання</option>
                         <option value="book_title">Назва книги</option>
                         <option value="likes_count">Кількість лайків</option>
@@ -74,7 +74,7 @@
 
                 @if($quotes->count() > 0)
                     @foreach($quotes as $quote)
-                        <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all duration-200 group" 
+                        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 hover:bg-white/10 transition-all duration-200 group" 
                              data-book-id="{{ $quote->book_id }}">
                             <div class="flex items-start space-x-4">
                                 <!-- Quote Content -->

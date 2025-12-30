@@ -102,7 +102,7 @@
             <!-- Registration Card with Glass Effect -->
             <div class="backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6">
                 <!-- Registration Form -->
-                <form action="{{ route('register') }}" method="POST" class="space-y-4">
+                <form action="{{ route('register.store') }}" method="POST" class="space-y-4">
             @csrf
             
                     <!-- Name Field -->

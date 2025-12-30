@@ -130,12 +130,12 @@ class UserNotificationHelper
             ],
             'review_reply' => [
                 'type'    => 'review_reply',
-                'subject' => 'Новий відповідь на вашу рецензію',
+                'subject' => 'Нова відповідь на вашу рецензію',
                 'message' => ':senderName відповів на вашу рецензію',
             ],
             'discussion_reply' => [
                 'type'    => 'discussion_reply',
-                'subject' => 'Новий відповідь у вашому обговоренні',
+                'subject' => 'Нова відповідь у вашому обговоренні',
                 'message' => ':senderName відповів у вашому обговоренні',
             ],
 

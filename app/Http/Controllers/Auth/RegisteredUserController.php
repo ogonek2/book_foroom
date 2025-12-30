@@ -132,13 +132,6 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'birth_date' => 'nullable|date|before:today',
-            'city' => 'nullable|string|max:255',
-            'bio' => 'nullable|string|max:1000',
-            'favorite_genres' => 'nullable|array',
-            'favorite_genres.*' => 'string|in:fiction,non-fiction,mystery,romance,fantasy,sci-fi',
-            'newsletter' => 'nullable|boolean',
-            'terms' => 'required|accepted'
         ], [
             'name.required' => 'Поле імені обов\'язкове для заповнення.',
             'name.string' => 'Ім\'я повинно бути текстом.',
@@ -173,12 +166,6 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'username' => Str::slug($request->name) . '_' . Str::random(10),
             'avatar' => $this->createAvatar(),
-            'birth_date' => $request->birth_date,
-            'city' => $request->city,
-            'bio' => $request->bio,
-            'favorite_genres' => $request->favorite_genres ? json_encode($request->favorite_genres) : null,
-            'newsletter_subscribed' => $request->boolean('newsletter'),
-            'email_verified_at' => null, // Will be verified via email
         ]);
 
         // Send email verification

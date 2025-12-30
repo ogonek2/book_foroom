@@ -134,8 +134,14 @@ class NotificationService
             'likeable_id'   => $likeable->id,
         ];
 
-        // Добавляем slug для обсуждений
-        if ($likeable instanceof \App\Models\Discussion) {
+        // Добавляем данные для рецензий
+        if ($likeable instanceof \App\Models\Review) {
+            $likeable->load('book');
+            $payload['book_id'] = $likeable->book_id;
+            $payload['book_slug'] = $likeable->book->slug ?? null;
+            $payload['book_title'] = $likeable->book->title ?? 'Книга';
+            $payload['review_id'] = $likeable->id;
+        } elseif ($likeable instanceof \App\Models\Discussion) {
             $payload['discussion_id'] = $likeable->id;
             $payload['discussion_slug'] = $likeable->slug;
             $payload['discussion_title'] = $likeable->title;

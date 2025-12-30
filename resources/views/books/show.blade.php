@@ -229,7 +229,8 @@
                                 'rating' => $userReview->rating,
                                 'book_slug' => $book->slug,
                             ])
-                            : 'null' }}">
+                            : 'null' }}"
+                        :last-review-info='@json($lastReviewInfo ?? null)'>
                     </book-reviews-list>
 
                     <!-- Quotes Section -->
@@ -396,23 +397,39 @@
                         <div class="mb-8">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Характеристики</h3>
                             <div class="space-y-4">
+                                @if($book->first_publish_year)
                                 <div class="flex justify-between items-center">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Вид-во</span>
-                                    <span class="text-sm text-gray-900 dark:text-white">{{ $book->publisher }}</span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Дата першої публікації</span>
+                                    <span class="text-sm text-gray-900 dark:text-white">{{ $book->first_publish_year }}</span>
                                 </div>
+                                @endif
+                                
+                                @if($book->pages)
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Сторінок</span>
                                     <span class="text-sm text-gray-900 dark:text-white">{{ $book->pages }}</span>
                                 </div>
+                                @endif
+                                
+                                @if($book->series)
                                 <div class="flex justify-between items-center">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Рік видання</span>
-                                    <span
-                                        class="text-sm text-gray-900 dark:text-white">{{ $book->publication_year }}</span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Серія</span>
+                                    <span class="text-sm text-gray-900 dark:text-white">{{ $book->series }}</span>
                                 </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">ISBN</span>
-                                    <span class="text-sm text-gray-900 dark:text-white">978-5-699-93667-0</span>
+                                @endif
+                                
+                                @if($book->categories->isNotEmpty())
+                                <div class="flex flex-col">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-2">Жанр</span>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach($book->categories as $category)
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100/70 dark:bg-purple-500/15 text-purple-700 dark:text-purple-200">
+                                                {{ $category->name }}
+                                            </span>
+                                        @endforeach
+                                    </div>
                                 </div>
+                                @endif
                             </div>
                         </div>
 

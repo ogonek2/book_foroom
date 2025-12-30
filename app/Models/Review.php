@@ -182,20 +182,8 @@ class Review extends Model
             }
         });
 
-        // Валидация: один пользователь может оставить только одну основную рецензию на книгу (исключая черновики)
-        static::creating(function ($review) {
-            if ($review->user_id && is_null($review->parent_id) && !$review->is_draft) {
-                $existingReview = static::where('book_id', $review->book_id)
-                    ->where('user_id', $review->user_id)
-                    ->whereNull('parent_id')
-                    ->where('is_draft', false)
-                    ->first();
-                
-                if ($existingReview) {
-                    throw new \Exception('Ви вже залишили рецензію на цю книгу. Ви можете редагувати існуючу рецензію.');
-                }
-            }
-        });
+        // Валидация времени между рецензиями теперь происходит в контроллере
+        // Эта проверка удалена, чтобы разрешить множественные рецензии с интервалом
     }
 
     public function approve($moderatorId, $reason = null)

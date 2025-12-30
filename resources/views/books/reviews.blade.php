@@ -107,7 +107,9 @@
                 <div class="pt-4 lg:pt-0 p-0">
                     <book-reviews-list :reviews='@json($reviewsData)' book-slug="{{ $book->slug }}"
                         :current-user-id="{{ auth()->check() ? auth()->id() : 'null' }}"
-                        :user-review='@json($userReviewData)' :hide-header="true" :hide-add-button="true"
+                        :user-review='@json($userReviewData)' 
+                        :last-review-info='@json($lastReviewInfo ?? null)'
+                        :hide-header="true" :hide-add-button="true"
                         @@show-notification="showNotification">
                     </book-reviews-list>
 

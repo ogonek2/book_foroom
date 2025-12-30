@@ -380,6 +380,25 @@
                             </ul>
                     </div>
 
+                        <!-- Close Discussion Toggle -->
+                        <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div class="flex-1">
+                                <label for="is_closed" class="block text-sm font-semibold text-slate-900 dark:text-white mb-1">
+                                    Статус обговорення
+                                </label>
+                                <p class="text-xs text-slate-600 dark:text-slate-400">
+                                    Закрите обговорення не дозволяє додавати нові відповіді
+                                </p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="is_closed" id="is_closed" value="1" {{ old('is_closed', $discussion->is_closed) ? 'checked' : '' }} class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-indigo-600"></div>
+                                <span class="ml-3 text-sm font-medium text-slate-900 dark:text-white" id="is_closed_label">
+                                    {{ old('is_closed', $discussion->is_closed) ? 'Закрите' : 'Відкрите' }}
+                                </span>
+                            </label>
+                        </div>
+
                         <!-- Form Actions -->
                         <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
                             <!-- Tab Switch -->
@@ -437,6 +456,15 @@
                     for (let i = 1; i < allTextareas.length; i++) {
                         allTextareas[i].remove();
                     }
+                }
+
+                // Handle is_closed toggle
+                const isClosedToggle = document.getElementById('is_closed');
+                const isClosedLabel = document.getElementById('is_closed_label');
+                if (isClosedToggle && isClosedLabel) {
+                    isClosedToggle.addEventListener('change', function() {
+                        isClosedLabel.textContent = this.checked ? 'Закрите' : 'Відкрите';
+                    });
                 }
 
                 // Get initial content from discussion - try multiple sources

@@ -135,6 +135,7 @@ class BookController extends Controller
         $userLibraries = collect();
         $bookLibraries = collect();
         $userReview = null;
+        $lastReviewInfo = null;
         
         if (auth()->check()) {
             $currentReadingStatus = $book->getReadingStatusForUser(auth()->id());
@@ -145,6 +146,31 @@ class BookController extends Controller
                 ->whereNull('parent_id') // Only main reviews, not comments
                 ->where('is_draft', false) // Exclude drafts
                 ->first();
+            
+            // Get last review info for cooldown timer
+            $lastReview = $book->reviews()
+                ->where('user_id', auth()->id())
+                ->whereNull('parent_id')
+                ->where('is_draft', false)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if ($lastReview) {
+                $cooldownHours = config('reviews.cooldown_hours', 24);
+                $cooldownUntil = $lastReview->created_at->copy()->addHours($cooldownHours);
+                // diffInSeconds всегда возвращает положительное число, но нам нужно проверить, что cooldownUntil в будущем
+                if ($cooldownUntil->isFuture()) {
+                    $remainingSeconds = now()->diffInSeconds($cooldownUntil, false);
+                    // Если результат отрицательный, значит cooldown истек
+                    if ($remainingSeconds > 0) {
+                        $lastReviewInfo = [
+                            'last_review_at' => $lastReview->created_at->toISOString(),
+                            'cooldown_until' => $cooldownUntil->toISOString(),
+                            'remaining_seconds' => $remainingSeconds,
+                        ];
+                    }
+                }
+            }
             
             // Get user's libraries
             try {
@@ -228,6 +254,7 @@ class BookController extends Controller
         $readingStats = $book->getReadingStats();
         $userRating = auth()->check() ? $book->getUserRating(auth()->id()) : null;
 
+        // Get last review info for cooldown timer (already calculated above in the auth()->check() block)
         return view('books.show', compact(
             'book', 
             'authorModel',
@@ -240,6 +267,7 @@ class BookController extends Controller
             'userLibraries', 
             'bookLibraries', 
             'userReview',
+            'lastReviewInfo',
             'ratingDistribution',
             'readingStats',
             'userRating'

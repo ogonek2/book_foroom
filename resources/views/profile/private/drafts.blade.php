@@ -11,19 +11,19 @@
 
             <!-- Drafts Stats -->
             <div class="grid grid-cols-3 gap-2 lg:gap-4">
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white rounded-xl dark:bg-gray-800 p-4 text-center">
                     <div class="text-2xl font-bold text-blue-400 mb-1">{{ isset($draftReviews) ? $draftReviews->count() : 0 }}</div>
-                    <div class="text-sm text-gray-300">Рецензій</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Рецензій</div>
                 </div>
                 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white rounded-xl dark:bg-gray-800 p-4 text-center">
                     <div class="text-2xl font-bold text-green-400 mb-1">{{ isset($draftQuotes) ? $draftQuotes->count() : 0 }}</div>
-                    <div class="text-sm text-gray-300">Цитат</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Цитат</div>
                 </div>
                 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white rounded-xl dark:bg-gray-800 p-4 text-center">
                     <div class="text-2xl font-bold text-purple-400 mb-1">{{ isset($draftDiscussions) ? $draftDiscussions->count() : 0 }}</div>
-                    <div class="text-sm text-gray-300">Обговорень</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Обговорень</div>
                 </div>
             </div>
         </div>
@@ -34,7 +34,7 @@
             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Чернетки рецензій</h3>
             <div class="space-y-4">
                 @foreach($draftReviews as $review)
-                    <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div class="bg-white rounded-xl p-4 border border-white/10">
                         <div class="flex flex-col items-start justify-between">
                             <div class="flex w-full items-center justify-between space-x-2 mb-2">
                                 @if($review->book)
