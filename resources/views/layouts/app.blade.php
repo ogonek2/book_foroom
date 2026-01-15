@@ -260,6 +260,15 @@
                 transform: translateY(100%);
             }
         </style>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-1B39NK0YRQ"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+        
+          gtag('config', 'G-1B39NK0YRQ');
+        </script>
     </head>
     <body class="font-sans antialiased bg-light-bg dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary transition-colors duration-300">
         <div class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300">

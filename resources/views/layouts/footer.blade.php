@@ -23,7 +23,7 @@
                     <h3 class="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary uppercase tracking-wider mb-4">Спільнота</h3>
                     <ul class="space-y-2">
                         <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Правила</a></li>
-                        <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Допомога</a></li>
+                        <li><a href="https://ko-fi.com/foxybooks" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Допомога</a></li>
                         <li><a href="#" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">Контакти</a></li>
                     </ul>
                 </div>
