@@ -79,7 +79,7 @@
                                         </svg>
                                         <span class="font-medium text-slate-900 dark:text-white">Публічна</span>
                                     </div>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Добірка буде видна всім користувачам</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Добірка буде доступна для всіх користувачів і зможе отримувати вподобання.</p>
                                 </div>
                             </label>
                             
@@ -96,7 +96,7 @@
                                         </svg>
                                         <span class="font-medium text-slate-900 dark:text-white">Приватна</span>
                                     </div>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Добірка буде видна тільки вам</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Добірка буде доступна лише вам.</p>
                                 </div>
                             </label>
                         </div>

@@ -7,6 +7,15 @@
 @endpush
 
 @push('styles')
+<style>
+    .hashtag-highlight {
+        color: #6366f1; /* indigo-500 */
+        font-weight: 500;
+    }
+    .dark .hashtag-highlight {
+        color: #818cf8; /* indigo-400 */
+    }
+</style>
 @endpush
 
 @section('main')
@@ -128,7 +137,7 @@
                 @endif
                 
                 <!-- Review Content -->
-                <div class="lg:px-6 py-6 leading-7 text-slate-900 dark:text-slate-100 prose prose-slate dark:prose-invert max-w-none break-words" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                <div id="review-content" class="lg:px-6 py-6 leading-7 text-slate-900 dark:text-slate-100 prose prose-slate dark:prose-invert max-w-none break-words" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                     {!! $review->content !!}
                 </div>
                 
@@ -143,6 +152,17 @@
                             <span id="likes-count-{{ $review->id }}">{{ $review->likes_count ?? 0 }}</span>
                         </button>
                         
+                        @auth
+                        <button onclick="toggleFavorite({{ $review->id }})" 
+                                id="favorite-btn-{{ $review->id }}"
+                                class="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium {{ auth()->check() && $review->isFavoritedBy(auth()->id()) ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' : 'text-slate-600 dark:text-slate-400' }} hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-yellow-500 dark:hover:text-yellow-400"
+                                title="Зберегти в обране">
+                            <svg class="w-4 h-4" fill="{{ auth()->check() && $review->isFavoritedBy(auth()->id()) ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </button>
+                        @endauth
+                        
                         <button onclick="shareReview()" 
                                 class="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-200"
                                 title="Поділитися рецензією">
@@ -151,6 +171,17 @@
                             </svg>
                             <span class="hidden sm:inline">Поділитися</span>
                         </button>
+                        
+                        @auth
+                        <button onclick="openReportModalForReview({{ $review->id }})" 
+                                class="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-red-500 dark:hover:text-red-400"
+                                title="Поскаржитись">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                            </svg>
+                            <span class="hidden sm:inline">Поскаржитись</span>
+                        </button>
+                        @endauth
                         
                         <!-- Review Controls (only for own reviews) -->
                         @if(auth()->check() && $review->user_id == auth()->id())
@@ -220,14 +251,138 @@
 
 @push('scripts')
 <script>
+// Функция для подсветки хештегов в контенте
+function highlightHashtags() {
+    const reviewContent = document.getElementById('review-content');
+    if (!reviewContent) return;
+    
+    // Регулярное выражение для поиска хештегов (поддерживает кириллицу и латиницу)
+    const hashtagRegex = /#([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_]+)/g;
+    
+    // Функция для обработки текстовых узлов
+    function processTextNode(node) {
+        const text = node.textContent;
+        if (!hashtagRegex.test(text)) return;
+        
+        // Сбрасываем regex
+        hashtagRegex.lastIndex = 0;
+        
+        const parent = node.parentNode;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
+        
+        while ((match = hashtagRegex.exec(text)) !== null) {
+            // Добавляем текст до хештега
+            if (match.index > lastIndex) {
+                parts.push(document.createTextNode(text.substring(lastIndex, match.index)));
+            }
+            
+            // Создаем span для хештега
+            const hashtagSpan = document.createElement('span');
+            hashtagSpan.className = 'hashtag-highlight';
+            hashtagSpan.textContent = match[0]; // Включаем #
+            parts.push(hashtagSpan);
+            
+            lastIndex = hashtagRegex.lastIndex;
+        }
+        
+        // Добавляем оставшийся текст
+        if (lastIndex < text.length) {
+            parts.push(document.createTextNode(text.substring(lastIndex)));
+        }
+        
+        // Заменяем текстовый узел на новые узлы
+        if (parts.length > 0) {
+            parts.forEach(part => parent.insertBefore(part, node));
+            parent.removeChild(node);
+        }
+    }
+    
+    // Рекурсивно обрабатываем все текстовые узлы
+    function walkNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            // Проверяем, что родитель не является уже обработанным хештегом
+            if (node.parentNode && !node.parentNode.classList.contains('hashtag-highlight')) {
+                processTextNode(node);
+            }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            // Пропускаем script и style теги
+            if (node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
+                // Создаем копию дочерних узлов для безопасной итерации
+                const children = Array.from(node.childNodes);
+                children.forEach(child => walkNode(child));
+            }
+        }
+    }
+    
+    walkNode(reviewContent);
+}
+
 // Vue приложение для ответов на рецензии
 document.addEventListener('DOMContentLoaded', function() {
+    // Подсвечиваем хештеги в контенте рецензии
+    highlightHashtags();
     // Инициализируем Vue для области с рейтингом и типом думки
     if (document.getElementById('review-rating-opinion')) {
         new Vue({
             el: '#review-rating-opinion'
         });
     }
+    
+    // Функция для открытия модального окна скарги для рецензии
+    @auth
+    @php
+        $contentPreview = \Illuminate\Support\Str::limit(strip_tags($review->content ?? ''), 100);
+        $contentUrl = route('books.reviews.show', [$book, $review]);
+    @endphp
+    window.openReportModalForReview = function(reviewId) {
+        // Создаем контейнер для модального окна, если его еще нет
+        let modalContainer = document.getElementById('report-modal-global-container');
+        if (modalContainer && modalContainer.__vue__) {
+            // Если уже есть экземпляр, просто обновляем данные
+            modalContainer.__vue__.show = true;
+            modalContainer.__vue__.reportableId = reviewId;
+            return;
+        }
+        
+        if (modalContainer) {
+            modalContainer.remove();
+        }
+        
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'report-modal-global-container';
+        document.body.appendChild(modalContainer);
+        
+        // Проверяем, есть ли Vue компонент
+        if (typeof Vue !== 'undefined' && Vue.component('report-modal')) {
+            // Создаем новый Vue экземпляр для модального окна
+            new Vue({
+                el: modalContainer,
+                template: '<report-modal :show="show" reportable-type="App\\Models\\Review" :reportable-id="reportableId" :content-preview="contentPreview" :content-url="contentUrl" @close="closeModal"></report-modal>',
+                data: {
+                    show: true,
+                    reportableId: reviewId,
+                    contentPreview: {!! json_encode($contentPreview) !!},
+                    contentUrl: {!! json_encode($contentUrl) !!}
+                },
+                methods: {
+                    closeModal() {
+                        this.show = false;
+                        setTimeout(() => {
+                            if (this.$el && this.$el.parentNode) {
+                                this.$destroy();
+                                this.$el.parentNode.removeChild(this.$el);
+                            }
+                        }, 300);
+                    }
+                }
+            });
+        } else {
+            alert('Компонент скарги недоступен. Будь ласка, оновіть сторінку.');
+        }
+    };
+    @endauth
     
     const reviewRepliesApp = new Vue({
         el: '#review-replies-app',
@@ -290,12 +445,54 @@ window.toggleLike = function(reviewId) {
     .catch(error => {
         console.error('Error:', error);
         button.innerHTML = originalContent;
-    })
-    .finally(() => {
         button.disabled = false;
     });
-    @else
-    alert('Будь ласка, увійдіть в систему, щоб ставити лайки', 'Увага', 'warning');
+    @endauth
+}
+
+// Функция для добавления/удаления из избранного
+window.toggleFavorite = function(reviewId) {
+    @auth
+    const button = document.getElementById(`favorite-btn-${reviewId}`);
+    
+    if (!button) return;
+    
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+    button.disabled = true;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    fetch(`/books/{{ $book->slug }}/reviews/${reviewId}/favorite`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const svg = button.querySelector('svg');
+            if (data.is_favorited) {
+                button.classList.remove('text-slate-600', 'dark:text-slate-400');
+                button.classList.add('text-yellow-500', 'bg-yellow-50', 'dark:bg-yellow-900/20');
+                if (svg) svg.setAttribute('fill', 'currentColor');
+            } else {
+                button.classList.remove('text-yellow-500', 'bg-yellow-50', 'dark:bg-yellow-900/20');
+                button.classList.add('text-slate-600', 'dark:text-slate-400');
+                if (svg) svg.setAttribute('fill', 'none');
+            }
+        }
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    });
     @endauth
 }
 

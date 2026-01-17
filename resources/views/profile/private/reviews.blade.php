@@ -194,7 +194,7 @@
             <!-- Pagination -->
             @if($reviews->hasPages())
                 <div class="mt-6">
-                    {{ $reviews->links() }}
+                    {{ $reviews->appends(array_merge(request()->query(), ['tab' => 'reviews']))->links() }}
                 </div>
             @endif
         </div>

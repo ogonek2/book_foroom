@@ -125,8 +125,28 @@
                             <span v-if="review.language" 
                                   class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/60 dark:bg-emerald-600/60 border border-emerald-400 dark:border-emerald-500 text-white">
                                 <span v-if="review.language === 'uk'">Українська</span>
-                                <span v-else-if="review.language === 'en'">English</span>
-                                <span v-else-if="review.language === 'de'">Deutsch</span>
+                                <span v-else-if="review.language === 'en'">Англійська</span>
+                                <span v-else-if="review.language === 'pl'">Польська</span>
+                                <span v-else-if="review.language === 'de'">Німецька</span>
+                                <span v-else-if="review.language === 'fr'">Французька</span>
+                                <span v-else-if="review.language === 'es'">Іспанська</span>
+                                <span v-else-if="review.language === 'it'">Італійська</span>
+                                <span v-else-if="review.language === 'ru'">російська</span>
+                                <span v-else-if="review.language === 'cs'">Чеська</span>
+                                <span v-else-if="review.language === 'sk'">Словацька</span>
+                                <span v-else-if="review.language === 'hu'">Угорська</span>
+                                <span v-else-if="review.language === 'ro'">Румунська</span>
+                                <span v-else-if="review.language === 'bg'">Болгарська</span>
+                                <span v-else-if="review.language === 'lt'">Литовська</span>
+                                <span v-else-if="review.language === 'pt'">Португальська</span>
+                                <span v-else-if="review.language === 'nl'">Нідерландська</span>
+                                <span v-else-if="review.language === 'sv'">Шведська</span>
+                                <span v-else-if="review.language === 'no'">Норвезька</span>
+                                <span v-else-if="review.language === 'da'">Данська</span>
+                                <span v-else-if="review.language === 'fi'">Фінська</span>
+                                <span v-else-if="review.language === 'ja'">Японська</span>
+                                <span v-else-if="review.language === 'ko'">Корейська</span>
+                                <span v-else-if="review.language === 'zh'">Китайська</span>
                                 <span v-else>{{ review.language }}</span>
                             </span>
                         </div>
@@ -657,9 +677,21 @@ export default {
     },
     mounted() {
         // Close menu on click outside
-        document.addEventListener('click', () => {
-            this.activeMenu = null;
-        });
+        this.handleClickOutside = (e) => {
+            // Перевіряємо, чи клік не всередині меню
+            if (this.$el && !this.$el.contains(e.target)) {
+                this.activeMenu = null;
+            }
+        };
+        document.addEventListener('click', this.handleClickOutside);
+    },
+    beforeDestroy() {
+        if (this.handleClickOutside) {
+            document.removeEventListener('click', this.handleClickOutside);
+        }
+        if (this.cooldownTimer) {
+            clearInterval(this.cooldownTimer);
+        }
     }
 };
 </script>

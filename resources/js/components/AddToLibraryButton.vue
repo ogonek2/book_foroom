@@ -148,11 +148,20 @@ export default {
         }
     },
     data() {
+        // Ініціалізуємо статус синхронно з кешу для миттєвого відображення
+        let initialStatus = this.initialStatus;
+        if (!initialStatus && this.isAuthenticated && this.book && this.book.id && window.bookStatusCache) {
+            const cachedStatus = window.bookStatusCache.get(this.book.id);
+            if (cachedStatus && cachedStatus.status) {
+                initialStatus = cachedStatus.status;
+            }
+        }
+        
         return {
             showModal: false,
             showCustomLibraryModal: false,
             selectedLibraryId: '',
-            currentStatus: this.initialStatus,
+            currentStatus: initialStatus,
             currentBookLibraries: [],
             statusTexts: {
                 'read': 'Прочитано',
@@ -169,8 +178,21 @@ export default {
             }
         }
     },
+    created() {
+        // Миттєво завантажуємо статус з кешу, якщо він є
+        if (this.isAuthenticated && this.book && this.book.id && window.bookStatusCache) {
+            const cachedStatus = window.bookStatusCache.get(this.book.id);
+            if (cachedStatus && cachedStatus.status) {
+                this.currentStatus = cachedStatus.status;
+            }
+        }
+    },
     mounted() {
         if (this.isAuthenticated) {
+            // Завантажуємо з сервера тільки якщо статусу немає в кеші
+            if (!this.currentStatus) {
+                this.loadStatusFromServer();
+            }
             this.loadBookLibraries();
         }
     },
@@ -203,8 +225,8 @@ export default {
         },
         async handleStatusSelected(status) {
             try {
-                // Получаем ID книги из slug
-                const bookId = await this.getBookIdBySlug(this.book.slug);
+                // Використовуємо ID з об'єкта книги, якщо він є
+                let bookId = this.book.id || await this.getBookIdBySlug(this.book.slug);
 
                 // Отправляем запрос на сервер
                 const normalizedStatus = status === 'want-to-read' ? 'want_to_read' : status;
@@ -214,6 +236,21 @@ export default {
 
                 if (response.data.success) {
                     this.currentStatus = normalizedStatus;
+                    
+                    // Оновлюємо кеш
+                    if (window.bookStatusCache) {
+                        const statusData = {
+                            status: normalizedStatus,
+                            times_read: response.data.data?.times_read || 1,
+                            reading_language: response.data.data?.reading_language || null,
+                            rating: response.data.data?.rating || null,
+                            review: response.data.data?.review || null,
+                            started_at: response.data.data?.started_at || null,
+                            finished_at: response.data.data?.finished_at || null,
+                        };
+                        window.bookStatusCache.set(bookId, statusData);
+                    }
+                    
                     this.showAlert('Книга додана до списку!', 'Успіх', 'success');
                     this.$emit('status-updated', this.currentStatus);
                 } else {
@@ -245,11 +282,18 @@ export default {
             }
 
             try {
-                const bookId = await this.getBookIdBySlug(this.book.slug);
+                // Використовуємо ID з об'єкта книги, якщо він є
+                const bookId = this.book.id || await this.getBookIdBySlug(this.book.slug);
                 const response = await axios.delete(`/api/reading-status/book/${bookId}`);
 
                 if (response.data.success) {
                     this.currentStatus = null;
+                    
+                    // Видаляємо з кешу
+                    if (window.bookStatusCache) {
+                        window.bookStatusCache.remove(bookId);
+                    }
+                    
                     this.showAlert('Статус видалено!', 'Успіх', 'success');
                     this.$emit('status-updated', null);
                 } else {
@@ -260,12 +304,102 @@ export default {
                 this.showAlert('Помилка при видаленні статусу', 'Помилка', 'error');
             }
         },
-        async getBookIdBySlug(slug) {
+        async loadStatusFromServer() {
+            if (!this.isAuthenticated || !this.book) return;
+            
+            // Використовуємо ID з об'єкта книги, якщо він є
+            let bookId = this.book.id;
+            
+            // Якщо ID немає, отримуємо його
+            if (!bookId && this.book.slug) {
+                bookId = await this.getBookIdBySlug(this.book.slug);
+                if (!bookId) return;
+            }
+            
+            // Перевіряємо кеш перед запитом до сервера
+            if (window.bookStatusCache) {
+                const cachedStatus = window.bookStatusCache.get(bookId);
+                if (cachedStatus && cachedStatus.status) {
+                    this.currentStatus = cachedStatus.status;
+                    return; // Статус вже є в кеші, не робимо запит
+                }
+            }
+            
             try {
-                const response = await axios.get(`/api/books/${slug}/id`);
-                return response.data.id;
+                const response = await axios.get(`/api/reading-status/book/${bookId}`, {
+                    timeout: 5000
+                });
+                
+                if (response.data && response.data.status) {
+                    const statusData = {
+                        status: response.data.status,
+                        times_read: response.data.times_read,
+                        reading_language: response.data.reading_language,
+                        rating: response.data.rating,
+                        review: response.data.review,
+                        started_at: response.data.started_at,
+                        finished_at: response.data.finished_at,
+                    };
+                    
+                    // Оновлюємо кеш
+                    if (window.bookStatusCache) {
+                        window.bookStatusCache.set(bookId, statusData);
+                    }
+                    this.currentStatus = statusData.status;
+                } else {
+                    // Якщо статусу немає, видаляємо з кешу
+                    if (window.bookStatusCache) {
+                        window.bookStatusCache.remove(bookId);
+                    }
+                    this.currentStatus = null;
+                }
             } catch (error) {
-                console.error('Error getting book ID:', error);
+                // Ігноруємо помилки переривання запиту
+                if (error.code === 'ECONNABORTED' || error.message === 'Request aborted') {
+                    return;
+                }
+                
+                // Інші помилки логуємо тільки якщо це не 404
+                if (error.response && error.response.status !== 404) {
+                    console.error('Error loading reading status:', error);
+                }
+            }
+        },
+        async getBookIdBySlug(slug) {
+            if (!slug) return null;
+            
+            // Спочатку перевіряємо кеш
+            if (window.bookIdCache) {
+                const cachedId = window.bookIdCache.get(slug);
+                if (cachedId) {
+                    return cachedId;
+                }
+            }
+            
+            try {
+                const response = await axios.get(`/api/books/${slug}/id`, {
+                    timeout: 5000 // Таймаут 5 секунд
+                });
+                
+                if (response.data && response.data.id) {
+                    // Зберігаємо в кеш
+                    if (window.bookIdCache) {
+                        window.bookIdCache.set(slug, response.data.id);
+                    }
+                    return response.data.id;
+                }
+                
+                return null;
+            } catch (error) {
+                // Ігноруємо помилки переривання запиту (коли компонент розмонтовується)
+                if (error.code === 'ECONNABORTED' || error.message === 'Request aborted') {
+                    return null;
+                }
+                
+                // Інші помилки логуємо тільки якщо це не 404
+                if (error.response && error.response.status !== 404) {
+                    console.error('Error getting book ID:', error);
+                }
                 return null;
             }
         },
@@ -317,11 +451,18 @@ export default {
             if (!this.isAuthenticated) return;
             
             try {
-                const response = await axios.get(`/api/books/${this.book.slug}/libraries`);
+                const response = await axios.get(`/api/books/${this.book.slug}/libraries`, {
+                    timeout: 5000 // Таймаут 5 секунд
+                });
                 if (response.data && response.data.success) {
                     this.currentBookLibraries = response.data.libraries || [];
                 }
             } catch (error) {
+                // Ігноруємо помилки переривання запиту
+                if (error.code === 'ECONNABORTED' || error.message === 'Request aborted') {
+                    return;
+                }
+                
                 // Игнорируем ошибку, если библиотеки не найдены
                 if (error.response && error.response.status !== 404) {
                     console.error('Error loading book libraries:', error);

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Review extends Model
 {
@@ -180,6 +181,11 @@ class Review extends Model
             if ($review->parent_id) {
                 $review->parent->updateRepliesCount();
             }
+            
+            // Оновлюємо лічильники хештегів при видаленні рецензії
+            foreach ($review->hashtags as $hashtag) {
+                $hashtag->decrementUsage();
+            }
         });
 
         // Валидация времени между рецензиями теперь происходит в контроллере
@@ -237,5 +243,82 @@ class Review extends Model
     public function isFavoritedBy($userId): bool
     {
         return $this->favoritedByUsers()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Хештеги рецензії
+     */
+    public function hashtags(): BelongsToMany
+    {
+        return $this->belongsToMany(Hashtag::class, 'hashtag_review')
+            ->withTimestamps()
+            ->orderBy('hashtag_review.created_at', 'desc');
+    }
+
+    /**
+     * Синхронізує хештеги рецензії
+     */
+    public function syncHashtags(array $hashtagNames): void
+    {
+        // Отримуємо поточні хештеги перед видаленням
+        $currentHashtagIds = $this->hashtags()->pluck('hashtags.id')->toArray();
+        
+        // Видаляємо старі хештеги та оновлюємо лічильники (тільки для опублікованих)
+        foreach ($currentHashtagIds as $hashtagId) {
+            $hashtag = Hashtag::find($hashtagId);
+            if ($hashtag) {
+                // Зменшуємо лічильник тільки якщо рецензія опублікована
+                if (!$this->is_draft && $this->status === 'active') {
+                    $hashtag->decrementUsage();
+                }
+            }
+        }
+        $this->hashtags()->detach();
+
+        // Додаємо нові хештеги
+        $uniqueHashtagNames = array_unique(array_filter($hashtagNames, function($name) {
+            return !empty(trim($name));
+        }));
+        
+        $hashtagIdsToAttach = [];
+        foreach ($uniqueHashtagNames as $name) {
+            $name = trim($name);
+            if (empty($name)) {
+                continue;
+            }
+            
+            $hashtag = Hashtag::findOrCreate($name);
+            $hashtagIdsToAttach[] = $hashtag->id;
+        }
+        
+        // Прив'язуємо всі хештеги одразу
+        if (!empty($hashtagIdsToAttach)) {
+            $this->hashtags()->attach($hashtagIdsToAttach);
+            
+            // Оновлюємо лічильники тільки для опублікованих рецензій
+            if (!$this->is_draft && $this->status === 'active') {
+                foreach ($hashtagIdsToAttach as $hashtagId) {
+                    $hashtag = Hashtag::find($hashtagId);
+                    if ($hashtag) {
+                        $hashtag->incrementUsage();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Витягує хештеги з контенту та синхронізує їх
+     */
+    public function extractAndSyncHashtags(): void
+    {
+        // Отримуємо текст з контенту (може містити HTML)
+        $text = $this->content;
+        
+        // Витягуємо хештеги з тексту
+        $hashtagNames = Hashtag::extractFromText($text);
+        
+        // Завжди синхронізуємо хештеги (навіть якщо масив порожній - це очистить старі хештеги)
+        $this->syncHashtags($hashtagNames);
     }
 }

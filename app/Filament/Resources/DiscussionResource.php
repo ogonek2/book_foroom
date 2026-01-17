@@ -222,6 +222,7 @@ class DiscussionResource extends Resource
                     ->label('Статус')
                     ->options([
                         'active' => 'Активно',
+                        'closed' => 'Закрито',
                         'blocked' => 'Заблокировано',
                         'pending' => 'Ожидает модерации',
                     ])

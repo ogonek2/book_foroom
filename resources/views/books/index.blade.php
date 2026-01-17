@@ -291,6 +291,7 @@
 
     @push('scripts')
         <script>
+            // bookStatusCache вже доступний глобально через app.js
             document.addEventListener('DOMContentLoaded', function () {
                 const bootBooksBrowser = () => {
                     const booksBrowser = new Vue({
@@ -301,7 +302,7 @@
                             }
                         },
                         data: {
-                            books: @js($initialBooks),
+                            books: @js($initialBooks), // Початкові дані для SSR
                             pagination: @js($initialPagination),
                             userLibraries: @js($initialUserLibraries),
                             categories: @js($initialCategories),
@@ -328,7 +329,7 @@
                                     @endauth
                                 },
                     methods: {
-                        fetchBooks(page = 1) {
+                        fetchBooks(page = 1, useCache = true) {
                             const axiosInstance = window.axios || (window.Vue && window.Vue.prototype && window.Vue.prototype.$http);
                 if (!axiosInstance) {
                     console.error('Axios is not available globally.');
@@ -336,9 +337,6 @@
                     this.loading = false;
                     return;
                 }
-
-                this.loading = true;
-                this.error = null;
 
                 const params = {
                     search: this.filters.search || undefined,
@@ -349,35 +347,181 @@
                     page,
                 };
 
+                // Перевіряємо кеш перед запитом до сервера
+                if (useCache && window.booksListCache) {
+                    const cached = window.booksListCache.get(params);
+                    if (cached && cached.books) {
+                        // Використовуємо кешовані дані
+                        this.books = cached.books;
+                        this.pagination = cached.pagination || {
+                            current_page: page,
+                            last_page: 1,
+                            per_page: cached.books.length,
+                            total: cached.books.length,
+                        };
+                        
+                        // Завантажуємо статуси для всіх книг одним запитом (в фоні)
+                        if (this.isAuthenticated && this.books.length > 0) {
+                            setTimeout(() => {
+                                this.loadBookStatusesBatch();
+                            }, 100);
+                        }
+                        
+                        // Оновлюємо кеш в фоні, якщо він застарів (старіше 2 годин)
+                        const cacheAge = Date.now() - (cached.timestamp || 0);
+                        const shouldRefresh = cacheAge > (2 * 60 * 60 * 1000); // 2 години
+                        
+                        if (shouldRefresh) {
+                            // Оновлюємо кеш в фоні
+                            this.fetchBooksFromServer(page, params, false);
+                        }
+                        
+                        return; // Використовуємо кеш, не робимо запит
+                    }
+                }
+
+                // Якщо кешу немає або він застарів, завантажуємо з сервера
+                this.fetchBooksFromServer(page, params, true);
+            },
+            fetchBooksFromServer(page, params, showLoading = true) {
+                const axiosInstance = window.axios || (window.Vue && window.Vue.prototype && window.Vue.prototype.$http);
+                
+                if (showLoading) {
+                    this.loading = true;
+                }
+                this.error = null;
+
                 axiosInstance.get('{{ route('books.index') }}', {
                     params,
                     headers: {
                         'Accept': 'application/json'
                     },
                 })
-                    .then((response) => {
-                        this.books = response.data.data || [];
-                        this.pagination = response.data.meta || {
-                            current_page: 1,
-                            last_page: 1,
-                            per_page: this.books.length,
-                            total: this.books.length,
+                    .then(async (response) => {
+                        const booksData = {
+                            books: response.data.data || [],
+                            pagination: response.data.meta || {
+                                current_page: page,
+                                last_page: 1,
+                                per_page: (response.data.data || []).length,
+                                total: (response.data.data || []).length,
+                            }
                         };
+                        
+                        this.books = booksData.books;
+                        this.pagination = booksData.pagination;
+                        
+                        // Зберігаємо в кеш
+                        if (window.booksListCache) {
+                            window.booksListCache.set(params, booksData);
+                        }
+                        
+                        // Завантажуємо статуси для всіх книг одним запитом (в фоні)
+                        if (this.isAuthenticated && this.books.length > 0) {
+                            setTimeout(() => {
+                                this.loadBookStatusesBatch();
+                            }, 100);
+                        }
                     })
                     .catch((error) => {
                         console.error('Failed to fetch books:', error);
                         this.error = 'Не вдалося завантажити книги. Спробуйте ще раз пізніше.';
                     })
                     .finally(() => {
-                        this.loading = false;
+                        if (showLoading) {
+                            this.loading = false;
+                        }
                     });
             },
                 fetchBooksDebounced() {
                 clearTimeout(this.debounceTimer);
-            this.debounceTimer = setTimeout(() => {
-                this.fetchBooks();
-            }, 300);
-                                    },
+                this.debounceTimer = setTimeout(() => {
+                    // При зміні пошуку очищаємо кеш для цих параметрів
+                    if (window.booksListCache) {
+                        const params = {
+                            search: this.filters.search || undefined,
+                            category: this.filters.category || undefined,
+                            sort: this.filters.sort || 'rating',
+                            rating_min: this.filters.rating_range[0],
+                            rating_max: this.filters.rating_range[1],
+                            page: 1,
+                        };
+                        window.booksListCache.clearForParams(params);
+                    }
+                    this.fetchBooks(1, false); // Не використовуємо кеш при зміні пошуку
+                }, 300);
+            },
+            async loadBookStatusesBatch() {
+                if (!this.isAuthenticated || !this.books || this.books.length === 0) return;
+                
+                try {
+                    const axiosInstance = window.axios || (window.Vue && window.Vue.prototype && window.Vue.prototype.$http);
+                    if (!axiosInstance) return;
+                    
+                    // Спочатку отримуємо ID всіх книг
+                    const bookIds = [];
+                    for (const book of this.books) {
+                        if (book.id) {
+                            bookIds.push(book.id);
+                        }
+                    }
+                    
+                    if (bookIds.length === 0) return;
+                    
+                    // Перевіряємо кеш (якщо він доступний)
+                    const missingBookIds = [];
+                    if (window.bookStatusCache) {
+                        for (const bookId of bookIds) {
+                            const cached = window.bookStatusCache.get(bookId);
+                            if (!cached) {
+                                missingBookIds.push(bookId);
+                            }
+                        }
+                    } else {
+                        missingBookIds.push(...bookIds);
+                    }
+                    
+                    // Якщо всі статуси є в кеші, не робимо запит
+                    if (missingBookIds.length === 0) return;
+                    
+                    // Завантажуємо відсутні статуси одним запитом
+                    const response = await axiosInstance.post('/api/reading-status/batch', {
+                        book_ids: missingBookIds
+                    }, {
+                        timeout: 10000
+                    });
+                    
+                    if (response.data && response.data.statuses && window.bookStatusCache) {
+                        // Оновлюємо кеш
+                        const statusesToUpdate = {};
+                        for (const [bookId, statusData] of Object.entries(response.data.statuses)) {
+                            if (statusData) {
+                                statusesToUpdate[bookId] = statusData;
+                                window.bookStatusCache.set(bookId, statusData);
+                            }
+                        }
+                        
+                        // Оновлюємо компоненти тільки для книг, статуси яких змінилися
+                        if (Object.keys(statusesToUpdate).length > 0) {
+                            this.$nextTick(() => {
+                                this.$children.forEach(child => {
+                                    if (child.$options.name === 'BookCard' && child.book && child.book.id) {
+                                        const bookId = child.book.id.toString();
+                                        if (statusesToUpdate[bookId]) {
+                                            child.currentStatus = statusesToUpdate[bookId].status;
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    }
+                } catch (error) {
+                    // Ігноруємо помилки переривання
+                    if (error.code !== 'ECONNABORTED' && error.message !== 'Request aborted') {
+                        console.error('Error loading book statuses batch:', error);
+                    }
+                }
+            },
             selectCategory(slug) {
                 this.filters.category = slug;
                 this.fetchBooks();
@@ -419,6 +563,30 @@
                         notification.remove();
                     }, 300);
                 }, 3000);
+            },
+            mounted() {
+                // Якщо є початкові книги (SSR), зберігаємо їх в кеш
+                if (this.books && this.books.length > 0 && window.booksListCache) {
+                    const params = {
+                        search: this.filters.search || undefined,
+                        category: this.filters.category || undefined,
+                        sort: this.filters.sort || 'rating',
+                        rating_min: this.filters.rating_range[0],
+                        rating_max: this.filters.rating_range[1],
+                        page: this.pagination.current_page || 1,
+                    };
+                    window.booksListCache.set(params, {
+                        books: this.books,
+                        pagination: this.pagination
+                    });
+                }
+                
+                // Завантажуємо статуси для початкового списку книг після монтування
+                if (this.isAuthenticated && this.books && this.books.length > 0) {
+                    this.$nextTick(() => {
+                        this.loadBookStatusesBatch();
+                    });
+                }
             }
                                 }
                             });

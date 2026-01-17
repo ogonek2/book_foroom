@@ -1,5 +1,20 @@
 @extends('profile.private.main')
 
+@push('styles')
+<style>
+    /* Прибираємо стандартну стрілочку з Tailwind для наших select */
+    #statusFilter,
+    #sortBy {
+        background-image: none !important;
+        background-position: initial !important;
+        background-repeat: initial !important;
+        background-size: initial !important;
+        -webkit-print-color-adjust: unset !important;
+        print-color-adjust: unset !important;
+    }
+</style>
+@endpush
+
 @section('profile-content')
     <div class="flex-1">
         <!-- Library Header -->
@@ -38,28 +53,43 @@
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Книги в бібліотеці</h3>
                 <!-- Filter and Sort -->
                 <div class="flex items-center space-x-2">
-                    <select id="statusFilter" onchange="filterByStatus(this.value)" 
-                            class="px-2 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
-                        <option value="">Всі статуси</option>
-                        <option value="want_to_read">Хочу прочитати</option>
-                        <option value="reading">Читаю</option>
-                        <option value="read">Прочитано</option>
-                        <option value="abandoned">Закинуто</option>
-                    </select>
+                    <div class="relative">
+                        <select id="statusFilter" onchange="filterByStatus(this.value)" 
+                                class="px-3 py-2 pr-8 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm appearance-none cursor-pointer">
+                            <option value="" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Всі статуси</option>
+                            <option value="want_to_read" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Хочу прочитати</option>
+                            <option value="reading" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Читаю</option>
+                            <option value="read" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Прочитано</option>
+                            <option value="abandoned" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Закинуто</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
                     
-                    <select id="sortBy" onchange="sortBooks(this.value)" 
-                            class="px-2 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
-                        <option value="created_at">Дата додавання</option>
-                        <option value="title">Назва</option>
-                        <option value="rating">Оцінка</option>
-                    </select>
+                    <div class="relative">
+                        <select id="sortBy" onchange="sortBooks(this.value)" 
+                                class="px-3 py-2 pr-8 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm appearance-none cursor-pointer">
+                            <option value="created_at" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Дата додавання</option>
+                            <option value="title" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Назва</option>
+                            <option value="rating" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Оцінка</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Books Grid -->
             <div id="booksGrid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @php
-                    $books = $user->bookReadingStatuses()
+                    // Використовуємо оптимізовані дані з контролера, якщо вони є
+                    $books = isset($books) ? $books : $user->bookReadingStatuses()
                         ->with(['book.author', 'book.categories'])
                         ->orderBy('created_at', 'desc')
                         ->paginate(12);
@@ -67,8 +97,11 @@
 
                 @if($books->count() > 0)
                     @foreach($books as $readingStatus)
-                        <div class="group relative" 
-                             data-status="{{ $readingStatus->status }}">
+                        <div class="group relative book-item" 
+                             data-status="{{ $readingStatus->status }}"
+                             data-title="{{ mb_strtolower($readingStatus->book->title, 'UTF-8') }}"
+                             data-rating="{{ $readingStatus->rating ?? 0 }}"
+                             data-created-at="{{ $readingStatus->created_at->timestamp }}">
                             <!-- Book Cover -->
                             <div class="aspect-[3/4] mb-3 relative">
                                 <img src="{{ $readingStatus->book->cover_image }}" 
@@ -202,7 +235,7 @@
             <!-- Pagination -->
             @if($books->hasPages())
                 <div class="mt-6">
-                    {{ $books->links() }}
+                    {{ $books->appends(array_merge(request()->query(), ['tab' => 'library']))->links() }}
                 </div>
             @endif
         </div>
@@ -228,19 +261,72 @@
             }
 
             function filterByStatus(status) {
-                const books = document.querySelectorAll('#booksGrid > div[data-status]');
-                books.forEach(book => {
-                    if (!status || book.dataset.status === status) {
-                        book.style.display = 'block';
-                    } else {
-                        book.style.display = 'none';
-                    }
+                const booksGrid = document.getElementById('booksGrid');
+                if (!booksGrid) return;
+                
+                // Отримуємо всі книги з grid
+                const allBooks = Array.from(booksGrid.querySelectorAll('.book-item'));
+                
+                // Очищаємо grid
+                booksGrid.innerHTML = '';
+                
+                // Фільтруємо та додаємо книги
+                const filteredBooks = allBooks.filter(book => {
+                    return !status || book.getAttribute('data-status') === status;
                 });
+                
+                filteredBooks.forEach(book => {
+                    booksGrid.appendChild(book);
+                });
+                
+                // Застосовуємо поточне сортування після фільтрації
+                const sortSelect = document.getElementById('sortBy');
+                if (sortSelect && sortSelect.value) {
+                    sortBooks(sortSelect.value);
+                }
             }
 
             function sortBooks(sortBy) {
-                // TODO: Implement client-side sorting or AJAX request
-                console.log('Sort by:', sortBy);
+                const booksGrid = document.getElementById('booksGrid');
+                if (!booksGrid) return;
+                
+                // Отримуємо всі книги з grid
+                const bookItems = Array.from(booksGrid.querySelectorAll('.book-item'));
+                
+                if (bookItems.length === 0) return;
+                
+                // Сортуємо книги
+                bookItems.sort((a, b) => {
+                    let aValue, bValue;
+                    
+                    switch(sortBy) {
+                        case 'title':
+                            aValue = a.getAttribute('data-title') || '';
+                            bValue = b.getAttribute('data-title') || '';
+                            return aValue.localeCompare(bValue, 'uk', { sensitivity: 'base' });
+                        
+                        case 'rating':
+                            aValue = parseFloat(a.getAttribute('data-rating')) || 0;
+                            bValue = parseFloat(b.getAttribute('data-rating')) || 0;
+                            // Сортуємо за спаданням (найвищі рейтинги спочатку)
+                            return bValue - aValue;
+                        
+                        case 'created_at':
+                        default:
+                            aValue = parseInt(a.getAttribute('data-created-at')) || 0;
+                            bValue = parseInt(b.getAttribute('data-created-at')) || 0;
+                            // Сортуємо за спаданням (новіші спочатку)
+                            return bValue - aValue;
+                    }
+                });
+                
+                // Очищаємо grid
+                booksGrid.innerHTML = '';
+                
+                // Додаємо відсортовані елементи назад
+                bookItems.forEach(item => {
+                    booksGrid.appendChild(item);
+                });
             }
 
             async function editBookStatus(readingStatusId) {

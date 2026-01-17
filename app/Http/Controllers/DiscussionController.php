@@ -458,8 +458,10 @@ class DiscussionController extends Controller
             'is_pinned' => false, // Пользователи не могут закреплять обсуждения, только админы через админку
         ]);
 
-        // Process hashtags
-        $this->processHashtags($discussion, $request->content);
+        // Витягуємо та зберігаємо хештеги (тільки для опублікованих обговорень)
+        if (!$isDraft) {
+            $discussion->extractAndSyncHashtags();
+        }
 
         // Process mentions
         if (!$isDraft) {
@@ -702,8 +704,10 @@ class DiscussionController extends Controller
             // Добавляем поле is_liked для текущего пользователя
             if ($isAuthenticated && is_object($review)) {
                 $reviewArray['is_liked'] = $review->isLikedBy($currentUserId);
+                $reviewArray['is_favorited'] = $review->isFavoritedBy($currentUserId);
             } else {
                 $reviewArray['is_liked'] = false;
+                $reviewArray['is_favorited'] = false;
             }
 
             return $reviewArray;
@@ -948,6 +952,11 @@ class DiscussionController extends Controller
             // is_pinned не обновляется пользователями - только админами через админку
         ]);
 
+        // Витягуємо та синхронізуємо хештеги (тільки для опублікованих обговорень)
+        if (!$isDraft) {
+            $discussion->extractAndSyncHashtags();
+        }
+
         if ($isDraft) {
             return redirect()->route('profile.show', ['tab' => 'drafts'])
                 ->with('success', 'Чернетку оновлено!');
@@ -974,7 +983,10 @@ class DiscussionController extends Controller
             abort(403, 'У вас нет прав для закрытия этого обсуждения');
         }
 
-        $discussion->update(['is_closed' => true]);
+        $discussion->update([
+            'is_closed' => true,
+            'status' => 'closed'
+        ]);
 
         if (request()->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Обсуждение закрыто!', 'is_closed' => true]);
@@ -996,7 +1008,10 @@ class DiscussionController extends Controller
             abort(403, 'У вас нет прав для открытия этого обсуждения');
         }
 
-        $discussion->update(['is_closed' => false]);
+        $discussion->update([
+            'is_closed' => false,
+            'status' => 'active'
+        ]);
 
         if (request()->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Обсуждение открыто!', 'is_closed' => false]);

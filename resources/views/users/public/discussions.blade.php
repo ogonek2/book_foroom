@@ -10,7 +10,7 @@
             @if ($discussions->count() > 0)
                 <div class="space-y-6">
                     @foreach ($discussions as $discussion)
-                        <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all">
+                        <div class="bg-white dark:bg-white/5 rounded-xl p-6 hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-sm border border-gray-200 dark:border-gray-700">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex-1">
                                     <a href="{{ route('discussions.show', $discussion->slug) }}"
@@ -37,10 +37,10 @@
                                 <div class="flex items-center space-x-2">
                                     @if ($discussion->status === 'active')
                                         <span
-                                            class="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs">Активне</span>
+                                            class="bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full text-xs font-medium">Активне</span>
                                     @elseif($discussion->status === 'closed')
                                         <span
-                                            class="bg-red-500/20 text-red-400 px-2 py-1 rounded-full text-xs">Закрите</span>
+                                            class="bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 px-2 py-1 rounded-full text-xs font-medium">Закрите</span>
                                     @endif
                                 </div>
                             </div>

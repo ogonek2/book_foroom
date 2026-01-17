@@ -91,7 +91,7 @@
                     <!-- Pagination -->
                     @if($favoriteQuotes->hasPages())
                         <div class="mt-6">
-                            {{ $favoriteQuotes->links() }}
+                            {{ $favoriteQuotes->appends(array_merge(request()->query(), ['tab' => 'favorites']))->links() }}
                         </div>
                     @endif
                 @else
@@ -177,7 +177,7 @@
                     <!-- Pagination -->
                     @if($favoriteReviews->hasPages())
                         <div class="mt-6">
-                            {{ $favoriteReviews->links() }}
+                            {{ $favoriteReviews->appends(array_merge(request()->query(), ['tab' => 'favorites']))->links() }}
                         </div>
                     @endif
                 @else

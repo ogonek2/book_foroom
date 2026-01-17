@@ -85,7 +85,8 @@ class BookResource extends Resource
                         Forms\Components\Select::make('author_id')
                             ->label('Автор')
                             ->relationship('author', 'first_name')
-                            ->searchable()
+                            ->getOptionLabelFromRecordUsing(fn (Author $record): string => $record->full_name)
+                            ->searchable(['first_name', 'last_name', 'middle_name'])
                             ->preload()
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('first_name')
@@ -164,8 +165,13 @@ class BookResource extends Resource
                             ->label('Серія')
                             ->maxLength(255)
                             ->helperText('Якщо книга входить до серії'),
+                        Forms\Components\TextInput::make('series_number')
+                            ->label('Номер у серії')
+                            ->numeric()
+                            ->minValue(1)
+                            ->helperText('Номер книги в серії (наприклад, 1, 2, 3...)'),
                     ])
-                    ->columns(1),
+                    ->columns(2),
 
                 Forms\Components\Section::make('Категорії та статус')
                     ->schema([
@@ -438,7 +444,8 @@ class BookResource extends Resource
                     ->label('Категории'),
                 Tables\Filters\SelectFilter::make('author')
                     ->relationship('author', 'first_name')
-                    ->searchable()
+                    ->getOptionLabelFromRecordUsing(fn (Author $record): string => $record->full_name)
+                    ->searchable(['first_name', 'last_name', 'middle_name'])
                     ->preload(),
                 Tables\Filters\SelectFilter::make('language')
                     ->options([

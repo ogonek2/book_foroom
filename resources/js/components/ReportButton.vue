@@ -79,15 +79,18 @@ export default {
 
     mounted() {
         // Закрываем dropdown при клике вне его
-        document.addEventListener('click', (e) => {
-            if (!this.$el.contains(e.target)) {
+        this.handleClickOutside = (e) => {
+            if (this.$el && !this.$el.contains(e.target)) {
                 this.showDropdown = false;
             }
-        });
+        };
+        document.addEventListener('click', this.handleClickOutside);
     },
 
     beforeDestroy() {
-        document.removeEventListener('click', this.handleClickOutside);
+        if (this.handleClickOutside) {
+            document.removeEventListener('click', this.handleClickOutside);
+        }
     }
 };
 </script>

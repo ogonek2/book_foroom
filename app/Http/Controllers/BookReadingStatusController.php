@@ -7,6 +7,7 @@ use App\Models\BookReadingStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
 
 class BookReadingStatusController extends Controller
 {
@@ -27,6 +28,49 @@ class BookReadingStatusController extends Controller
             'review' => $status ? $status->review : null,
             'started_at' => $status ? $status->started_at : null,
             'finished_at' => $status ? $status->finished_at : null,
+        ]);
+    }
+
+    /**
+     * Масове завантаження статусів для списку книг
+     */
+    public function getBatchStatuses(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'book_ids' => 'required|array',
+            'book_ids.*' => 'integer|exists:books,id'
+        ]);
+
+        $bookIds = $request->input('book_ids', []);
+        
+        if (empty($bookIds)) {
+            return response()->json(['statuses' => []]);
+        }
+
+        // Завантажуємо всі статуси одним запитом
+        $statuses = BookReadingStatus::where('user_id', $user->id)
+            ->whereIn('book_id', $bookIds)
+            ->get()
+            ->keyBy('book_id');
+
+        $result = [];
+        foreach ($bookIds as $bookId) {
+            $status = $statuses->get($bookId);
+            $result[$bookId] = $status ? [
+                'status' => $status->status,
+                'times_read' => $status->times_read,
+                'reading_language' => $status->reading_language,
+                'rating' => $status->rating,
+                'review' => $status->review,
+                'started_at' => $status->started_at,
+                'finished_at' => $status->finished_at,
+            ] : null;
+        }
+
+        return response()->json([
+            'statuses' => $result
         ]);
     }
 
@@ -121,6 +165,9 @@ class BookReadingStatusController extends Controller
             $status = BookReadingStatus::create($data);
         }
 
+        // Кешуємо дані книги для швидкого оновлення компонентів
+        $this->cacheBookData($book);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Статус чтения обновлен',
@@ -146,6 +193,10 @@ class BookReadingStatusController extends Controller
 
         if ($status) {
             $status->delete();
+            
+            // Очищаємо кеш книги
+            $this->clearBookCache($book);
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Статус чтения удален'
@@ -242,6 +293,9 @@ class BookReadingStatusController extends Controller
             'review' => $request->review,
         ]);
 
+        // Кешуємо дані книги для швидкого оновлення компонентів
+        $this->cacheBookData($book);
+
         return response()->json([
             'success' => true,
             'message' => 'Рейтинг и отзыв обновлены',
@@ -317,6 +371,9 @@ class BookReadingStatusController extends Controller
 
             $status->update($data);
 
+            // Кешуємо дані книги для швидкого оновлення компонентів
+            $this->cacheBookData($status->book);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Статус обновлен',
@@ -351,5 +408,21 @@ class BookReadingStatusController extends Controller
             'success' => true,
             'data' => $status
         ]);
+    }
+
+    /**
+     * Кешує дані книги для швидкого оновлення компонентів
+     */
+    protected function cacheBookData(Book $book)
+    {
+        $book->cacheBookData();
+    }
+
+    /**
+     * Очищає кеш книги
+     */
+    protected function clearBookCache(Book $book)
+    {
+        $book->clearBookCache();
     }
 }

@@ -59,6 +59,14 @@ class RegisteredUserController extends Controller
         return view('auth.register');
     }
 
+    /**
+     * Show the email verification required page after registration.
+     */
+    public function showVerificationRequired(): View
+    {
+        return view('auth.email-verification-required');
+    }
+
     protected function createAvatar()
     {
         $size = 8;
@@ -174,7 +182,7 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         // Don't auto-login, require email verification first
-        return redirect()->route('verification.notice')->with('status', 'Реєстрація успішна! Перевірте свою електронну пошту для підтвердження акаунту.');
+        return redirect()->route('registration.success')->with('email', $user->email);
     }
 
     /**

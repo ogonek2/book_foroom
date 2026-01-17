@@ -6,6 +6,7 @@ use App\Http\Controllers\DraftController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,8 @@ Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->gr
 // Public library routes
 Route::get('/users/{username}/libraries', [LibraryController::class, 'publicLibraries'])->name('libraries.public');
 
+// Hashtags routes
+Route::get('/hashtags/{slug}', [ReviewController::class, 'searchByHashtag'])->name('hashtags.show');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

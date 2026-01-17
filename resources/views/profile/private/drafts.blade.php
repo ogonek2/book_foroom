@@ -34,7 +34,7 @@
             <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Чернетки рецензій</h3>
             <div class="space-y-4">
                 @foreach($draftReviews as $review)
-                    <div class="bg-white rounded-xl p-4 border border-white/10">
+                    <div class="bg-white/5 rounded-xl p-4 border border-white/10">
                         <div class="flex flex-col items-start justify-between">
                             <div class="flex w-full items-center justify-between space-x-2 mb-2">
                                 @if($review->book)

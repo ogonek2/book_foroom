@@ -9,7 +9,7 @@
             <div class="flex items-center justify-between mb-2">
                 <div>
                     <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Автори</h1>
-                    <p class="text-gray-600 dark:text-gray-400">Знайдіть цікавих авторів</p>
+                    <p class="text-gray-600 dark:text-gray-400">Відкрийте для себе цікавих авторів</p>
                 </div>
                 <!-- Mobile Filter Button -->
                 <button @@click="showMobileFilters = true" 
@@ -47,8 +47,7 @@
 
                             <!-- Alphabet Filter Section -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Фільтр по
-                                    прізвищу</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Фільтр за прізвищем</label>
                                 <div class="grid grid-cols-6 gap-2">
                                     <a href="{{ route('authors.index', request()->except('letter')) }}"
                                         class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ !request('letter') ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
@@ -200,7 +199,7 @@
 
                             <!-- Alphabet Filter Section -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Фільтр по прізвищу</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Фільтр за прізвищем</label>
                                 <div class="grid grid-cols-6 gap-2">
                                     <a href="{{ route('authors.index', request()->except('letter')) }}"
                                         class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ !request('letter') ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">

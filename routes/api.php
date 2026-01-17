@@ -46,6 +46,9 @@ Route::middleware('web')->group(function () {
         // Получить книги по статусу (должен быть перед /{id})
         Route::get('/books/{status}', [BookReadingStatusController::class, 'getBooksByStatus'])->name('books');
         
+        // Масове завантаження статусів для списку книг
+        Route::post('/batch', [BookReadingStatusController::class, 'getBatchStatuses'])->name('batch');
+        
         // Получить статус чтения конкретной книги
         Route::get('/book/{id}', [BookReadingStatusController::class, 'getStatus'])->name('get');
         

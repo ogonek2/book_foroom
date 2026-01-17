@@ -2,6 +2,21 @@
 
 @section('title', $user->name . ' - Цитати')
 
+@push('styles')
+<style>
+    /* Прибираємо стандартну стрілочку з Tailwind для наших select */
+    #bookFilter,
+    #sortBy {
+        background-image: none !important;
+        background-position: initial !important;
+        background-repeat: initial !important;
+        background-size: initial !important;
+        -webkit-print-color-adjust: unset !important;
+        print-color-adjust: unset !important;
+    }
+</style>
+@endpush
+
 @section('profile-content')
     <div class="flex-1">
         <!-- Quotes Header -->
@@ -22,19 +37,19 @@
                     $averageLength = $allQuotesForStats->avg('length');
                 @endphp
 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white dark:bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-blue-400 mb-1">{{ $totalQuotes }}</div>
-                    <div class="text-sm text-gray-300">Всього цитат</div>
+                    <div class="text-sm text-black dark:text-gray-300">Усього цитат</div>
                 </div>
                 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white dark:bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-green-400 mb-1">{{ $averageLength ? number_format($averageLength) : 0 }}</div>
-                    <div class="text-sm text-gray-300">Середня довжина</div>
+                    <div class="text-sm text-black dark:text-gray-300 ">Середня довжина</div>
                 </div>
                 
-                <div class="bg-white/5 rounded-xl p-4 text-center">
+                <div class="bg-white dark:bg-white/5 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-purple-400 mb-1">{{ $totalLikes }}</div>
-                    <div class="text-sm text-gray-300">Лайків отримано</div>
+                    <div class="text-sm text-black dark:text-gray-300">Вподобань отримано</div>
                 </div>
             </div>
         </div>
@@ -45,23 +60,37 @@
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">Список цитат</h3>
                 <!-- Filter and Sort -->
                 <div class="flex items-center space-x-4 mt-2">
-                    <select id="bookFilter" onchange="filterByBook(this.value)" 
-                            class="px-3 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <option value="">Всі книги</option>
-                        @php
-                            $booksForFilter = $user->quotes()->where('is_public', true)->with('book')->get()->pluck('book')->unique('id');
-                        @endphp
-                        @foreach($booksForFilter as $book)
-                            <option value="{{ $book->id }}">{{ $book->title }}</option>
-                        @endforeach
-                    </select>
+                    <div class="relative">
+                        <select id="bookFilter" onchange="filterByBook(this.value)" 
+                                class="px-3 py-2 pr-8 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none cursor-pointer">
+                            <option value="" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Всі книги</option>
+                            @php
+                                $booksForFilter = $user->quotes()->where('is_public', true)->with('book')->get()->pluck('book')->unique('id');
+                            @endphp
+                            @foreach($booksForFilter as $book)
+                                <option value="{{ $book->id }}" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">{{ $book->title }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
                     
-                    <select id="sortBy" onchange="sortQuotes(this.value)" 
-                            class="px-3 py-2 bg-white/20 light:text-gray-900 dark:text-white rounded-lg border border-white/30 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <option value="created_at">Дата додавання</option>
-                        <option value="book_title">Назва книги</option>
-                        <option value="likes_count">Кількість лайків</option>
-                    </select>
+                    <div class="relative">
+                        <select id="sortBy" onchange="sortQuotes(this.value)" 
+                                class="px-3 py-2 pr-8 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none cursor-pointer">
+                            <option value="created_at" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Дата додавання</option>
+                            <option value="book_title" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Назва книги</option>
+                            <option value="likes_count" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Кількість лайків</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 

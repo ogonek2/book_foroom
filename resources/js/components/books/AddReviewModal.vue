@@ -81,13 +81,35 @@
                 <!-- Language -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Мова рецензії
+                        Мова читання
                     </label>
                     <select v-model="language" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
                         <option value="uk">Українська</option>
-                        <option value="en">English</option>
+                        <option value="en">Англійська</option>
+                        <option value="pl">Польська</option>
                         <option value="de">Німецька</option>
+                        <option value="fr">Французька</option>
+                        <option value="es">Іспанська</option>
+                        <option value="it">Італійська</option>
+                        <option value="ru">російська</option>
                         <option value="other">Інша</option>
+                    </select>
+                    <select v-if="language === 'other'" v-model="otherLanguage" class="w-full mt-2 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        <option value="cs">Чеська</option>
+                        <option value="sk">Словацька</option>
+                        <option value="hu">Угорська</option>
+                        <option value="ro">Румунська</option>
+                        <option value="bg">Болгарська</option>
+                        <option value="lt">Литовська</option>
+                        <option value="pt">Португальська</option>
+                        <option value="nl">Нідерландська</option>
+                        <option value="sv">Шведська</option>
+                        <option value="no">Норвезька</option>
+                        <option value="da">Данська</option>
+                        <option value="fi">Фінська</option>
+                        <option value="ja">Японська</option>
+                        <option value="ko">Корейська</option>
+                        <option value="zh">Китайська</option>
                     </select>
                 </div>
 
@@ -165,6 +187,7 @@ export default {
             opinionType: 'positive',
             bookType: 'paper',
             language: 'uk',
+            otherLanguage: 'cs',
             content: '',
             containsSpoiler: false,
             isSubmitting: false,
@@ -258,7 +281,15 @@ export default {
                 this.rating = reviewData.rating ? parseInt(reviewData.rating) : 0;
                 this.opinionType = reviewData.opinion_type || 'positive';
                 this.bookType = reviewData.book_type || 'paper';
+                // Обробка мови: якщо мова в списку "Інша", встановлюємо language='other' та otherLanguage=значення
+                const otherLanguages = ['cs', 'sk', 'hu', 'ro', 'bg', 'lt', 'pt', 'nl', 'sv', 'no', 'da', 'fi', 'ja', 'ko', 'zh'];
+                if (reviewData.language && otherLanguages.includes(reviewData.language)) {
+                    this.language = 'other';
+                    this.otherLanguage = reviewData.language;
+                } else {
                 this.language = reviewData.language || 'uk';
+                    this.otherLanguage = 'cs';
+                }
                 this.content = reviewData.content ? String(reviewData.content) : '';
                 // Initialize Quill editor after setting data
                 this.$nextTick(() => {
@@ -362,7 +393,7 @@ export default {
                     review_type: this.reviewType,
                     opinion_type: this.opinionType,
                     book_type: this.bookType,
-                    language: this.language,
+                    language: this.language === 'other' ? this.otherLanguage : this.language,
                     content: this.content,
                     contains_spoiler: this.containsSpoiler ? true : false,
                     is_draft: isDraft ? true : false // Явно преобразуем в boolean
@@ -479,7 +510,7 @@ export default {
                 const toolbarOptions = [
                     ['bold', 'italic', 'underline'],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link', 'image'],
+                    ['link'],
                     ['clean']
                 ];
                 
@@ -524,10 +555,9 @@ export default {
             });
             
             // Only allow safe tags
-            const allowedTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'a', 'img'];
+            const allowedTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'a'];
             const allowedAttributes = {
-                'a': ['href', 'title'],
-                'img': ['src', 'alt', 'title']
+                'a': ['href', 'title']
             };
             
             const nodesToRemove = [];
@@ -559,12 +589,9 @@ export default {
                         }
                     }
                     
-                    // Validate images
+                    // Remove images (not allowed in reviews)
                     if (node.tagName.toLowerCase() === 'img') {
-                        const src = node.getAttribute('src');
-                        if (src && !src.match(/^(https?:\/\/|\/|data:image)/)) {
                             node.remove();
-                        }
                     }
                 }
             }

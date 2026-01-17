@@ -215,7 +215,7 @@
                                 <input type="hidden" name="review_type" v-model="reviewType">
                                 <input type="hidden" name="opinion_type" v-model="opinionType">
                                 <input type="hidden" name="book_type" v-model="bookType">
-                                <input type="hidden" name="language" v-model="language">
+                                <input type="hidden" name="language" :value="language === 'other' ? otherLanguage : language">
                                 <input type="hidden" name="contains_spoiler" :value="containsSpoiler ? '1' : '0'">
                                 <input type="hidden" name="rating" v-model="rating" required>
                                 <!-- Rating -->
@@ -334,15 +334,38 @@
 
                                 <!-- Language -->
                                 <div class="mb-6">
-                                    <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Мова
-                                        рецензії</label>
+                                    <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Мова читання</label>
                                     <select id="language"
                                         class="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                                         v-model="language">
                                         <option value="uk">Українська</option>
-                                        <option value="en">English</option>
+                                        <option value="en">Англійська</option>
+                                        <option value="pl">Польська</option>
                                         <option value="de">Німецька</option>
+                                        <option value="fr">Французька</option>
+                                        <option value="es">Іспанська</option>
+                                        <option value="it">Італійська</option>
+                                        <option value="ru">російська</option>
                                         <option value="other">Інша</option>
+                                    </select>
+                                    <select v-if="language === 'other'" id="other-language"
+                                        class="w-full mt-2 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                        v-model="otherLanguage">
+                                        <option value="cs">Чеська</option>
+                                        <option value="sk">Словацька</option>
+                                        <option value="hu">Угорська</option>
+                                        <option value="ro">Румунська</option>
+                                        <option value="bg">Болгарська</option>
+                                        <option value="lt">Литовська</option>
+                                        <option value="pt">Португальська</option>
+                                        <option value="nl">Нідерландська</option>
+                                        <option value="sv">Шведська</option>
+                                        <option value="no">Норвезька</option>
+                                        <option value="da">Данська</option>
+                                        <option value="fi">Фінська</option>
+                                        <option value="ja">Японська</option>
+                                        <option value="ko">Корейська</option>
+                                        <option value="zh">Китайська</option>
                                     </select>
                                 </div>
 
@@ -468,7 +491,7 @@
                                     const toolbarOptions = [
                                         ['bold', 'italic', 'underline'],
                                         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                                        ['link', 'image'],
+                                        ['link'],
                                         ['clean']
                                     ];
 

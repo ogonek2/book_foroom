@@ -161,14 +161,38 @@
             <!-- Language -->
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Мова рецензії
+                    Мова читання
                 </label>
-                <select name="language" 
+                <select name="language" id="language-select"
                         class="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <option value="uk" {{ ($review->language ?? 'uk') === 'uk' ? 'selected' : '' }}>Українська</option>
-                    <option value="en" {{ ($review->language ?? 'uk') === 'en' ? 'selected' : '' }}>English</option>
+                    <option value="en" {{ ($review->language ?? 'uk') === 'en' ? 'selected' : '' }}>Англійська</option>
+                    <option value="pl" {{ ($review->language ?? 'uk') === 'pl' ? 'selected' : '' }}>Польська</option>
                     <option value="de" {{ ($review->language ?? 'uk') === 'de' ? 'selected' : '' }}>Німецька</option>
-                    <option value="other" {{ ($review->language ?? 'uk') === 'other' ? 'selected' : '' }}>Інша</option>
+                    <option value="fr" {{ ($review->language ?? 'uk') === 'fr' ? 'selected' : '' }}>Французька</option>
+                    <option value="es" {{ ($review->language ?? 'uk') === 'es' ? 'selected' : '' }}>Іспанська</option>
+                    <option value="it" {{ ($review->language ?? 'uk') === 'it' ? 'selected' : '' }}>Італійська</option>
+                    <option value="ru" {{ ($review->language ?? 'uk') === 'ru' ? 'selected' : '' }}>російська</option>
+                    <option value="other" {{ in_array($review->language ?? 'uk', ['cs', 'sk', 'hu', 'ro', 'bg', 'lt', 'pt', 'nl', 'sv', 'no', 'da', 'fi', 'ja', 'ko', 'zh']) ? 'selected' : '' }}>Інша</option>
+                </select>
+                <select name="language" id="other-language-select"
+                        class="w-full mt-2 px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        style="display: {{ in_array($review->language ?? 'uk', ['cs', 'sk', 'hu', 'ro', 'bg', 'lt', 'pt', 'nl', 'sv', 'no', 'da', 'fi', 'ja', 'ko', 'zh']) ? 'block' : 'none' }};">
+                    <option value="cs" {{ ($review->language ?? 'uk') === 'cs' ? 'selected' : '' }}>Чеська</option>
+                    <option value="sk" {{ ($review->language ?? 'uk') === 'sk' ? 'selected' : '' }}>Словацька</option>
+                    <option value="hu" {{ ($review->language ?? 'uk') === 'hu' ? 'selected' : '' }}>Угорська</option>
+                    <option value="ro" {{ ($review->language ?? 'uk') === 'ro' ? 'selected' : '' }}>Румунська</option>
+                    <option value="bg" {{ ($review->language ?? 'uk') === 'bg' ? 'selected' : '' }}>Болгарська</option>
+                    <option value="lt" {{ ($review->language ?? 'uk') === 'lt' ? 'selected' : '' }}>Литовська</option>
+                    <option value="pt" {{ ($review->language ?? 'uk') === 'pt' ? 'selected' : '' }}>Португальська</option>
+                    <option value="nl" {{ ($review->language ?? 'uk') === 'nl' ? 'selected' : '' }}>Нідерландська</option>
+                    <option value="sv" {{ ($review->language ?? 'uk') === 'sv' ? 'selected' : '' }}>Шведська</option>
+                    <option value="no" {{ ($review->language ?? 'uk') === 'no' ? 'selected' : '' }}>Норвезька</option>
+                    <option value="da" {{ ($review->language ?? 'uk') === 'da' ? 'selected' : '' }}>Данська</option>
+                    <option value="fi" {{ ($review->language ?? 'uk') === 'fi' ? 'selected' : '' }}>Фінська</option>
+                    <option value="ja" {{ ($review->language ?? 'uk') === 'ja' ? 'selected' : '' }}>Японська</option>
+                    <option value="ko" {{ ($review->language ?? 'uk') === 'ko' ? 'selected' : '' }}>Корейська</option>
+                    <option value="zh" {{ ($review->language ?? 'uk') === 'zh' ? 'selected' : '' }}>Китайська</option>
                 </select>
             </div>
 
@@ -228,8 +252,14 @@
                     </a>
                     <button type="submit" 
                             name="action" 
+                            value="save"
+                            class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium transition-colors">
+                        Зберегти як чернетку
+                    </button>
+                    <button type="submit" 
+                            name="action" 
                             value="publish"
-                            class="flex-1 px-6 py-3 bg-purple-600 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-medium">
+                            class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium transition-colors">
                         Опублікувати
                     </button>
                 </div>
@@ -344,7 +374,7 @@
         const toolbarOptions = [
             ['bold', 'italic', 'underline'],
             [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            ['link', 'image'],
+            ['link'],
             ['clean']
         ];
         
@@ -383,10 +413,9 @@
         });
         
         // Only allow safe tags
-        const allowedTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'a', 'img'];
+        const allowedTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'a'];
         const allowedAttributes = {
-            'a': ['href', 'title'],
-            'img': ['src', 'alt', 'title']
+            'a': ['href', 'title']
         };
         
         const walker = document.createTreeWalker(
@@ -419,12 +448,9 @@
                     }
                 }
                 
-                // Validate images
+                // Remove images (not allowed in reviews)
                 if (node.tagName.toLowerCase() === 'img') {
-                    const src = node.getAttribute('src');
-                    if (src && !src.match(/^(https?:\/\/|\/|data:image)/)) {
                         node.remove();
-                    }
                 }
             }
         }
@@ -598,20 +624,44 @@
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('edit-review-form');
         if (form) {
-            form.addEventListener('submit', function(e) {
-                const submitButton = document.activeElement;
+            // Обработчик для кнопок submit
+            const submitButtons = form.querySelectorAll('button[type="submit"][name="action"]');
+            submitButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
                 const isDraftCheckbox = document.getElementById('is-draft-checkbox');
                 
-                if (submitButton && submitButton.name === 'action') {
-                    if (submitButton.value === 'publish') {
+                    if (this.value === 'publish') {
                         // При публикации снимаем флаг черновика
                         if (isDraftCheckbox) isDraftCheckbox.checked = false;
+                    } else if (this.value === 'save') {
+                        // При сохранении как черновик устанавливаем флаг
+                        if (isDraftCheckbox) isDraftCheckbox.checked = true;
                     }
-                }
+                });
             });
         }
     });
 })();
+    // Обробка вибору мови
+    const languageSelect = document.getElementById('language-select');
+    const otherLanguageSelect = document.getElementById('other-language-select');
+    
+    if (languageSelect && otherLanguageSelect) {
+        function toggleOtherLanguage() {
+            if (languageSelect.value === 'other') {
+                otherLanguageSelect.style.display = 'block';
+                otherLanguageSelect.name = 'language';
+                languageSelect.name = '';
+            } else {
+                otherLanguageSelect.style.display = 'none';
+                languageSelect.name = 'language';
+                otherLanguageSelect.name = '';
+            }
+        }
+        
+        languageSelect.addEventListener('change', toggleOtherLanguage);
+        toggleOtherLanguage(); // Викликаємо при завантаженні сторінки
+    }
 </script>
 @endpush
 

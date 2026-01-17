@@ -132,7 +132,25 @@
                                             <div id="description-text"
                                                 class="text-slate-700 dark:text-slate-300 leading-relaxed text-sm font-medium"
                                                 style="max-height: 280px; overflow: hidden;">
-                                                {{ $book->description }}
+                                                @php
+                                                    // Очищаємо текст від Vue директиви та небезпечних символів
+                                                    $description = $book->description;
+                                                    
+                                                    // Видаляємо Vue директиви та спецсимволи, які можуть конфліктувати
+                                                    $description = preg_replace('/v-[\w-]+="[^"]*"/', '', $description);
+                                                    $description = preg_replace('/@[\w-]+="[^"]*"/', '', $description);
+                                                    $description = preg_replace('/:[\w-]+="[^"]*"/', '', $description);
+                                                    $description = preg_replace('/\{\{[^}]*\}\}/', '', $description);
+                                                    
+                                                    // Використовуємо HtmlSanitizer для безпечного форматування
+                                                    $description = \App\Helpers\HtmlSanitizer::sanitize($description);
+                                                    
+                                                    // Конвертуємо переноси рядків в <br> якщо немає HTML тегів
+                                                    if (strip_tags($description) === $description) {
+                                                        $description = nl2br(e($description));
+                                                    }
+                                                @endphp
+                                                {!! $description !!}
                                             </div>
                                             <div id="description-gradient"
                                                 class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-light-bg via-light-bg/80 to-transparent dark:from-dark-bg dark:via-dark-bg/80 dark:to-transparent pointer-events-none"

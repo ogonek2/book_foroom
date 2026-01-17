@@ -42,6 +42,10 @@ Route::middleware('guest')->group(function () {
     Route::post('verification/resend', [RegisteredUserController::class, 'resendVerification'])
         ->name('verification.resend');
 
+    // Registration success page (email verification required)
+    Route::get('registration/success', [RegisteredUserController::class, 'showVerificationRequired'])
+        ->name('registration.success');
+
     // OAuth routes
     Route::get('auth/google', [RegisteredUserController::class, 'redirectToGoogle'])
         ->name('auth.google');

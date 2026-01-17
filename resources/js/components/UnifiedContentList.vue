@@ -177,6 +177,22 @@
                                 class="flex items-center space-x-2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-brand-500 dark:hover:text-brand-400 transition-colors cursor-pointer">
                             <i class="fas fa-share"></i>
                         </button>
+
+                        <!-- Favorite Button (only for reviews) -->
+                        <button v-if="item.type === 'review' && isAuthenticated"
+                                @click.stop="toggleFavorite(item)" 
+                                type="button"
+                                :class="[
+                                    'flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium',
+                                    item.is_favorited 
+                                        ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' 
+                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-yellow-500 dark:hover:text-yellow-400'
+                                ]"
+                                :title="item.is_favorited ? 'Видалити з обраного' : 'Додати в обране'">
+                            <svg class="w-4 h-4" :fill="item.is_favorited ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </button>
                     </div>
 
                     <!-- Date and Actions -->
@@ -298,6 +314,7 @@ export default {
         return {
             expandedItems: new Set(),
             itemLikes: {}, // Храним состояние лайков для каждого элемента
+            itemFavorites: {}, // Храним состояние favorites для каждого элемента
             allDiscussions: [],
             allReviews: [],
             currentPage: 1,
@@ -377,6 +394,9 @@ export default {
         }
     },
     computed: {
+        isAuthenticated() {
+            return window.isAuthenticated === true || window.isAuthenticated === 'true';
+        },
         // Объединяем и нормализуем данные
         normalizedContent() {
             const discussions = (this.allDiscussions.length > 0 ? this.allDiscussions : this.discussions).map(discussion => ({
@@ -408,6 +428,7 @@ export default {
                 likes_count: this.getItemLikesCount(review.id, 'review'),
                 comments_count: review.replies_count || 0,
                 is_liked: this.getItemLiked(review.id, 'review'),
+                is_favorited: this.getItemFavorited(review.id, 'review'),
                 rating: review.rating,
                 review_type: review.review_type || null,
                 opinion_type: review.opinion_type || null,
@@ -619,6 +640,10 @@ export default {
                     is_liked: review.is_liked || false,
                     likes_count: review.likes_count || 0
                 });
+                // Инициализируем состояние favorites для рецензий
+                this.$set(this.itemFavorites, key, {
+                    is_favorited: review.is_favorited || false
+                });
             });
         },
 
@@ -630,6 +655,11 @@ export default {
         getItemLikesCount(itemId, type) {
             const key = `${type}-${itemId}`;
             return this.itemLikes[key]?.likes_count || 0;
+        },
+
+        getItemFavorited(itemId, type) {
+            const key = `${type}-${itemId}`;
+            return this.itemFavorites[key]?.is_favorited || false;
         },
 
         getReportableType(item) {
@@ -722,6 +752,58 @@ export default {
             });
         },
 
+        async toggleFavorite(item) {
+            if (item.type !== 'review' || !this.isAuthenticated) {
+                return;
+            }
+
+            if (!item.book || !item.book.slug) {
+                console.error('Book slug is missing for review:', item);
+                return;
+            }
+
+            const key = `review-${item.id}`;
+            const currentState = this.getItemFavorited(item.id, 'review');
+            
+            // Оптимістичне оновлення UI - змінюємо стан одразу
+            this.$set(this.itemFavorites, key, {
+                is_favorited: !currentState
+            });
+
+            try {
+                const response = await fetch(`/books/${item.book.slug}/reviews/${item.id}/favorite`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Підтверджуємо стан з сервера
+                    this.$set(this.itemFavorites, key, {
+                        is_favorited: data.is_favorited
+                    });
+                } else {
+                    // Відкатуємо зміни при помилці
+                    this.$set(this.itemFavorites, key, {
+                        is_favorited: currentState
+                    });
+                    console.error('Error toggling favorite:', data.message);
+                }
+            } catch (error) {
+                // Відкатуємо зміни при помилці
+                this.$set(this.itemFavorites, key, {
+                    is_favorited: currentState
+                });
+                console.error('Error toggling favorite:', error);
+            }
+        },
+
         // Загрузка данных с сервера
         async loadMore() {
             if (this.loading || !this.hasMore) return;
@@ -760,6 +842,16 @@ export default {
                     const existingIds = new Set(this.allReviews.map(r => r.id));
                     const newReviews = data.reviews.filter(r => !existingIds.has(r.id));
                     this.allReviews = [...this.allReviews, ...newReviews];
+                    
+                    // Ініціалізуємо favorites для нових рецензій
+                    newReviews.forEach(review => {
+                        const key = `review-${review.id}`;
+                        if (!this.itemFavorites[key]) {
+                            this.$set(this.itemFavorites, key, {
+                                is_favorited: review.is_favorited || false
+                            });
+                        }
+                    });
                 }
                 
                 // Проверяем, есть ли еще данные
@@ -836,6 +928,16 @@ export default {
                     const existingReviewIds = new Set(this.allReviews.map(r => r.id));
                     const newReviews = cachedReviews.filter(r => !existingReviewIds.has(r.id));
                     this.allReviews = [...this.allReviews, ...newReviews];
+                    
+                    // Ініціалізуємо favorites для рецензій з кешу
+                    newReviews.forEach(review => {
+                        const key = `review-${review.id}`;
+                        if (!this.itemFavorites[key]) {
+                            this.$set(this.itemFavorites, key, {
+                                is_favorited: review.is_favorited || false
+                            });
+                        }
+                    });
                     
                     // Если есть кешированные данные, начинаем со следующей страницы
                     if (this.allDiscussions.length > 0 || this.allReviews.length > 0) {

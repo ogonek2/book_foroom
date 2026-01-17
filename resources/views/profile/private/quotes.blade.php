@@ -189,7 +189,7 @@
             <!-- Pagination -->
             @if($quotes->hasPages())
                 <div class="mt-6">
-                    {{ $quotes->links() }}
+                    {{ $quotes->appends(array_merge(request()->query(), ['tab' => 'quotes']))->links() }}
                 </div>
             @endif
         </div>

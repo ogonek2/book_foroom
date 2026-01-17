@@ -84,6 +84,13 @@ class Discussion extends Model
             }
             $discussion->last_activity_at = now();
         });
+
+        static::deleted(function ($discussion) {
+            // Оновлюємо лічильники хештегів при видаленні обговорення
+            foreach ($discussion->hashtags as $hashtag) {
+                $hashtag->decrementUsage();
+            }
+        });
     }
 
     public function user(): BelongsTo
@@ -246,5 +253,45 @@ class Discussion extends Model
     public function isBlocked()
     {
         return $this->status === 'blocked';
+    }
+
+    /**
+     * Хештеги обговорення
+     */
+    public function hashtags(): BelongsToMany
+    {
+        return $this->belongsToMany(Hashtag::class, 'hashtag_discussion')
+            ->withTimestamps()
+            ->orderBy('hashtag_discussion.created_at', 'desc');
+    }
+
+    /**
+     * Синхронізує хештеги обговорення
+     */
+    public function syncHashtags(array $hashtagNames): void
+    {
+        // Видаляємо старі хештеги
+        foreach ($this->hashtags as $hashtag) {
+            $hashtag->decrementUsage();
+        }
+        $this->hashtags()->detach();
+
+        // Додаємо нові хештеги
+        foreach ($hashtagNames as $name) {
+            $hashtag = Hashtag::findOrCreate($name);
+            $this->hashtags()->attach($hashtag->id);
+            $hashtag->incrementUsage();
+        }
+    }
+
+    /**
+     * Витягує хештеги з контенту та синхронізує їх
+     */
+    public function extractAndSyncHashtags(): void
+    {
+        $hashtagNames = Hashtag::extractFromText($this->content);
+        if (!empty($hashtagNames)) {
+            $this->syncHashtags($hashtagNames);
+        }
     }
 }

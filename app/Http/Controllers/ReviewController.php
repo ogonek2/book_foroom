@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Review;
+use App\Models\Hashtag;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -334,7 +335,13 @@ class ReviewController extends Controller
             'language' => $request->input('language', 'uk'),
             'contains_spoiler' => $request->boolean('contains_spoiler', false),
             'is_draft' => $isDraft,
+            'status' => $isDraft ? 'pending' : 'active', // Встановлюємо статус
         ]);
+
+        // Витягуємо та зберігаємо хештеги (для всіх рецензій, включаючи чернетки)
+        // Лічильники оновлюються автоматично в методі syncHashtags залежно від статусу
+        $review->refresh(); // Оновлюємо модель після create
+        $review->extractAndSyncHashtags();
 
         // Для черновиков не обновляем рейтинги
         if (!$isDraft) {
@@ -714,7 +721,8 @@ class ReviewController extends Controller
         
         // Определяем действие: publish или save
         $action = $request->input('action');
-        $isDraft = ($action === 'save' || ($request->boolean('is_draft', false) && $action !== 'publish')) ? true : false;
+        // Якщо action === 'save' або чекбокс is_draft встановлений і action !== 'publish', то зберігаємо як чернетку
+        $isDraft = ($action === 'save' || ($request->has('is_draft') && $request->boolean('is_draft') && $action !== 'publish')) ? true : false;
         
         // Определяем минимальное и максимальное количество символов в зависимости от типа
         $reviewType = $request->input('review_type', $review->review_type ?? 'review');
@@ -846,8 +854,19 @@ class ReviewController extends Controller
         
         $review->update($updateData);
 
-        // Если черновик был опубликован, обновляем рейтинги
+        // Витягуємо та синхронізуємо хештеги (для всіх рецензій)
+        // Лічильники оновлюються автоматично в методі syncHashtags залежно від статусу
+        $review->refresh(); // Оновлюємо модель після update
+        $review->extractAndSyncHashtags();
+
+        // Если черновик был опубликован, обновляем рейтинги та хештеги
         if ($wasDraft && !$isDraft) {
+            // Оновлюємо лічильники хештегів при публікації чернетки
+            $review->refresh();
+            foreach ($review->hashtags as $hashtag) {
+                $hashtag->incrementUsage();
+            }
+            
             // Синхронизируем рейтинг с BookReadingStatus
             $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
                 [
@@ -1003,4 +1022,45 @@ class ReviewController extends Controller
     }
 
     // Метод sanitizeHTML удален - теперь используется middleware SanitizeHtmlContent и helper App\Helpers\HtmlSanitizer
+
+    /**
+     * Пошук рецензій по хештегу
+     */
+    public function searchByHashtag(Request $request, $slug)
+    {
+        $hashtag = Hashtag::where('slug', $slug)->firstOrFail();
+        
+        $reviewsQuery = $hashtag->reviews()
+            ->whereNull('parent_id')
+            ->where('is_draft', false)
+            ->where('status', 'active')
+            ->with(['user', 'book', 'hashtags'])
+            ->orderByDesc('created_at');
+
+        $perPage = 15;
+        $reviews = $reviewsQuery->paginate($perPage);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'hashtag' => [
+                    'id' => $hashtag->id,
+                    'name' => $hashtag->name,
+                    'slug' => $hashtag->slug,
+                    'usage_count' => $hashtag->usage_count,
+                ],
+                'reviews' => $reviews->items(),
+                'pagination' => [
+                    'current_page' => $reviews->currentPage(),
+                    'last_page' => $reviews->lastPage(),
+                    'per_page' => $reviews->perPage(),
+                    'total' => $reviews->total(),
+                ],
+            ]);
+        }
+
+        return view('hashtags.show', [
+            'hashtag' => $hashtag,
+            'reviews' => $reviews,
+        ]);
+    }
 }

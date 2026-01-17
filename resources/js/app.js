@@ -43,9 +43,17 @@ import AlertModal from './components/AlertModal.vue';
 import OpinionTypeIcon from './components/OpinionTypeIcon.vue';
 import DoubleRangeSlider from './components/DoubleRangeSlider.vue';
 import { initFeaturedBooksSwiper, initReviewsSwiper } from './swiper-init';
+import bookStatusCache from './utils/bookStatusCache';
+import bookIdCache from './utils/bookIdCache';
+import booksListCache from './utils/booksListCache';
 
 // Экспортируем Vue глобально для использования в Blade шаблонах
 window.Vue = Vue;
+
+// Экспортируем кеши глобально для использования в Blade шаблонах
+window.bookStatusCache = bookStatusCache;
+window.bookIdCache = bookIdCache;
+window.booksListCache = booksListCache;
 
 // Регистрируем компоненты глобально
 Vue.component('book-card', BookCard);

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ReviewResource\Pages;
 use App\Filament\Resources\ReviewResource\RelationManagers;
 use App\Models\Review;
+use App\Models\Hashtag;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -95,6 +96,17 @@ class ReviewResource extends Resource
                             ->columnSpanFull(),
                     ])
                     ->columns(1),
+
+                Forms\Components\Section::make('Хештеги')
+                    ->schema([
+                        Forms\Components\TagsInput::make('hashtags')
+                            ->label('Хештеги')
+                            ->placeholder('Додайте хештеги')
+                            ->suggestions(Hashtag::pluck('name')->toArray())
+                            ->helperText('Введіть хештеги без символу #'),
+                    ])
+                    ->collapsible()
+                    ->collapsed(true),
 
                 Forms\Components\Section::make('Статистика')
                     ->schema([
@@ -198,6 +210,14 @@ class ReviewResource extends Resource
                     ->falseColor('success')
                     ->toggleable(),
                 
+                Tables\Columns\TextColumn::make('hashtags.name')
+                    ->label('Хештеги')
+                    ->badge()
+                    ->color('info')
+                    ->separator(',')
+                    ->limit(3)
+                    ->toggleable(),
+                
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Создано')
                     ->dateTime('d.m.Y H:i')
@@ -244,6 +264,13 @@ class ReviewResource extends Resource
                     ->placeholder('Все')
                     ->trueLabel('Со спойлерами')
                     ->falseLabel('Без спойлеров'),
+                
+                Tables\Filters\SelectFilter::make('hashtag')
+                    ->label('Хештег')
+                    ->relationship('hashtags', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->multiple(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

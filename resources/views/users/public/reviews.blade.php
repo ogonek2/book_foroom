@@ -10,7 +10,7 @@
             @if ($reviews->count() > 0)
                 <div class="space-y-6">
                     @foreach ($reviews as $review)
-                        <div class="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all">
+                        <div class="bg-white dark:bg-white/5 rounded-xl p-6 hover:bg-gray-50 dark:hover:bg-white/10 transition-all shadow-sm border border-gray-200 dark:border-gray-700">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex-1">
                                     <a href="{{ route('books.show', $review->book->slug) }}"

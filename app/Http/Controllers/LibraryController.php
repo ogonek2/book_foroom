@@ -7,6 +7,7 @@ use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -204,6 +205,9 @@ class LibraryController extends Controller
 
         $library->books()->attach($book->id);
 
+        // Кешуємо дані книги для швидкого оновлення компонентів
+        $this->cacheBookData($book);
+
         return response()->json([
             'success' => true,
             'message' => 'Книга "' . $book->title . '" добавлена в библиотеку',
@@ -223,6 +227,9 @@ class LibraryController extends Controller
         }
 
         $library->books()->detach($book->id);
+
+        // Очищаємо кеш книги
+        $this->clearBookCache($book);
 
         return response()->json([
             'success' => true,
@@ -497,5 +504,21 @@ class LibraryController extends Controller
                 'next' => $libraries->nextPageUrl(),
             ],
         ];
+    }
+
+    /**
+     * Кешує дані книги для швидкого оновлення компонентів
+     */
+    protected function cacheBookData(Book $book)
+    {
+        $book->cacheBookData();
+    }
+
+    /**
+     * Очищає кеш книги
+     */
+    protected function clearBookCache(Book $book)
+    {
+        $book->clearBookCache();
     }
 }

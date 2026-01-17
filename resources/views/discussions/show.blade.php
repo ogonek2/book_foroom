@@ -170,7 +170,7 @@
                         <div class="space-y-3">
                             <div class="flex items-center justify-between py-2 border-b border-light-border dark:border-dark-border">
                                 <span class="text-light-text-secondary dark:text-dark-text-secondary text-sm">Обговорення</span>
-                                <span class="text-light-text-primary dark:text-dark-text-primary font-medium">
+                                <span class="text-light-text-primary dark:text-dark-text-primary font-medium" id="authorActiveDiscussionsCount">
                                     {{ $discussion->user->active_discussions_count }}
                                 </span>
                             </div>
@@ -443,6 +443,20 @@
                                 } else {
                                     badge.style.display = 'none';
                                 }
+                            }
+                            
+                            // Update author's active discussions count if on discussion show page
+                            const authorCountElement = document.getElementById('authorActiveDiscussionsCount');
+                            if (authorCountElement) {
+                                let currentCount = parseInt(authorCountElement.textContent) || 0;
+                                if (isClosed) {
+                                    // Closing discussion - decrease count
+                                    currentCount = Math.max(0, currentCount - 1);
+                                } else {
+                                    // Opening discussion - increase count
+                                    currentCount = currentCount + 1;
+                                }
+                                authorCountElement.textContent = currentCount;
                             }
                         } else {
                             // Revert checkbox on error

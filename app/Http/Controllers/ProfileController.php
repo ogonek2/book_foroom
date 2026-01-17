@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Helpers\CDNUploader;
 use App\Models\User;
+use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rules\File;
 
 class ProfileController extends Controller
@@ -52,6 +54,31 @@ class ProfileController extends Controller
         
         // Для вкладки collections нужно передать библиотеки
         $data = compact('user', 'stats', 'ratingStats', 'recentActivity', 'userAwards');
+        
+        if ($tab === 'library') {
+            // Оптимізоване завантаження книг з використанням кешу
+            $readingStatuses = $user->bookReadingStatuses()
+                ->orderBy('created_at', 'desc')
+                ->paginate(12);
+            
+            // Завантажуємо кешовані дані книг
+            $readingStatuses->getCollection()->transform(function ($status) {
+                $cachedBookData = Book::getCachedBookData($status->book_id);
+                if ($cachedBookData) {
+                    // Додаємо кешовані дані до статусу
+                    $status->setRelation('book', (object) $cachedBookData);
+                } else {
+                    // Якщо кешу немає, завантажуємо з бази та кешуємо
+                    $status->load(['book.author', 'book.categories']);
+                    if ($status->book) {
+                        $status->book->cacheBookData();
+                    }
+                }
+                return $status;
+            });
+            
+            $data['books'] = $readingStatuses;
+        }
         
         if ($tab === 'collections') {
             $libraries = $user->libraries()->withCount('books')->with(['books' => function($q) {
@@ -157,8 +184,10 @@ class ProfileController extends Controller
                 ];
             });
         
-        // Recent reviews
+        // Recent reviews (тільки основні рецензії, не коментарі)
         $recentReviews = $user->reviews()
+            ->whereNull('parent_id') // Виключаємо коментарі до рецензій
+            ->where('is_draft', false) // Виключаємо чернетки
             ->with('book')
             ->orderBy('created_at', 'desc')
             ->limit(5)

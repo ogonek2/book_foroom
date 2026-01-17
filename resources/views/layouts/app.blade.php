@@ -285,6 +285,11 @@
         <!-- Global Alert Modal -->
         <div id="global-alert-modal-container"></div>
         
+        <script>
+            // Встановлюємо глобальну змінну для авторизації ПЕРЕД завантаженням app.js
+            window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
+        </script>
+        
         <script src="{{ mix('js/app.js') }}"></script>
         
         <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>

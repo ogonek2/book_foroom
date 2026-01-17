@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Book;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -286,10 +287,23 @@ class UserController extends Controller
         if ($isOwner || $user->show_reading_stats) {
             $recentReadBooks = $user->readingStatuses()
                 ->where('status', 'read')
-                ->with('book')
                 ->orderBy('finished_at', 'desc')
                 ->limit(4)
                 ->get();
+            
+            // Використовуємо кешовані дані книг
+            $recentReadBooks->transform(function ($status) {
+                $cachedBookData = Book::getCachedBookData($status->book_id);
+                if ($cachedBookData) {
+                    $status->setRelation('book', (object) $cachedBookData);
+                } else {
+                    $status->load('book');
+                    if ($status->book) {
+                        $status->book->cacheBookData();
+                    }
+                }
+                return $status;
+            });
         }
 
         // Недавние рецензии
@@ -353,10 +367,23 @@ class UserController extends Controller
         ];
         
         $recentReadBooks = $user->readingStatuses()
-            ->with('book')
             ->orderBy('updated_at', 'desc')
             ->limit(3)
             ->get();
+        
+        // Використовуємо кешовані дані книг
+        $recentReadBooks->transform(function ($status) {
+            $cachedBookData = Book::getCachedBookData($status->book_id);
+            if ($cachedBookData) {
+                $status->setRelation('book', (object) $cachedBookData);
+            } else {
+                $status->load('book');
+                if ($status->book) {
+                    $status->book->cacheBookData();
+                }
+            }
+            return $status;
+        });
         
         // Награды пользователя
         $userAwards = $user->awards()
@@ -466,6 +493,7 @@ class UserController extends Controller
         $discussions = $user->discussions()
             ->withCount(['replies', 'likes'])
             ->where('status', 'active')
+            ->where('is_closed', false)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
         
@@ -617,10 +645,23 @@ class UserController extends Controller
         $recentReadBooks = collect();
         if ($isOwner || $user->show_reading_stats) {
             $recentReadBooks = $user->readingStatuses()
-                ->with('book')
                 ->orderBy('updated_at', 'desc')
                 ->limit(3)
                 ->get();
+            
+            // Використовуємо кешовані дані книг
+            $recentReadBooks->transform(function ($status) {
+                $cachedBookData = Book::getCachedBookData($status->book_id);
+                if ($cachedBookData) {
+                    $status->setRelation('book', (object) $cachedBookData);
+                } else {
+                    $status->load('book');
+                    if ($status->book) {
+                        $status->book->cacheBookData();
+                    }
+                }
+                return $status;
+            });
         }
         
         // Награды пользователя

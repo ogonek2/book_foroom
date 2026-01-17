@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class Book extends Model
 {
@@ -32,6 +33,7 @@ class Book extends Model
         'interesting_facts',
         'synonyms',
         'series',
+        'series_number',
     ];
 
     protected $casts = [
@@ -40,6 +42,7 @@ class Book extends Model
         'pages' => 'integer',
         'publication_year' => 'integer',
         'first_publish_year' => 'integer',
+        'series_number' => 'integer',
         'is_featured' => 'boolean',
         'interesting_facts' => 'array',
         'synonyms' => 'array',
@@ -363,6 +366,75 @@ class Book extends Model
     public function bookPrices()
     {
         return $this->hasMany(BookPrice::class);
+    }
+
+    /**
+     * Отримати кешовані дані книги або завантажити з бази
+     */
+    public static function getCachedBookData($bookId)
+    {
+        $cacheKey = "book_data_{$bookId}";
+        
+        return Cache::remember($cacheKey, now()->addHours(24), function () use ($bookId) {
+            $book = self::with(['author', 'categories'])->find($bookId);
+            
+            if (!$book) {
+                return null;
+            }
+            
+            return [
+                'id' => $book->id,
+                'slug' => $book->slug,
+                'title' => $book->title,
+                'book_name_ua' => $book->book_name_ua,
+                'author' => $book->author ? ($book->author->first_name ?? $book->author) : 'Автор невідомий',
+                'author_id' => $book->author_id,
+                'cover_image' => $book->cover_image,
+                'rating' => (float) $book->rating,
+                'reviews_count' => (int) $book->reviews_count,
+                'pages' => (int) $book->pages,
+                'publication_year' => $book->publication_year,
+                'categories' => $book->categories->pluck('name')->toArray(),
+                'cached_at' => now()->toIso8601String(),
+            ];
+        });
+    }
+
+    /**
+     * Кешує дані книги для швидкого оновлення компонентів
+     */
+    public function cacheBookData()
+    {
+        $this->load(['author', 'categories']);
+        
+        $cacheKey = "book_data_{$this->id}";
+        $cacheData = [
+            'id' => $this->id,
+            'slug' => $this->slug,
+            'title' => $this->title,
+            'book_name_ua' => $this->book_name_ua,
+            'author' => $this->author ? ($this->author->first_name ?? $this->author) : 'Автор невідомий',
+            'author_id' => $this->author_id,
+            'cover_image' => $this->cover_image,
+            'rating' => (float) $this->rating,
+            'reviews_count' => (int) $this->reviews_count,
+            'pages' => (int) $this->pages,
+            'publication_year' => $this->publication_year,
+            'categories' => $this->categories->pluck('name')->toArray(),
+            'cached_at' => now()->toIso8601String(),
+        ];
+
+        // Кешуємо на 24 години
+        Cache::put($cacheKey, $cacheData, now()->addHours(24));
+    }
+
+    /**
+     * Очищає кеш книги
+     */
+    public function clearBookCache()
+    {
+        $cacheKey = "book_data_{$this->id}";
+        Cache::forget($cacheKey);
     }
 
 }
