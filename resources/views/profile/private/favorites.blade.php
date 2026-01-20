@@ -14,12 +14,12 @@
             <div class="grid grid-cols-2 gap-2 lg:gap-4">
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-yellow-400 mb-1">{{ $favoriteQuotes->total() }}</div>
-                    <div class="text-sm text-gray-900 dark:text-white">Збережених цитат</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Збережені цитати</div>
                 </div>
                 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-yellow-400 mb-1">{{ $favoriteReviews->total() }}</div>
-                    <div class="text-sm text-gray-900 dark:text-white">Збережених рецензій</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Збережені рецензії</div>
                 </div>
             </div>
         </div>
@@ -187,8 +187,8 @@
                                 <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-300 mb-2">Немає збережених рецензій</h3>
-                        <p class="text-gray-500 mb-6">Додайте рецензії до збережених, щоб вони з'явились тут</p>
+                        <h3 class="text-xl font-semibold text-gray-300 mb-2">Поки що немає збережених рецензій</h3>
+                        <p class="text-gray-500 mb-6">Додайте рецензії до збережених, щоб вони зʼявилися тут.</p>
                     </div>
                 @endif
             </div>

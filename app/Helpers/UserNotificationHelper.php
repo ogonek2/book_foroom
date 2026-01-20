@@ -75,7 +75,7 @@ class UserNotificationHelper
 
         try {
             $view = $config['view'] ?? 'emails.notifications.generic';
-            $subject = $config['subject'] ?? 'Нове сповіщення на Books Foroom';
+            $subject = $config['subject'] ?? 'Нове сповіщення на FOXY';
 
             Mail::send($view, [
                 'recipient'   => $recipient,
@@ -174,8 +174,8 @@ class UserNotificationHelper
             ],
             'discussion_reply_mention' => [
                 'type'    => 'discussion_reply_mention',
-                'subject' => 'Вас згадали в коментарі',
-                'message' => ':senderName згадав вас в коментарі до обговорення',
+                'subject' => 'Вас згадали у коментарі',
+                'message' => ':senderName згадав вас у коментарі до обговорення',
             ],
             'review_comment_like' => [
                 'type'    => 'review_comment_like',

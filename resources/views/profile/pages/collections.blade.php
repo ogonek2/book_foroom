@@ -59,7 +59,7 @@
                                                     d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
                                                     clip-rule="evenodd" />
                                             </svg>
-                                            <span>{{ $library->books_count }} книг</span>
+                                            <span>{{ $library->books_count }} {{ $library->books_count == 1 ? 'книга' : ($library->books_count < 5 ? 'книги' : 'книг') }}</span>
                                         </span>
                                         <span class="flex items-center space-x-1">
                                             @if ($library->is_private)
@@ -218,7 +218,7 @@
                                                     d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
                                                     clip-rule="evenodd" />
                                             </svg>
-                                            <span>{{ $library->books_count }} книг</span>
+                                            <span>{{ $library->books_count }} {{ $library->books_count == 1 ? 'книга' : ($library->books_count < 5 ? 'книги' : 'книг') }}</span>
                                         </span>
                                         <span class="flex items-center space-x-1">
                                             @if ($library->is_private)

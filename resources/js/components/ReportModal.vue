@@ -32,11 +32,11 @@
                     <!-- Report Type -->
                     <div>
                         <label class="block text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                            Тип скарги *
+                            Причина скарги *
                         </label>
                         <select v-model="reportType" 
                                 class="w-full px-3 py-2 bg-light-bg-secondary dark:bg-gray-700 border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
-                            <option value="">Оберіть тип скарги</option>
+                            <option value="">Оберіть причину скарги</option>
                             <option v-for="(label, value) in reportTypes" :key="value" :value="value">
                                 {{ label }}
                             </option>
@@ -50,9 +50,12 @@
                         </label>
                         <textarea v-model="reason" 
                                   rows="4" 
-                                  placeholder="Опишіть деталі скарги (необов'язково)"
+                                  placeholder="Опишіть причину скарги (необов'язково)"
                                   class="w-full px-3 py-2 bg-light-bg-secondary dark:bg-gray-700 border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none">
                         </textarea>
+                        <p class="mt-2 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                            Скарги розглядаються модераторами. Подання безпідставних скарг може призвести до обмежень.
+                        </p>
                     </div>
 
                     <!-- Error Message -->
@@ -133,13 +136,13 @@ export default {
                 // Fallback types
                 this.reportTypes = {
                     'spam': 'Спам',
-                    'harassment': 'Булінг/травля',
-                    'inappropriate': 'Неприємний контент',
-                    'copyright': 'Порушення авторських прав',
-                    'fake': 'Фальшива інформація',
-                    'hate_speech': 'Розжигання ненависті',
-                    'violence': 'Жахливість',
-                    'adult_content': 'Дорослий контент',
+                    'harassment': 'Образи, булінг, переслідування',
+                    'inappropriate': 'Образливий або неприйнятний контент',
+                    'copyright': 'Порушення авторського права',
+                    'fake': 'Неправдива або оманлива інформація',
+                    'hate_speech': 'Розпалювання ненависті',
+                    'violence': 'Жорстокий або шокуючий контент',
+                    'adult_content': 'Контент для дорослих (18+)',
                     'other': 'Інше'
                 };
             }
@@ -147,7 +150,7 @@ export default {
 
         async submitReport() {
             if (!this.reportType) {
-                this.errorMessage = 'Будь ласка, виберіть тип скарги';
+                this.errorMessage = 'Будь ласка, виберіть причину скарги';
                 return;
             }
 

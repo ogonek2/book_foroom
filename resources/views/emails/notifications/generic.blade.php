@@ -49,7 +49,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Нове сповіщення на Books Foroom</title>
+    <title>Нове сповіщення на FOXY</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background-color: #f3f4f6; padding: 24px;">
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
@@ -106,7 +106,13 @@
                     <tr>
                         <td style="padding-bottom: 16px;">
                             <p style="margin: 0; font-size: 14px; color: #374151;">
-                                {{ $messageText }}
+                                @if((isset($type) && $type === 'discussion_reply_mention') || (isset($eventKey) && $eventKey === 'discussion_reply_mention'))
+                                    Користувач {{ $sender->name ?? $sender->username ?? 'Користувач' }} згадав вас у коментарі
+                                @elseif((isset($type) && $type === 'review_reply') || (isset($eventKey) && $eventKey === 'review_reply'))
+                                    Користувач {{ $sender->name ?? $sender->username ?? 'Користувач' }} відповів на вашу рецензію
+                                @else
+                                    {{ $messageText }}
+                                @endif
                             </p>
                         </td>
                     </tr>
@@ -141,7 +147,13 @@
                         <td style="padding-top: 8px; padding-bottom: 24px; text-align: center;">
                             @if(!empty($notificationUrl))
                                 <a href="{{ $notificationUrl }}" style="display: inline-block; padding: 10px 18px; font-size: 13px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 9999px; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                                    Перейти до сповіщення
+                                    @if((isset($type) && $type === 'discussion_reply_mention') || (isset($eventKey) && $eventKey === 'discussion_reply_mention'))
+                                        Перейти до коментаря
+                                    @elseif((isset($type) && $type === 'review_reply') || (isset($eventKey) && $eventKey === 'review_reply'))
+                                        Перейти до відповіді
+                                    @else
+                                        Перейти до сповіщення
+                                    @endif
                                 </a>
                             @else
                                 <p style="margin: 0; font-size: 13px; color: #6b7280;">
@@ -154,7 +166,7 @@
                     <tr>
                         <td style="border-top: 1px solid #e5e7eb; padding-top: 16px; text-align: center;">
                             <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                                Ви отримали це повідомлення, тому що у вас увімкнені email-сповіщення на Books Foroom.
+                                Ви отримали це повідомлення, оскільки у вас увімкнені email-сповіщення у спільноті FOXY.
                             </p>
                         </td>
                     </tr>

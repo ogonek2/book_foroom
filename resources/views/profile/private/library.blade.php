@@ -33,7 +33,7 @@
                         'want_to_read' => ['title' => 'Хочу прочитати', 'count' => $user->bookReadingStatuses()->where('status', 'want_to_read')->count(), 'color' => 'blue'],
                         'reading' => ['title' => 'Читаю', 'count' => $user->bookReadingStatuses()->where('status', 'reading')->count(), 'color' => 'orange'],
                         'read' => ['title' => 'Прочитано', 'count' => $user->bookReadingStatuses()->where('status', 'read')->count(), 'color' => 'green'],
-                        'abandoned' => ['title' => 'Закинуто', 'count' => $user->bookReadingStatuses()->where('status', 'abandoned')->count(), 'color' => 'red'],
+                        'abandoned' => ['title' => 'Покинуто', 'count' => $user->bookReadingStatuses()->where('status', 'abandoned')->count(), 'color' => 'red'],
                     ];
                 @endphp
 
@@ -60,7 +60,7 @@
                             <option value="want_to_read" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Хочу прочитати</option>
                             <option value="reading" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Читаю</option>
                             <option value="read" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Прочитано</option>
-                            <option value="abandoned" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Закинуто</option>
+                            <option value="abandoned" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Покинуто</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                             <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@
                                             'want_to_read' => 'Хочу',
                                             'reading' => 'Читаю',
                                             'read' => 'Прочитано',
-                                            'abandoned' => 'Закинуто',
+                                            'abandoned' => 'Покинуто',
                                         ];
                                     @endphp
                                     <span class="px-2 py-1 text-xs font-medium text-white rounded-full {{ $statusColors[$readingStatus->status] }}">
@@ -396,7 +396,7 @@
                                                 <option value="want_to_read">Хочу прочитати</option>
                                                 <option value="reading">Читаю</option>
                                                 <option value="read">Прочитано</option>
-                                                <option value="abandoned">Закинуто</option>
+                                                <option value="abandoned">Покинуто</option>
                                             </select>
                                         </div>
                                         <div class="mb-4">

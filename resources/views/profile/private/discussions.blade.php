@@ -22,7 +22,7 @@
             <div class="flex flex-col mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Мої обговорення</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Створені теми для обговорення</p>
+                    <p class="text-gray-600 dark:text-gray-400">Ваші теми для обговорення</p>
                 </div>
                 <!-- Create Discussion Button -->
                 <button onclick="createNewDiscussion()"
@@ -44,12 +44,12 @@
 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-blue-400 mb-1">{{ $totalDiscussions }}</div>
-                    <div class="text-sm text-gray-900 dark:text-white">Всього тем</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Усього тем</div>
                 </div>
                 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-green-400 mb-1" id="activeDiscussionsCount">{{ $activeDiscussions }}</div>
-                    <div class="text-sm text-gray-900 dark:text-white">Активних</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Активних тем</div>
                 </div>
                 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
@@ -59,7 +59,7 @@
                 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-orange-400 mb-1">{{ $totalLikes }}</div>
-                    <div class="text-sm text-gray-900 dark:text-white">Лайків отримано</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Вподобань отримано</div>
                 </div>
             </div>
         </div>

@@ -139,12 +139,16 @@
                                         <div class="flex-1">
                                             <div class="space-y-3">
                                                 <div class="relative">
-                                                    <input type="file" name="avatar" id="avatar"
-                                                        accept="image/jpeg,image/png,image/gif,image/webp"
-                                                        class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-300 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                                    <label for="avatar" class="cursor-pointer">
+                                                        <input type="file" name="avatar" id="avatar"
+                                                            accept="image/jpeg,image/png,image/gif,image/webp"
+                                                            class="hidden"
+                                                            onchange="document.getElementById('avatar-label').textContent = this.files.length > 0 ? 'Обрано файл: ' + this.files[0].name : 'Обрати файл'">
+                                                        <span id="avatar-label" class="inline-block px-6 py-3 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-xl font-semibold hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">Обрати файл</span>
+                                                    </label>
                                                 </div>
                                                 <p class="text-sm text-gray-500 dark:text-gray-400">Максимальний розмір:
-                                                    2MB. Підтримувані формати: JPEG, PNG, GIF, WebP</p>
+                                                    2 МБ. Підтримувані формати: JPEG, PNG, GIF, WebP</p>
                                                 @if ($user->avatar)
                                                     <button type="button"
                                                         onclick="(async function() { const confirmed = await confirm('Видалити аватарку?', 'Підтвердження', 'warning'); if (confirmed) { document.getElementById('delete-avatar-form').submit(); } })();"
@@ -195,7 +199,7 @@
                                     <!-- Email -->
                                     <div>
                                         <label for="email"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email-адреса
                                             *</label>
                                         <input type="email" name="email" id="email"
                                             value="{{ old('email', $user->email) }}" required
@@ -205,7 +209,7 @@
                                     <!-- Bio -->
                                     <div>
                                         <label for="bio"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">О
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Про
                                             себе</label>
                                         <textarea name="bio" id="bio" rows="4" placeholder="Розкажіть про себе..."
                                             class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none">{{ old('bio', $user->bio) }}</textarea>
@@ -484,9 +488,9 @@
                                     <div class="flex items-center justify-between">
                                         <div>
                                             <h4 class="text-sm font-medium text-gray-900 dark:text-white">Показувати
-                                                рейтинги книг</h4>
+                                                оцінки книг</h4>
                                             <p class="text-sm text-gray-500 dark:text-gray-400">Дозволити іншим бачити ваші
-                                                рейтинги книг</p>
+                                                оцінки книг</p>
                                         </div>
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" name="show_ratings" value="1"

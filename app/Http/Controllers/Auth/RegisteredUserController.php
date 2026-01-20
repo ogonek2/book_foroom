@@ -202,7 +202,7 @@ class RegisteredUserController extends Controller
                 'verificationUrl' => route('email.verify', ['token' => $token])
             ], function ($message) use ($user) {
                 $message->to($user->email, $user->name)
-                        ->subject('Підтвердження електронної пошти - Книжковий форум');
+                        ->subject('Підтвердження електронної пошти - FOXY | Книжкова спільнота');
             });
 
             Log::info('Email verification sent to user: ' . $user->email);

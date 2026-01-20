@@ -7,7 +7,7 @@
             <div class="flex flex-col mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Мої рецензії</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Всі написані рецензії на книги</p>
+                    <p class="text-gray-600 dark:text-gray-400">Усі ваші рецензії на книги</p>
                 </div>
                 <!-- Write Review Button -->
                 <button onclick="writeNewReview()"
@@ -32,7 +32,7 @@
 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-blue-400 mb-1">{{ $totalReviews }}</div>
-                    <div class="text-sm text-gray-900 dark:text-white">Всього рецензій</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Усього рецензій</div>
                 </div>
 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
@@ -43,7 +43,7 @@
 
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-purple-400 mb-1">{{ $totalLikes }}</div>
-                    <div class="text-sm text-gray-900 dark:text-white">Лайків отримано</div>
+                    <div class="text-sm text-gray-900 dark:text-white">Вподобань отримано</div>
                 </div>
             </div>
         </div>

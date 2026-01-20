@@ -209,7 +209,7 @@
         <div class="mt-8 pt-8 border-t border-light-border dark:border-dark-border">
             <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 <p class="text-center md:text-left text-light-text-secondary dark:text-dark-text-secondary text-sm">
-                    © {{ date('Y') }} <span class="font-semibold bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">Foxy</span>. Всі права захищені.
+                    © 2026 <span class="font-semibold bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">FoxyBooks</span>. Всі права захищені.
                 </p>
                 <div class="flex items-center space-x-6 text-sm text-light-text-secondary dark:text-dark-text-secondary">
                     <a href="#" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Політика конфіденційності</a>

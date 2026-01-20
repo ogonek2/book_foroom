@@ -6,7 +6,7 @@
         <div class="mb-8">
             <div class="mb-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Мої чернетки</h2>
-                <p class="text-gray-600 dark:text-gray-400">Збережені чернетки рецензій, цитат та обговорень</p>
+                <p class="text-gray-600 dark:text-gray-400">Ваші чернетки рецензій, цитат і обговорень</p>
             </div>
 
             <!-- Drafts Stats -->

@@ -158,6 +158,14 @@ export default {
                 // Используем book_slug (новые уведомления) или fallback на book_id (старые уведомления)
                 const bookIdentifier = notification.data.book_slug || notification.data.book_id;
                 return `/books/${bookIdentifier}/reviews/${notification.data.review_id}`;
+            } else if (notification.type === 'review_comment_reply' && notification.data) {
+                // Для ответов на коментарі до рецензії переходимо на окрему сторінку коментаря
+                const bookIdentifier = notification.data.book_slug || notification.data.book_id;
+                const commentId = notification.data.review_id; // ID комментария, на который ответили
+                if (bookIdentifier && commentId) {
+                    // Переходимо на окрему сторінку коментаря (з хлібними крихтами до рецензії)
+                    return `/books/${bookIdentifier}/reviews/${commentId}`;
+                }
             } else if (['review_like', 'review_like_milestone', 'review_comment_like'].includes(notification.type) && notification.data) {
                 // Для лайков рецензий переходим на страницу рецензии
                 const bookIdentifier = notification.data.book_slug || notification.data.book_id;

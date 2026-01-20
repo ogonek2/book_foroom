@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use App\Models\Review;
 use App\Models\User;
 use App\Helpers\UserNotificationHelper;
 
@@ -26,11 +27,25 @@ class NotificationService
         // Определяем, это ответ на рецензию или на комментарий к рецензии
         $eventKey = $parentReview->parent_id ? 'review_comment_reply' : 'review_reply';
 
+        // Находим ID основной рецензии (без parent_id)
+        $mainReviewId = $parentReview->id;
+        if ($parentReview->parent_id) {
+            // Если это комментарий, находим основную рецензию через рекурсивный запрос
+            $currentReview = Review::find($parentReview->id);
+            while ($currentReview && $currentReview->parent_id) {
+                $currentReview = Review::find($currentReview->parent_id);
+            }
+            if ($currentReview) {
+                $mainReviewId = $currentReview->id;
+            }
+        }
+
         $payload = [
             'book_id'       => $parentReview->book_id,
             'book_slug'     => $parentReview->book->slug,
             'book_title'    => $parentReview->book->title ?? 'Книга',
-            'review_id'     => $parentReview->id,
+            'review_id'     => $parentReview->id, // ID комментария, на который ответили
+            'main_review_id' => $mainReviewId, // ID основной рецензии для URL
             'reply_id'      => $review->id,
             'reply_content' => mb_substr($review->content, 0, 100),
         ];

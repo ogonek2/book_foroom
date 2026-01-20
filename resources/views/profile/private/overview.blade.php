@@ -47,11 +47,11 @@
                 </div>
 
                 <div class="text-center mt-4">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">Всього оцінено: {{ $stats['total_rated_books'] }}
+                    <span class="text-sm text-gray-600 dark:text-gray-400">Усього оцінено: {{ $stats['total_rated_books'] }}
                         книг</span>
                     @if ($stats['average_rating'])
                         <span class="text-sm text-gray-600 dark:text-gray-400 ml-4">Середня оцінка:
-                            {{ number_format($stats['average_rating'], 1) }}/10</span>
+                            {{ number_format($stats['average_rating'], 1) }} / 10</span>
                     @endif
                 </div>
             @else

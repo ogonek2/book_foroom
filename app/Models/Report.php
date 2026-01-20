@@ -84,13 +84,13 @@ class Report extends Model
     {
         return [
             self::TYPE_SPAM => 'Спам',
-            self::TYPE_HARASSMENT => 'Булінг/травля',
-            self::TYPE_INAPPROPRIATE => 'Неприємний контент',
-            self::TYPE_COPYRIGHT => 'Порушення авторських прав',
-            self::TYPE_FAKE => 'Фальшива інформація',
-            self::TYPE_HATE_SPEECH => 'Розжигання ненависті',
-            self::TYPE_VIOLENCE => 'Жахливість',
-            self::TYPE_ADULT_CONTENT => 'Дорослий контент',
+            self::TYPE_HARASSMENT => 'Образи, булінг, переслідування',
+            self::TYPE_INAPPROPRIATE => 'Образливий або неприйнятний контент',
+            self::TYPE_COPYRIGHT => 'Порушення авторського права',
+            self::TYPE_FAKE => 'Неправдива або оманлива інформація',
+            self::TYPE_HATE_SPEECH => 'Розпалювання ненависті',
+            self::TYPE_VIOLENCE => 'Жорстокий або шокуючий контент',
+            self::TYPE_ADULT_CONTENT => 'Контент для дорослих (18+)',
             self::TYPE_OTHER => 'Інше'
         ];
     }
