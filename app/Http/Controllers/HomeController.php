@@ -51,6 +51,16 @@ class HomeController extends Controller
         return view('rules');
     }
 
+    public function privacy()
+    {
+        return view('privacy');
+    }
+
+    public function terms()
+    {
+        return view('terms');
+    }
+
     public function sitemap()
     {
         $sitemapPath = public_path('sitemap.xml');

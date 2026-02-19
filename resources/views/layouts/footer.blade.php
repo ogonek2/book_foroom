@@ -213,8 +213,8 @@
                 </p>
                 <div class="flex items-center space-x-6 text-sm text-light-text-secondary dark:text-dark-text-secondary">
                     <a href="{{ route('rules') }}" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Правила спільноти</a>
-                    <a href="#" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Політика конфіденційності</a>
-                    <a href="#" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Умови використання</a>
+                    <a href="{{ route('privacy') }}" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Політика конфіденційності</a>
+                    <a href="{{ route('terms') }}" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Умови використання</a>
                 </div>
             </div>
             </div>
