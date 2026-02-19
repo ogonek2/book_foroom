@@ -124,16 +124,38 @@
                                     @endif
 
                                     <!-- Review Text -->
-                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4 break-words"
-                                        style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
-                                        {!! Str::limit($review->content, 300) !!}
-                                        @if(strlen($review->content) > 300)
-                                            <br><a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}"
-                                                class="text-orange-500 hover:text-orange-600 font-medium">
-                                                Читати повністю →
-                                            </a>
-                                        @endif
-                                    </div>
+                                    @if($review->contains_spoiler)
+                                        <!-- Spoiler Content -->
+                                        <div class="relative mb-4">
+                                            <div class="relative overflow-hidden rounded-lg py-8 px-4">
+                                                <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 break-words blur-sm filter"
+                                                     style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                                                    {!! Str::limit($review->content, 300) !!}
+                                                </div>
+                                                <!-- Semi-transparent overlay -->
+                                                <div class="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                                                    <div class="text-center px-4 py-6">
+                                                        <p class="text-gray-900 dark:text-white text-base font-bold mb-4 drop-shadow-sm">Рецензія містить спойлер</p>
+                                                        <a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}"
+                                                           class="inline-block bg-indigo-600 dark:bg-indigo-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-md">
+                                                            Читати
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4 break-words"
+                                            style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                                            {!! Str::limit($review->content, 300) !!}
+                                            @if(strlen($review->content) > 300)
+                                                <br><a href="{{ route('books.reviews.show', [$review->book->slug, $review->id]) }}"
+                                                    class="text-orange-500 hover:text-orange-600 font-medium">
+                                                    Читати повністю →
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @endif
 
                                     <!-- Footer -->
                                     <div class="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">

@@ -107,7 +107,7 @@
                 </h3>
                 <ul class="space-y-3">
                     <li>
-                        <a href="#" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 text-sm transition-colors duration-200 flex items-center group">
+                        <a href="{{ route('rules') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 text-sm transition-colors duration-200 flex items-center group">
                             <svg class="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
@@ -123,7 +123,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 text-sm transition-colors duration-200 flex items-center group">
+                        <a href="{{ route('contacts') }}" class="text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 text-sm transition-colors duration-200 flex items-center group">
                             <svg class="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>

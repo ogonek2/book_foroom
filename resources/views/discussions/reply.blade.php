@@ -110,6 +110,8 @@
                                     return [
                                         'id' => $reply->id,
                                         'content' => $reply->content,
+                                        'status' => $reply->status ?? 'active',
+                                        'moderation_reason' => $reply->moderation_reason ?? null,
                                         'created_at' => $reply->created_at->toISOString(),
                                         'user_id' => $reply->user_id,
                                         'parent_id' => $reply->parent_id,

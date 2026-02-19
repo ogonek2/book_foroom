@@ -217,11 +217,11 @@
                                 <input type="hidden" name="book_type" v-model="bookType">
                                 <input type="hidden" name="language" :value="language === 'other' ? otherLanguage : language">
                                 <input type="hidden" name="contains_spoiler" :value="containsSpoiler ? '1' : '0'">
-                                <input type="hidden" name="rating" v-model="rating" required>
+                                <input type="hidden" name="rating" v-model="rating">
                                 <!-- Rating -->
                                 <div class="mb-6">
                                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Оцінка
-                                        <span class="text-red-500">*</span></label>
+                                        <span class="text-red-500" v-if="actionMode === 'publish'">*</span></label>
                                     <div class="flex gap-2 flex-wrap">
                                         <button type="button" v-for="star in 10" :key="star" @@click="rating = star"
                                             :class="['text-3xl bg-transparent border-none cursor-pointer p-0 transition-all duration-200 hover:scale-110', star <= rating ? 'text-yellow-400 drop-shadow-lg' : 'text-slate-300 dark:text-slate-600']">
@@ -278,8 +278,8 @@
                                     </label>
                                 </div>
 
-                                <!-- Opinion Type -->
-                                <div class="mb-6">
+                                <!-- Opinion Type (тільки для відгуків) -->
+                                <div class="mb-6" v-if="reviewType === 'opinion'">
                                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Тип
                                         думки</label>
                                     <div class="grid grid-cols-3 gap-3">
@@ -443,12 +443,24 @@
                             rating: {{ isset($review) ? ($review->rating ?? 0) : ($userRating ?? 0) }},
                             opinionType: '{{ isset($review) ? ($review->opinion_type ?? 'positive') : 'positive' }}',
                             bookType: '{{ isset($review) ? ($review->book_type ?? 'paper') : 'paper' }}',
-                            language: '{{ isset($review) ? ($review->language ?? 'uk') : 'uk' }}',
+                            @php
+                                $reviewLanguage = isset($review) ? ($review->language ?? 'uk') : 'uk';
+                                $otherLanguages = ['cs', 'sk', 'hu', 'ro', 'bg', 'lt', 'pt', 'nl', 'sv', 'no', 'da', 'fi', 'ja', 'ko', 'zh'];
+                                if (in_array($reviewLanguage, $otherLanguages)) {
+                                    $language = 'other';
+                                    $otherLanguage = $reviewLanguage;
+                                } else {
+                                    $language = $reviewLanguage;
+                                    $otherLanguage = 'cs';
+                                }
+                            @endphp
+                            language: '{{ $language }}',
+                            otherLanguage: '{{ $otherLanguage }}',
                             content: '',
                             containsSpoiler: {{ isset($review) ? ($review->contains_spoiler ? 'true' : 'false') : 'false' }},
                             isSubmitting: false,
                             quillInstance: null,
-                            actionMode: 'publish' // 'draft' or 'publish'
+                            actionMode: '{{ isset($review) && $review->is_draft ? 'draft' : 'publish' }}' // 'draft' or 'publish'
                         },
                         computed: {
                             contentLength() {
@@ -462,6 +474,14 @@
                             },
                             maxContentLength() {
                                 return this.reviewType === 'opinion' ? 1000 : 15000;
+                            }
+                        },
+                        watch: {
+                            reviewType(newVal) {
+                                // При зміні типу відгуку оновлюємо інтерфейс
+                                this.$nextTick(() => {
+                                    // Opinion type field вже має v-if="reviewType === 'opinion'", тому автоматично показується/ховається
+                                });
                             }
                         },
                         mounted() {
@@ -644,11 +664,22 @@
                                     return;
                                 }
 
-                                formData.set('rating', this.rating);
+                                // Для чернеток rating може бути порожнім
+                                if (isDraft) {
+                                    // Якщо оцінка не встановлена, відправляємо порожній рядок
+                                    formData.set('rating', this.rating && this.rating > 0 ? this.rating : '');
+                                } else {
+                                    formData.set('rating', this.rating);
+                                }
                                 formData.set('review_type', this.reviewType);
-                                formData.set('opinion_type', this.opinionType);
+                                // Opinion type тільки для відгуків
+                                if (this.reviewType === 'opinion') {
+                                    formData.set('opinion_type', this.opinionType);
+                                }
+                                // Для рецензій не відправляємо opinion_type
                                 formData.set('book_type', this.bookType);
-                                formData.set('language', this.language);
+                                // Використовуємо otherLanguage якщо вибрано "other", інакше використовуємо language
+                                formData.set('language', this.language === 'other' ? this.otherLanguage : this.language);
                                 formData.set('contains_spoiler', this.containsSpoiler ? '1' : '0');
                                 formData.set('is_draft', isDraft ? '1' : '0');
 

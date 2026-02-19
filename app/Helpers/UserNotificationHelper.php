@@ -126,7 +126,7 @@ class UserNotificationHelper
             'review_comment_reply' => [
                 'type'    => 'review_comment_reply',
                 'subject' => 'Новий коментар до вашої рецензії',
-                'message' => ':senderName відповів на ваш коментар до рецензії',
+                'message' => 'Користувач :senderName відповів на ваш коментар до рецензії',
             ],
             'review_reply' => [
                 'type'    => 'review_reply',
@@ -176,6 +176,11 @@ class UserNotificationHelper
                 'type'    => 'discussion_reply_mention',
                 'subject' => 'Вас згадали у коментарі',
                 'message' => ':senderName згадав вас у коментарі до обговорення',
+            ],
+            'review_comment_mention' => [
+                'type'    => 'review_comment_mention',
+                'subject' => 'Вас згадали у коментарі',
+                'message' => ':senderName згадав вас у коментарі до рецензії',
             ],
             'review_comment_like' => [
                 'type'    => 'review_comment_like',

@@ -25,6 +25,7 @@ class ReviewController extends Controller
         $reviewsQuery = $book->reviews()
             ->whereNull('parent_id')
             ->where('is_draft', false)
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->with(['user'])
             ->orderByDesc('created_at');
 
@@ -102,6 +103,8 @@ class ReviewController extends Controller
                 'likes_count' => $review->likes_count ?? 0,
                 'replies_count' => $review->replies_count ?? 0,
                 'contains_spoiler' => $review->contains_spoiler ?? false,
+                'status' => $review->status ?? 'active',
+                'moderation_reason' => $review->moderation_reason ?? null,
                 'review_type' => $review->review_type ?? null,
                 'opinion_type' => $review->opinion_type ?? null,
                 'book_type' => $review->book_type ?? null,
@@ -253,7 +256,7 @@ class ReviewController extends Controller
             'review_type' => 'nullable|in:review,opinion',
             'opinion_type' => 'nullable|in:positive,neutral,negative',
             'book_type' => 'nullable|in:paper,electronic,audio',
-            'language' => 'nullable|in:uk,en',
+            'language' => 'nullable|in:uk,en,pl,de,fr,es,it,ru,cs,sk,hu,ro,bg,lt,pt,nl,sv,no,da,fi,ja,ko,zh',
             'contains_spoiler' => 'nullable|boolean',
             'is_draft' => 'nullable|boolean',
         ]);
@@ -323,14 +326,23 @@ class ReviewController extends Controller
         // Контент уже санитизирован в middleware, используем напрямую
         $content = $request->input('content');
 
+        // Для чернеток rating може бути null
+        $reviewRating = $isDraft ? ($request->input('rating') ?: null) : $rating;
+        
+        // Opinion type тільки для відгуків, для рецензій використовуємо default значення
+        $reviewType = $request->input('review_type', 'review');
+        $opinionType = ($reviewType === 'opinion') 
+            ? ($request->input('opinion_type', 'positive')) 
+            : 'positive'; // Для рецензій встановлюємо default, оскільки колонка не nullable
+
         $review = Review::create([
             'content' => $content,
-            'rating' => $rating,
+            'rating' => $reviewRating,
             'book_id' => $book->getKey(),
             'user_id' => Auth::id(),
             'parent_id' => null,
-            'review_type' => $request->input('review_type', 'review'),
-            'opinion_type' => $request->input('opinion_type', 'positive'),
+            'review_type' => $reviewType,
+            'opinion_type' => $opinionType,
             'book_type' => $request->input('book_type', 'paper'),
             'language' => $request->input('language', 'uk'),
             'contains_spoiler' => $request->boolean('contains_spoiler', false),
@@ -386,7 +398,7 @@ class ReviewController extends Controller
             'review_type' => 'nullable|in:review,opinion',
             'opinion_type' => 'nullable|in:positive,neutral,negative',
             'book_type' => 'nullable|in:paper,electronic,audio',
-            'language' => 'nullable|in:uk,en,de,other',
+            'language' => 'nullable|in:uk,en,pl,de,fr,es,it,ru,cs,sk,hu,ro,bg,lt,pt,nl,sv,no,da,fi,ja,ko,zh',
             'contains_spoiler' => 'nullable|boolean',
         ]);
 
@@ -469,10 +481,12 @@ class ReviewController extends Controller
             'book.author',
             'replies' => function ($query) {
                 $query->where('is_draft', false)
+                    ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
                     ->with([
                         'user',
                         'replies' => function ($query) {
                             $query->where('is_draft', false)
+                                ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
                                 ->with('user')
                                 ->orderBy('created_at', 'desc');
                         }
@@ -533,18 +547,25 @@ class ReviewController extends Controller
         }
 
         // Контент уже санитизирован в middleware
+        $isDraft = $request->boolean('is_draft', false);
         $reply = Review::create([
             'content' => $request->input('content'), // Уже санитизирован в middleware
             'rating' => null, // Відповіді не мають рейтингу
             'book_id' => $book->getKey(),
             'user_id' => $userId, // null для гостей, ID користувача для авторизованих
             'parent_id' => $parentId,
+            'status' => $isDraft ? 'pending' : 'active', // Встановлюємо статус
         ]);
 
         // Оновлюємо лічильник відповідей для основного отзыва
         $review->updateRepliesCount();
 
         // Уведомление создается автоматически в событии created модели Review
+
+        // Обробка згадок у коментарі до рецензії
+        if ($userId) {
+            $this->processReviewCommentMentions($reply, $request->input('content'));
+        }
 
         if ($request->expectsJson()) {
             // Загружаем связанные данные для фронтенда
@@ -554,6 +575,8 @@ class ReviewController extends Controller
             $replyData = [
                 'id' => $reply->id,
                 'content' => $reply->content,
+                'status' => $reply->status ?? 'active',
+                'moderation_reason' => $reply->moderation_reason ?? null,
                 'created_at' => $reply->created_at->toISOString(),
                 'user_id' => $reply->user_id,
                 'parent_id' => $reply->parent_id,
@@ -808,7 +831,7 @@ class ReviewController extends Controller
             'review_type' => 'nullable|in:review,opinion',
             'opinion_type' => 'nullable|in:positive,neutral,negative',
             'book_type' => 'nullable|in:paper,electronic,audio',
-            'language' => 'nullable|in:uk,en,de,other',
+            'language' => 'nullable|in:uk,en,pl,de,fr,es,it,ru,cs,sk,hu,ro,bg,lt,pt,nl,sv,no,da,fi,ja,ko,zh',
             'contains_spoiler' => 'nullable|boolean',
             'is_draft' => 'nullable|boolean',
         ];
@@ -828,26 +851,45 @@ class ReviewController extends Controller
         $content = $request->input('content');
         
         // Подготавливаем данные для обновления
+        $reviewType = $request->input('review_type', $review->review_type);
+        
         $updateData = [
             'content' => $content,
-            'review_type' => $request->input('review_type', $review->review_type),
-            'opinion_type' => $request->input('opinion_type', $review->opinion_type),
+            'review_type' => $reviewType,
             'book_type' => $request->input('book_type', $review->book_type),
             'language' => $request->input('language', $review->language),
             'contains_spoiler' => $request->boolean('contains_spoiler', $review->contains_spoiler),
             'is_draft' => $isDraft,
         ];
         
+        // Opinion type тільки для відгуків - для рецензій залишаємо старе значення або встановлюємо default
+        if ($reviewType === 'opinion') {
+            $updateData['opinion_type'] = $request->input('opinion_type', $review->opinion_type ?? 'positive');
+        } else {
+            // Для рецензій залишаємо старе значення, якщо воно є, інакше встановлюємо default
+            // Оскільки колонка не nullable, потрібно завжди мати значення
+            $updateData['opinion_type'] = $review->opinion_type ?? 'positive';
+        }
+        
         // Обрабатываем rating в зависимости от того, публикуем ли мы
         if (!$isDraft) {
             // При публикации rating обязателен (валидация уже проверила)
             $updateData['rating'] = $request->input('rating');
         } else {
-            // Для черновика rating опционален - используем переданное значение или оставляем старое
-            if ($request->has('rating') && $request->input('rating') !== null) {
-                $updateData['rating'] = $request->input('rating');
+            // Для черновика rating опционален - можно установить, изменить или удалить
+            // Проверяем флаг очистки оцінки
+            if ($request->has('rating_cleared') && $request->boolean('rating_cleared')) {
+                $updateData['rating'] = null;
+            } elseif ($request->has('rating')) {
+                $ratingValue = $request->input('rating');
+                // Если передана пустая строка или null, удаляем оцінку
+                if ($ratingValue === '' || $ratingValue === null) {
+                    $updateData['rating'] = null;
+                } else {
+                    $updateData['rating'] = $ratingValue;
+                }
             } else {
-                // Если rating не передан, оставляем старое значение
+                // Если rating не передан в запросе, оставляем старое значение
                 $updateData['rating'] = $review->rating;
             }
         }
@@ -1033,7 +1075,7 @@ class ReviewController extends Controller
         $reviewsQuery = $hashtag->reviews()
             ->whereNull('parent_id')
             ->where('is_draft', false)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->with(['user', 'book', 'hashtags'])
             ->orderByDesc('created_at');
 
@@ -1062,5 +1104,44 @@ class ReviewController extends Controller
             'hashtag' => $hashtag,
             'reviews' => $reviews,
         ]);
+    }
+
+    /**
+     * Process mentions from review comment content
+     */
+    private function processReviewCommentMentions(Review $reply, string $content)
+    {
+        // Extract mentions from content using regex - supports Cyrillic, Latin, numbers, underscores, and hyphens
+        // Don't strip tags - mentions can be in plain text
+        preg_match_all('/@([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_-]+)/u', $content, $matches);
+        
+        if (empty($matches[1])) {
+            return;
+        }
+
+        $usernames = array_unique($matches[1]);
+        $sender = Auth::user();
+        
+        if (!$sender) {
+            return;
+        }
+        
+        foreach ($usernames as $username) {
+            $user = \App\Models\User::where('username', $username)->first();
+            
+            if ($user && $user->id !== $sender->id) {
+                try {
+                    // Send notification for mention in review comment
+                    \App\Services\NotificationService::createReviewCommentMentionNotification($reply, $user, $sender);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send review comment mention notification', [
+                        'reply_id' => $reply->id,
+                        'mentioned_user_id' => $user->id,
+                        'sender_id' => $sender->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
     }
 }

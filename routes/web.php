@@ -11,6 +11,9 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/contacts', [HomeController::class, 'contacts'])->name('contacts');
+Route::get('/rules', [HomeController::class, 'rules'])->name('rules');
+Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
 
 Route::get('dashboard', [ProfileController::class, 'show'])->middleware(['auth', 'verified'])->name('dashboard');
 

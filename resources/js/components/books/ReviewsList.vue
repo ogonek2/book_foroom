@@ -153,21 +153,47 @@
 
                         <!-- Review Text -->
                         <div class="mb-4">
+                            <!-- Blocked Content -->
+                            <div v-if="review.status === 'blocked'" class="my-3">
+                                <div class="border-2 border-red-300 dark:border-red-700 rounded-lg bg-red-50/50 dark:bg-red-900/20 p-4">
+                                    <div class="relative overflow-hidden rounded-md mb-3">
+                                        <p
+                                            class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3 blur-sm filter break-words"
+                                            style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                                            {{ stripHTML(review.content) }}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-start gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+                                        <div class="flex-shrink-0 mt-0.5">
+                                            <i class="fas fa-exclamation-triangle text-red-500 dark:text-red-400 text-lg"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs text-red-700 dark:text-red-300 font-medium mb-1">
+                                                Контент заблоковано адміністрацією сайту
+                                            </p>
+                                            <p v-if="review.moderation_reason" class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                                Причина: {{ review.moderation_reason }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Spoiler Content -->
-                            <div v-if="review.contains_spoiler" class="relative">
+                            <div v-else-if="review.contains_spoiler" class="relative">
                                 <!-- Blurred text background -->
-                                <div class="relative overflow-hidden">
+                                <div class="relative overflow-hidden rounded-lg py-8 px-4">
                                     <p
                                         class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed line-clamp-3 blur-sm filter break-words"
                                         style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                                         {{ stripHTML(review.content) }}
                                     </p>
-                                    <!-- Dark overlay -->
-                                    <div class="absolute inset-0 bg-opacity-70 flex items-center justify-center">
-                                        <div class="text-center">
-                                            <p class="text-white text-lg font-bold mb-4">Рецензія містить спойлер</p>
+                                    <!-- Semi-transparent overlay -->
+                                    <div class="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                                        <div class="text-center px-4 py-6">
+                                            <p class="text-gray-900 dark:text-white text-lg font-bold mb-4 drop-shadow-sm">Рецензія містить спойлер</p>
                                             <button @click="goToReview(review.id)"
-                                                class="bg-white text-black px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                                                class="bg-indigo-600 dark:bg-indigo-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-md">
                                                 Читати
                                             </button>
                                         </div>

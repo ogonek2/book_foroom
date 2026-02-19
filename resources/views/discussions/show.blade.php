@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', $discussion->title)
 
@@ -65,11 +65,37 @@
 
                         <!-- Content -->
                         <div class="prose dark:prose-invert max-w-none">
-                            <div
-                                class="text-light-text-primary dark:text-dark-text-primary leading-relaxed rich-content text-sm break-words" 
-                                style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
-                                {!! $discussion->content !!}
-                            </div>
+                            @if($discussion->status === 'blocked')
+                                <div class="border-2 border-red-300 dark:border-red-700 rounded-lg bg-red-50/50 dark:bg-red-900/20 p-4">
+                                    <div class="relative overflow-hidden rounded-md mb-3">
+                                        <div class="text-light-text-primary dark:text-dark-text-primary leading-relaxed rich-content text-sm break-words blur-sm filter" 
+                                             style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                                            {!! $discussion->content !!}
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+                                        <div class="flex-shrink-0 mt-0.5">
+                                            <i class="fas fa-exclamation-triangle text-red-500 dark:text-red-400 text-lg"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs text-red-700 dark:text-red-300 font-medium mb-1">
+                                                Контент заблоковано адміністрацією сайту
+                                            </p>
+                                            @if($discussion->moderation_reason)
+                                                <p class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                                    Причина: {{ $discussion->moderation_reason }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div
+                                    class="text-light-text-primary dark:text-dark-text-primary leading-relaxed rich-content text-sm break-words" 
+                                    style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                                    {!! $discussion->content !!}
+                                </div>
+                            @endif
                             <!-- Actions -->
                             @auth
                                 <div class="flex items-center space-x-3 py-2 text-sm">

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\FactResource\Pages;
+use App\Filament\Resources\FactResource\RelationManagers;
 use App\Models\Fact;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -10,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class FactResource extends Resource
 {
@@ -24,6 +26,13 @@ class FactResource extends Resource
     protected static ?string $pluralModelLabel = 'Интересные факты';
     
     protected static ?string $navigationGroup = 'Контент';
+    
+    protected static ?int $navigationSort = 7;
+    
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
 
     public static function form(Form $form): Form
     {
@@ -58,6 +67,16 @@ class FactResource extends Resource
                             ->label('Публичный')
                             ->default(true)
                             ->helperText('Отображать факт публично'),
+                        
+                        Forms\Components\Select::make('status')
+                            ->label('Статус')
+                            ->options([
+                                'active' => 'Активно',
+                                'blocked' => 'Заблокировано',
+                                'pending' => 'Ожидает модерации',
+                            ])
+                            ->default('active')
+                            ->required(),
                     ])
                     ->columns(2),
             ]);
@@ -102,6 +121,16 @@ class FactResource extends Resource
                     ->trueColor('success')
                     ->falseColor('gray'),
                 
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Статус')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active' => 'success',
+                        'blocked' => 'danger',
+                        'pending' => 'warning',
+                        default => 'gray',
+                    }),
+                
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Создано')
                     ->dateTime('d.m.Y H:i')
@@ -127,10 +156,44 @@ class FactResource extends Resource
                     ->placeholder('Все факты')
                     ->trueLabel('Только публичные')
                     ->falseLabel('Только приватные'),
+                
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Статус')
+                    ->options([
+                        'active' => 'Активно',
+                        'blocked' => 'Заблокировано',
+                        'pending' => 'Ожидает модерации',
+                    ])
+                    ->multiple(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                
+                Tables\Actions\Action::make('approve')
+                    ->label('Одобрить')
+                    ->icon('heroicon-o-check')
+                    ->color('success')
+                    ->action(function (Fact $record) {
+                        $record->approve(auth()->id(), 'Одобрено через админ панель');
+                    })
+                    ->visible(fn (Fact $record): bool => $record->status !== 'active'),
+                
+                Tables\Actions\Action::make('block')
+                    ->label('Заблокировать')
+                    ->icon('heroicon-o-x-mark')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\Textarea::make('reason')
+                            ->label('Причина блокировки')
+                            ->required()
+                            ->rows(3),
+                    ])
+                    ->action(function (Fact $record, array $data) {
+                        $record->block(auth()->id(), $data['reason']);
+                    })
+                    ->visible(fn (Fact $record): bool => $record->status !== 'blocked'),
                 
                 Tables\Actions\Action::make('toggle_public')
                     ->label(fn (Fact $record): string => $record->is_public ? 'Скрыть' : 'Опубликовать')
@@ -186,4 +249,3 @@ class FactResource extends Resource
         ];
     }
 }
-

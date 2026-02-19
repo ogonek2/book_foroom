@@ -2,6 +2,81 @@
 
 @section('title', $book->title . ' - Книжковий форум')
 
+@push('head')
+@php
+    $description = $book->annotation 
+        ? \Illuminate\Support\Str::limit(strip_tags($book->annotation), 160) 
+        : 'Рецензії та обговорення книги "' . $book->title . '" автора ' . $book->author . ' на FOXY';
+    $keywords = $book->title . ', ' . $book->author . ', книга, рецензії';
+    if ($book->categories->isNotEmpty()) {
+        $keywords .= ', ' . $book->categories->pluck('name')->implode(', ');
+    }
+    $ogImage = $book->cover_image 
+        ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : ($book->cover_image ? asset('storage/' . $book->cover_image) : asset('favicon.svg')))
+        : asset('favicon.svg');
+@endphp
+<meta name="description" content="{{ $description }}">
+<meta name="keywords" content="{{ $keywords }}">
+<meta property="og:type" content="book">
+<meta property="og:title" content="{{ $book->title . ' - FOXY' }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:url" content="{{ route('books.show', $book) }}">
+<meta property="og:image" content="{{ $ogImage }}">
+@if($book->author)
+<meta property="book:author" content="{{ $book->author }}">
+@endif
+@if($book->isbn)
+<meta property="book:isbn" content="{{ $book->isbn }}">
+@endif
+<link rel="canonical" href="{{ route('books.show', $book) }}">
+
+{{-- Structured Data (JSON-LD) --}}
+@php
+$structuredData = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Book',
+    'name' => $book->title,
+    'url' => route('books.show', $book),
+];
+
+if ($book->author) {
+    $structuredData['author'] = [
+        '@type' => 'Person',
+        'name' => $book->author,
+    ];
+}
+
+if ($book->isbn) {
+    $structuredData['isbn'] = $book->isbn;
+}
+
+if ($book->cover_image) {
+    $structuredData['image'] = str_starts_with($book->cover_image, 'http') 
+        ? $book->cover_image 
+        : asset('storage/' . $book->cover_image);
+}
+
+if ($book->rating) {
+    $structuredData['aggregateRating'] = [
+        '@type' => 'AggregateRating',
+        'ratingValue' => $book->rating,
+        'ratingCount' => $book->reviews_count ?? 0,
+    ];
+}
+
+if ($book->pages) {
+    $structuredData['numberOfPages'] = $book->pages;
+}
+
+if ($book->publication_year) {
+    $structuredData['datePublished'] = $book->publication_year;
+}
+@endphp
+<script type="application/ld+json">
+{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
+
 @push('styles')
     <style>
         .price-card-hover:hover {
@@ -220,6 +295,8 @@
                                     'likes_count' => $review->likes_count ?? 0,
                                     'replies_count' => $review->replies_count ?? 0,
                                     'contains_spoiler' => $review->contains_spoiler ?? false,
+                                    'status' => $review->status ?? 'active',
+                                    'moderation_reason' => $review->moderation_reason ?? null,
                                     'review_type' => $review->review_type ?? null,
                                     'opinion_type' => $review->opinion_type ?? null,
                                     'book_type' => $review->book_type ?? null,
@@ -273,6 +350,8 @@
                                     'is_liked_by_current_user' => auth()->check()
                                         ? $quote->isLikedBy(auth()->id())
                                         : false,
+                                    'status' => $quote->status ?? 'active',
+                                    'moderation_reason' => $quote->moderation_reason ?? null,
                                     'is_favorited_by_current_user' => auth()->check()
                                         ? $quote->isFavoritedBy(auth()->id())
                                         : false,
@@ -310,6 +389,8 @@
                                         'username' => $fact->user->username,
                                         'avatar_display' => $fact->user->avatar_display,
                                     ],
+                                    'status' => $fact->status ?? 'active',
+                                    'moderation_reason' => $fact->moderation_reason ?? null,
                                     'is_liked_by_current_user' => auth()->check()
                                         ? $fact->isLikedBy(auth()->id())
                                         : false,
@@ -436,16 +517,13 @@
                                 </div>
                                 @endif
                                 
-                                @if($book->categories->isNotEmpty())
-                                <div class="flex flex-col">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-2">Жанр</span>
-                                    <div class="flex flex-wrap gap-2">
-                                        @foreach($book->categories as $category)
-                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100/70 dark:bg-purple-500/15 text-purple-700 dark:text-purple-200">
-                                                {{ $category->name }}
-                                            </span>
-                                        @endforeach
-                                    </div>
+                                @php
+                                    $seriesNumber = $book->getAttribute('series_number') ?? $book->attributes['series_number'] ?? null;
+                                @endphp
+                                @if($seriesNumber !== null && $seriesNumber !== '')
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">№ у серії</span>
+                                    <span class="text-sm text-gray-900 dark:text-white">{{ (int)$seriesNumber }}</span>
                                 </div>
                                 @endif
                             </div>

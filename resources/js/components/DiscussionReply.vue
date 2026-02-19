@@ -45,10 +45,37 @@
             </div>
 
             <!-- Reply Content -->
-            <div v-if="!isEditing" 
-                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm sm:text-base break-words"
-                 style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
-                 v-html="formatContent(reply.content)">
+            <div v-if="!isEditing">
+                <!-- Blocked Content -->
+                <div v-if="reply.status === 'blocked'" class="my-3">
+                    <div class="border-2 border-red-300 dark:border-red-700 rounded-lg bg-red-50/50 dark:bg-red-900/20 p-4">
+                        <div class="relative overflow-hidden rounded-md mb-3">
+                            <div class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm sm:text-base break-words blur-sm filter"
+                                 style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
+                                 v-html="formatContent(reply.content)">
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+                            <div class="flex-shrink-0 mt-0.5">
+                                <i class="fas fa-exclamation-triangle text-red-500 dark:text-red-400 text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs text-red-700 dark:text-red-300 font-medium mb-1">
+                                    Контент заблоковано адміністрацією сайту
+                                </p>
+                                <p v-if="reply.moderation_reason" class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                    Причина: {{ reply.moderation_reason }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Normal Content -->
+                <div v-else
+                     class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm sm:text-base break-words"
+                     style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
+                     v-html="formatContent(reply.content)">
+                </div>
             </div>
 
             <!-- Edit Form -->

@@ -13,10 +13,15 @@ class Fact extends Model
         'book_id',
         'user_id',
         'is_public',
+        'status',
+        'moderated_at',
+        'moderated_by',
+        'moderation_reason',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
+        'moderated_at' => 'datetime',
     ];
 
     /**
@@ -49,5 +54,45 @@ class Fact extends Model
     public function isLikedBy($userId)
     {
         return $this->likes()->where('user_id', $userId)->where('vote', 1)->exists();
+    }
+
+    public function moderator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderated_by');
+    }
+
+    public function approve($moderatorId, $reason = null)
+    {
+        $this->update([
+            'status' => 'active',
+            'moderated_at' => now(),
+            'moderated_by' => $moderatorId,
+            'moderation_reason' => $reason,
+        ]);
+    }
+
+    public function block($moderatorId, $reason = null)
+    {
+        $this->update([
+            'status' => 'blocked',
+            'moderated_at' => now(),
+            'moderated_by' => $moderatorId,
+            'moderation_reason' => $reason,
+        ]);
+    }
+
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    public function isBlocked()
+    {
+        return $this->status === 'blocked';
     }
 }

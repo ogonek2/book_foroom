@@ -217,7 +217,7 @@ class UserController extends Controller
             ->get();
 
         $recentDiscussions = \App\Models\Discussion::with('user')
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->latest()
             ->limit(3)
             ->get();
@@ -492,7 +492,7 @@ class UserController extends Controller
         
         $discussions = $user->discussions()
             ->withCount(['replies', 'likes'])
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->where('is_closed', false)
             ->orderBy('created_at', 'desc')
             ->paginate(10);

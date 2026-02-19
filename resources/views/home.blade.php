@@ -100,19 +100,23 @@
                 <div class="swiper-wrapper">
                     @forelse($featuredBooks as $book)
                                     <div class="swiper-slide">
-                                        <book-card :book="{{ json_encode([
-                            'id' => $book->id,
-                            'title' => $book->title,
-                            'slug' => $book->slug,
-                            'author' => $book->author_full_name ?? 'Невідомий автор',
-                            'cover_image' => $book->cover_image_display ?? null,
-                            'rating' => $book->display_rating ?? 0,
-                            'reviews_count' => $book->reviews_count ?? 0,
-                            'category' => $book->categories->first()->name ?? 'Без категорії',
-                            'publication_year' => $book->publication_year ?? 'N/A',
-                            'description' => $book->description ?? ''
-                        ]) }}" :is-authenticated="isAuthenticated" :user="user"
-                                            :user-libraries="userLibraries"></book-card>
+                                        <book-card 
+                                            :book="{{ json_encode([
+                                'id' => $book->id,
+                                'title' => $book->title,
+                                'slug' => $book->slug,
+                                'author' => $book->author_full_name ?? 'Невідомий автор',
+                                'cover_image' => $book->cover_image_display ?? null,
+                                'rating' => $book->display_rating ?? 0,
+                                'reviews_count' => $book->reviews_count ?? 0,
+                                'category' => $book->categories->first()->name ?? 'Без категорії',
+                                'publication_year' => $book->publication_year ?? 'N/A',
+                                'description' => $book->description ?? ''
+                            ]) }}" 
+                                            :is-authenticated="{{ auth()->check() ? 'true' : 'false' }}" 
+                                            :user="{{ json_encode(auth()->user()) }}"
+                                            :user-libraries="{{ json_encode(auth()->check() ? (auth()->user()->libraries ?? []) : []) }}">
+                                        </book-card>
                                     </div>
                     @empty
                         <div class="swiper-slide">
@@ -332,7 +336,7 @@
                                                     </p>
                                                 </div>
                                                 <p class="text-light-text-tertiary dark:text-gray-400 mb-6 leading-relaxed">
-                                                    {{ Str::limit($book->description, 150) }}
+                                                    {{ \Illuminate\Support\Str::limit($book->description ?? '', 150) }}
                                                 </p>
                                                 <div class="flex items-center justify-between">
                                                     <div class="flex items-center space-x-4">
@@ -469,7 +473,8 @@
                                                 $reviewUserAvatar = $reviewUser?->avatar_display ?? $reviewUser?->avatar_url ?? $reviewUser?->avatar;
                                                 $reviewUserName = optional($reviewUser)->name;
                                                 $reviewUserUsername = optional($reviewUser)->username;
-                                                $reviewUserInitial = Str::upper(Str::substr($reviewUserName ?: $reviewUserUsername ?: 'Г', 0, 1));
+                                                $nameForInitial = $reviewUserName ?: $reviewUserUsername ?: 'Г';
+                                                $reviewUserInitial = mb_strtoupper(mb_substr($nameForInitial, 0, 1, 'UTF-8'), 'UTF-8');
                                             @endphp
                                             @if ($reviewUser && $reviewUser->username)
                                                 <a href="{{ route('users.public.profile', $reviewUser->username) }}"
@@ -523,7 +528,7 @@
                                                 {{ $review->book->title }}
                                             </h4>
                                             <p class="text-light-text-secondary dark:text-dark-text-secondary text-sm leading-relaxed line-clamp-6">
-                                                {{ Str::limit(strip_tags($review->content), 200) }}
+                                                {{ $review->content ? \Illuminate\Support\Str::limit(strip_tags($review->content), 200) : '' }}
                                             </p>
                                         </div>
                                     </div>

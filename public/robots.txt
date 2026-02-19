@@ -1,2 +1,11 @@
 User-agent: *
-Disallow:
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin11/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /api/
+
+# Sitemap
+Sitemap: /sitemap.xml

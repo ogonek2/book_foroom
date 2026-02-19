@@ -24,17 +24,17 @@ class DiscussionController extends Controller
         $sortBy = $request->get('sort', 'newest');
         $perPage = $request->get('per_page', 15);
 
-        // Загружаем обсуждения
+        // Загружаем обсуждения (включая заблокированные для отображения с блюром)
         $discussionsQuery = Discussion::with(['user'])
             ->withCount(['replies', 'likes'])
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->whereNotNull('user_id') // Исключаем обсуждения без пользователя
             ->where('is_draft', false); // Исключаем черновики
 
-        // Загружаем рецензии
+        // Загружаем рецензии (включая заблокированные для отображения с блюром)
         $reviewsQuery = \App\Models\Review::with(['user', 'book'])
             ->withCount(['replies', 'likes'])
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->whereNull('parent_id') // Только основные рецензии, не ответы
             ->whereNotNull('user_id') // Исключаем рецензии без пользователя
             ->where('is_draft', false); // Исключаем черновики
@@ -200,16 +200,16 @@ class DiscussionController extends Controller
 
             // Для API возвращаем пагинированные данные
             if ($filter === 'all') {
-                // Пересоздаем queries для получения всех данных
+                // Пересоздаем queries для получения всех данных (включая заблокированные)
                 $allDiscussionsQuery = Discussion::with(['user'])
                     ->withCount(['replies', 'likes'])
-                    ->where('status', 'active')
+                    ->whereIn('status', ['active', 'blocked'])
                     ->whereNotNull('user_id')
                     ->where('is_draft', false);
                 
                 $allReviewsQuery = \App\Models\Review::with(['user', 'book'])
                     ->withCount(['replies', 'likes'])
-                    ->where('status', 'active')
+                    ->whereIn('status', ['active', 'blocked'])
                     ->whereNull('parent_id')
                     ->whereNotNull('user_id')
                     ->where('is_draft', false);
@@ -611,25 +611,40 @@ class DiscussionController extends Controller
             ]);
         }]);
 
-        // Загружаем все ответы с глубокой вложенностью (до 5 уровней)
+        // Загружаем все ответы с глубокой вложенностью (до 5 уровней, включая заблокированные)
         $replies = $discussion->replies()
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->with([
                 'user',
                 'replies' => function ($query) {
-                    $query->with([
-                        'user',
-                        'replies' => function ($query) {
-                            $query->with([
-                                'user',
-                                'replies' => function ($query) {
-                                    $query->with([
+                    $query->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
+                        ->with([
+                            'user',
+                            'replies' => function ($query) {
+                                $query->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
+                                    ->with([
                                         'user',
-                                        'replies.user'
-                                    ])->withCount('likes')->orderBy('created_at', 'desc');
-                                }
-                            ])->withCount('likes')->orderBy('created_at', 'desc');
-                        }
-                    ])->withCount('likes')->orderBy('created_at', 'desc');
+                                        'replies' => function ($query) {
+                                            $query->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
+                                                ->with([
+                                                    'user',
+                                                    'replies' => function ($query) {
+                                                        $query->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
+                                                            ->with('user')
+                                                            ->withCount('likes')
+                                                            ->orderBy('created_at', 'desc');
+                                                    }
+                                                ])
+                                                ->withCount('likes')
+                                                ->orderBy('created_at', 'desc');
+                                        }
+                                    ])
+                                    ->withCount('likes')
+                                    ->orderBy('created_at', 'desc');
+                            }
+                        ])
+                        ->withCount('likes')
+                        ->orderBy('created_at', 'desc');
                 }
             ])
             ->withCount('likes')

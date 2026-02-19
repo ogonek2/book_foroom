@@ -191,22 +191,27 @@ class BookController extends Controller
         $reviews = $book->reviews()
             ->whereNull('parent_id')
             ->where('is_draft', false) // Exclude drafts
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->with([
                 'user', 
                 'replies' => function($query) {
-                    $query->where('is_draft', false); // Exclude draft replies
+                    $query->where('is_draft', false) // Exclude draft replies
+                          ->whereIn('status', ['active', 'blocked']); // Включаем заблокированные
                 },
                 'replies.user',
                 'replies.replies' => function($query) {
-                    $query->where('is_draft', false);
+                    $query->where('is_draft', false)
+                          ->whereIn('status', ['active', 'blocked']);
                 },
                 'replies.replies.user',
                 'replies.replies.replies' => function($query) {
-                    $query->where('is_draft', false);
+                    $query->where('is_draft', false)
+                          ->whereIn('status', ['active', 'blocked']);
                 },
                 'replies.replies.replies.user',
                 'replies.replies.replies.replies' => function($query) {
-                    $query->where('is_draft', false);
+                    $query->where('is_draft', false)
+                          ->whereIn('status', ['active', 'blocked']);
                 },
                 'replies.replies.replies.replies.user' // Добавляем четвертый уровень
             ])
@@ -214,20 +219,21 @@ class BookController extends Controller
             ->limit(5)
             ->get();
 
-        // Get quotes for this book (excluding drafts)
+        // Get quotes for this book (including blocked)
         $quotes = $book->quotes()
             ->with('user')
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->where('is_public', true)
             ->where('is_draft', false) // Exclude drafts
             ->orderBy('created_at', 'desc')
             ->limit(4)
             ->get();
 
-        // Get facts for this book
+        // Get facts for this book (including blocked)
         $facts = $book->facts()
             ->with('user')
             ->where('is_public', true)
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->orderBy('created_at', 'desc')
             ->limit(4)
             ->get();

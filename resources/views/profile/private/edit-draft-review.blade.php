@@ -109,9 +109,9 @@
             <!-- Rating -->
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Оцінка <span class="text-gray-500 text-xs">(необов'язково для чернетки)</span>
+                    Оцінка
                 </label>
-                <div class="flex flex-wrap gap-2" id="rating-stars">
+                <div class="flex flex-wrap gap-2 items-center" id="rating-stars">
                     @for($i = 1; $i <= 10; $i++)
                     <button type="button" 
                             data-rating="{{ $i }}"
@@ -119,9 +119,17 @@
                         ★
                     </button>
                     @endfor
+                    @if($review->rating)
+                    <button type="button" 
+                            id="clear-rating"
+                            class="ml-2 px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                        Очистити
+                    </button>
+                    @endif
                 </div>
                 <input type="hidden" name="rating" id="rating-input" value="{{ $review->rating ?? '' }}">
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Оберіть оцінку від 1 до 10</p>
+                <input type="hidden" name="rating_cleared" id="rating-cleared-input" value="0">
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Оберіть оцінку від 1 до 10 або залиште порожнім</p>
             </div>
 
             <!-- Opinion Type -->
@@ -138,7 +146,7 @@
                     </button>
                     @endforeach
                 </div>
-                <input type="hidden" name="opinion_type" id="opinion-type-input" value="{{ $review->opinion_type ?? 'positive' }}">
+                <input type="hidden" name="opinion_type" id="opinion-type-input" value="{{ $review->opinion_type ?? 'positive' }}" data-review-type="{{ $review->review_type ?? 'review' }}">
             </div>
 
             <!-- Book Type -->
@@ -490,14 +498,20 @@
         });
     }
         // Rating stars (inside initQuillEditor, but doesn't depend on Quill)
-        const ratingStars = document.querySelectorAll('#rating-stars button');
+        const ratingStars = document.querySelectorAll('#rating-stars button[data-rating]');
         const ratingInput = document.getElementById('rating-input');
+        const clearRatingBtn = document.getElementById('clear-rating');
         
         if (ratingStars.length > 0 && ratingInput) {
             ratingStars.forEach(star => {
                 star.addEventListener('click', function() {
                     const rating = parseInt(this.getAttribute('data-rating'));
                     ratingInput.value = rating;
+                    
+                    // Показуємо кнопку очищення
+                    if (clearRatingBtn) {
+                        clearRatingBtn.style.display = 'inline-block';
+                    }
                     
                     ratingStars.forEach((s, index) => {
                         if (index + 1 <= rating) {
@@ -508,6 +522,26 @@
                             s.classList.add('text-gray-300', 'dark:text-gray-600');
                         }
                     });
+                });
+            });
+        }
+        
+        // Кнопка очищення оцінки
+        if (clearRatingBtn) {
+            const ratingClearedInput = document.getElementById('rating-cleared-input');
+            clearRatingBtn.addEventListener('click', function() {
+                ratingInput.value = '';
+                if (ratingClearedInput) {
+                    ratingClearedInput.value = '1';
+                }
+                
+                // Ховаємо кнопку очищення
+                this.style.display = 'none';
+                
+                // Скидаємо всі зірки
+                ratingStars.forEach(star => {
+                    star.classList.remove('text-yellow-400');
+                    star.classList.add('text-gray-300', 'dark:text-gray-600');
                 });
             });
         }
@@ -530,6 +564,27 @@
                     this.classList.remove('border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-300');
                     this.classList.add('border-purple-500', 'bg-purple-50', 'dark:bg-purple-900/20', 'text-purple-700', 'dark:text-purple-300');
                 });
+            });
+        }
+        
+        // Обробка відправки форми - для рецензій не відправляємо opinion_type
+        const form = document.getElementById('edit-review-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const reviewTypeSelect = document.querySelector('select[name="review_type"]');
+                const opinionTypeInput = document.getElementById('opinion-type-input');
+                
+                if (reviewTypeSelect && opinionTypeInput) {
+                    // Якщо це рецензія (не відгук), видаляємо opinion_type з форми перед відправкою
+                    if (reviewTypeSelect.value === 'review') {
+                        opinionTypeInput.removeAttribute('name');
+                    } else {
+                        // Для відгуків забезпечуємо, що поле має name
+                        if (!opinionTypeInput.hasAttribute('name')) {
+                            opinionTypeInput.setAttribute('name', 'opinion_type');
+                        }
+                    }
+                }
             });
         }
 
@@ -597,12 +652,48 @@
         
         if (reviewTypeSelect && opinionTypeContainer) {
             reviewTypeSelect.addEventListener('change', function() {
+                const opinionInput = document.getElementById('opinion-type-input');
                 if (this.value === 'opinion') {
                     opinionTypeContainer.style.display = 'block';
+                    // Для відгуків забезпечуємо, що поле має name
+                    if (opinionInput && !opinionInput.hasAttribute('name')) {
+                        opinionInput.setAttribute('name', 'opinion_type');
+                    }
                 } else {
                     opinionTypeContainer.style.display = 'none';
+                    // Для рецензій видаляємо name, щоб не відправляти opinion_type
+                    if (opinionInput) {
+                        opinionInput.removeAttribute('name');
+                    }
                 }
                 updateCharacterLimits();
+            });
+            
+            // Ініціалізуємо стан при завантаженні сторінки
+            const opinionInput = document.getElementById('opinion-type-input');
+            if (reviewTypeSelect.value === 'review' && opinionInput) {
+                opinionInput.removeAttribute('name');
+            }
+        }
+        
+        // Обробка відправки форми - для рецензій не відправляємо opinion_type
+        const form = document.getElementById('edit-review-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const reviewTypeSelect = document.querySelector('select[name="review_type"]');
+                const opinionTypeInput = document.getElementById('opinion-type-input');
+                
+                if (reviewTypeSelect && opinionTypeInput) {
+                    // Якщо це рецензія (не відгук), видаляємо opinion_type з форми перед відправкою
+                    if (reviewTypeSelect.value === 'review') {
+                        opinionTypeInput.removeAttribute('name');
+                    } else {
+                        // Для відгуків забезпечуємо, що поле має name
+                        if (!opinionTypeInput.hasAttribute('name')) {
+                            opinionTypeInput.setAttribute('name', 'opinion_type');
+                        }
+                    }
+                }
             });
         }
         
@@ -647,6 +738,9 @@
     const otherLanguageSelect = document.getElementById('other-language-select');
     
     if (languageSelect && otherLanguageSelect) {
+        // Список мов категорії "Інша"
+        const otherLanguages = ['cs', 'sk', 'hu', 'ro', 'bg', 'lt', 'pt', 'nl', 'sv', 'no', 'da', 'fi', 'ja', 'ko', 'zh'];
+        
         function toggleOtherLanguage() {
             if (languageSelect.value === 'other') {
                 otherLanguageSelect.style.display = 'block';
@@ -659,8 +753,25 @@
             }
         }
         
+        // Ініціалізація при завантаженні сторінки
+        // Перевіряємо, чи вибрано "other" або поточна мова з категорії "Інша"
+        const currentMainValue = languageSelect.value;
+        const currentOtherValue = otherLanguageSelect.value;
+        
+        if (currentMainValue === 'other' || (currentOtherValue && otherLanguages.includes(currentOtherValue))) {
+            // Якщо "other" вже вибрано або поточна мова з категорії "Інша"
+            if (currentMainValue !== 'other') {
+                languageSelect.value = 'other';
+            }
+            if (currentOtherValue && otherLanguages.includes(currentOtherValue)) {
+                otherLanguageSelect.value = currentOtherValue;
+            }
+            toggleOtherLanguage();
+        } else {
+            toggleOtherLanguage(); // Викликаємо при завантаженні сторінки
+        }
+        
         languageSelect.addEventListener('change', toggleOtherLanguage);
-        toggleOtherLanguage(); // Викликаємо при завантаженні сторінки
     }
 </script>
 @endpush

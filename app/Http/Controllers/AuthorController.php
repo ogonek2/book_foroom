@@ -177,6 +177,8 @@ class AuthorController extends Controller
                 'likes_count' => $review->likes_count ?? 0,
                 'replies_count' => $review->replies_count ?? 0,
                 'contains_spoiler' => $review->contains_spoiler ?? false,
+                'status' => $review->status ?? 'active',
+                'moderation_reason' => $review->moderation_reason ?? null,
                 'review_type' => $review->review_type ?? null,
                 'opinion_type' => $review->opinion_type ?? null,
                 'book_type' => $review->book_type ?? null,
@@ -202,7 +204,7 @@ class AuthorController extends Controller
         $quotesQuery = Quote::whereHas('book', function ($q) use ($author) {
                 $q->where('author_id', $author->id);
             })
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные
             ->where('is_public', true)
             ->where('is_draft', false)
             ->with(['user', 'book'])

@@ -15,11 +15,33 @@
         $type = $notification->type;
         $d = $notification->data;
 
-        if (in_array($type, ['review_reply', 'review_comment_reply', 'review_like', 'review_like_milestone'])) {
+        if (in_array($type, ['review_reply'])) {
+            // Для відповідей на рецензії використовуємо reply_id (ID коментаря-відповіді)
+            $bookIdentifier = $d['book_slug'] ?? $d['book_id'] ?? null;
+            $replyId = $d['reply_id'] ?? $d['review_id'] ?? null; // Використовуємо reply_id або fallback на review_id
+            if ($bookIdentifier && $replyId) {
+                $notificationUrl = rtrim($baseUrl, '/') . "/books/{$bookIdentifier}/reviews/{$replyId}";
+            }
+        } elseif (in_array($type, ['review_like', 'review_like_milestone'])) {
+            // Для лайків рецензій використовуємо review_id
             $bookIdentifier = $d['book_slug'] ?? $d['book_id'] ?? null;
             $reviewId = $d['review_id'] ?? null;
             if ($bookIdentifier && $reviewId) {
                 $notificationUrl = rtrim($baseUrl, '/') . "/books/{$bookIdentifier}/reviews/{$reviewId}";
+            }
+        } elseif (in_array($type, ['review_comment_reply'])) {
+            // Для відповідей на коментарі - використовуємо reply_id (ID самого коментаря-відповіді)
+            $bookIdentifier = $d['book_slug'] ?? $d['book_id'] ?? null;
+            $replyId = $d['reply_id'] ?? null;
+            if ($bookIdentifier && $replyId) {
+                $notificationUrl = rtrim($baseUrl, '/') . "/books/{$bookIdentifier}/reviews/{$replyId}";
+            }
+        } elseif (in_array($type, ['review_comment_mention'])) {
+            // Для згадок у коментарях до рецензії - використовуємо comment_id
+            $bookIdentifier = $d['book_slug'] ?? $d['book_id'] ?? null;
+            $commentId = $d['comment_id'] ?? null;
+            if ($bookIdentifier && $commentId) {
+                $notificationUrl = rtrim($baseUrl, '/') . "/books/{$bookIdentifier}/reviews/{$commentId}";
             }
         } elseif (in_array($type, ['discussion_reply', 'discussion_comment_reply', 'discussion_like', 'discussion_like_milestone', 'discussion_comment_like', 'discussion_mention', 'discussion_reply_mention'])) {
             // Используем discussion_slug (новые уведомления) или fallback на discussion_id (старые уведомления)
@@ -107,7 +129,9 @@
                         <td style="padding-bottom: 16px;">
                             <p style="margin: 0; font-size: 14px; color: #374151;">
                                 @if((isset($type) && $type === 'discussion_reply_mention') || (isset($eventKey) && $eventKey === 'discussion_reply_mention'))
-                                    Користувач {{ $sender->name ?? $sender->username ?? 'Користувач' }} згадав вас у коментарі
+                                    Користувач {{ $sender->name ?? $sender->username ?? 'Користувач' }} згадав вас у коментарі до обговорення
+                                @elseif((isset($type) && $type === 'review_comment_mention') || (isset($eventKey) && $eventKey === 'review_comment_mention'))
+                                    Користувач {{ $sender->name ?? $sender->username ?? 'Користувач' }} згадав вас у коментарі до рецензії
                                 @elseif((isset($type) && $type === 'review_reply') || (isset($eventKey) && $eventKey === 'review_reply'))
                                     Користувач {{ $sender->name ?? $sender->username ?? 'Користувач' }} відповів на вашу рецензію
                                 @else
@@ -148,6 +172,8 @@
                             @if(!empty($notificationUrl))
                                 <a href="{{ $notificationUrl }}" style="display: inline-block; padding: 10px 18px; font-size: 13px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 9999px; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
                                     @if((isset($type) && $type === 'discussion_reply_mention') || (isset($eventKey) && $eventKey === 'discussion_reply_mention'))
+                                        Перейти до коментаря
+                                    @elseif((isset($type) && $type === 'review_comment_mention') || (isset($eventKey) && $eventKey === 'review_comment_mention'))
                                         Перейти до коментаря
                                     @elseif((isset($type) && $type === 'review_reply') || (isset($eventKey) && $eventKey === 'review_reply'))
                                         Перейти до відповіді

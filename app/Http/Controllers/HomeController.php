@@ -40,4 +40,27 @@ class HomeController extends Controller
 
         return view('home', compact('stats', 'featuredBooks', 'recentReviews', 'recommendedBooks'));
     }
+
+    public function contacts()
+    {
+        return view('contacts');
+    }
+
+    public function rules()
+    {
+        return view('rules');
+    }
+
+    public function sitemap()
+    {
+        $sitemapPath = public_path('sitemap.xml');
+        
+        if (!file_exists($sitemapPath)) {
+            \Artisan::call('sitemap:generate');
+        }
+        
+        return response()->file($sitemapPath, [
+            'Content-Type' => 'application/xml'
+        ]);
+    }
 }

@@ -60,7 +60,32 @@
             </div>
             <!-- Quote Text -->
             <div v-if="!isEditing">
-                <blockquote class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium italic my-4 break-words"
+                <!-- Blocked Content -->
+                <div v-if="quote.status === 'blocked'" class="my-3">
+                    <div class="border-2 border-red-300 dark:border-red-700 rounded-lg bg-red-50/50 dark:bg-red-900/20 p-4">
+                        <div class="relative overflow-hidden rounded-md mb-3">
+                            <blockquote class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium italic break-words blur-sm filter"
+                                style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                                "{{ quote.content }}"
+                            </blockquote>
+                        </div>
+                        <div class="flex items-start gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+                            <div class="flex-shrink-0 mt-0.5">
+                                <i class="fas fa-exclamation-triangle text-red-500 dark:text-red-400 text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs text-red-700 dark:text-red-300 font-medium mb-1">
+                                    Контент заблоковано адміністрацією сайту
+                                </p>
+                                <p v-if="quote.moderation_reason" class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                    Причина: {{ quote.moderation_reason }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Normal Content -->
+                <blockquote v-else class="text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-medium italic my-4 break-words"
                     style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
                     "{{ quote.content }}"
                 </blockquote>

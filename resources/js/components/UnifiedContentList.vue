@@ -135,13 +135,60 @@
 
                 <!-- Content Preview -->
                 <div class="text-light-text-primary dark:text-dark-text-primary leading-relaxed mb-4 relative">
-                    <div class="text-sm content-preview break-words" 
-                         :class="{ 'content-fade': !isExpanded(item) && getTextLength(item.content) > 150 }"
-                         style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
-                         v-html="getProcessedContent(item)">
+                    <!-- Blocked Content -->
+                    <div v-if="item.status === 'blocked'" class="my-3">
+                        <div class="border-2 border-red-300 dark:border-red-700 rounded-lg bg-red-50/50 dark:bg-red-900/20 p-4">
+                            <div class="relative overflow-hidden rounded-md mb-3">
+                                <div class="text-sm content-preview break-words blur-sm filter"
+                                     style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
+                                     v-html="getProcessedContent(item)">
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+                                <div class="flex-shrink-0 mt-0.5">
+                                    <i class="fas fa-exclamation-triangle text-red-500 dark:text-red-400 text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs text-red-700 dark:text-red-300 font-medium mb-1">
+                                        Контент заблоковано адміністрацією сайту
+                                    </p>
+                                    <p v-if="item.moderation_reason" class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                        Причина: {{ item.moderation_reason }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div v-if="!isExpanded(item) && getTextLength(item.content) >250" 
-                         class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none">
+                    <!-- Spoiler Content -->
+                    <div v-else-if="item.type === 'review' && item.contains_spoiler" class="relative">
+                        <!-- Blurred text background -->
+                        <div class="relative overflow-hidden rounded-lg py-8 px-4">
+                            <div class="text-sm content-preview break-words blur-sm filter"
+                                 style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
+                                 v-html="getProcessedContent(item)">
+                            </div>
+                            <!-- Semi-transparent overlay -->
+                            <div class="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                                <div class="text-center px-4 py-6">
+                                    <p class="text-gray-900 dark:text-white text-base font-bold mb-4 drop-shadow-sm">Рецензія містить спойлер</p>
+                                    <a :href="getItemUrl(item)"
+                                       class="inline-block bg-indigo-600 dark:bg-indigo-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-md">
+                                        Читати
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Normal Content -->
+                    <div v-else>
+                        <div class="text-sm content-preview break-words" 
+                             :class="{ 'content-fade': !isExpanded(item) && getTextLength(item.content) > 150 }"
+                             style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
+                             v-html="getProcessedContent(item)">
+                        </div>
+                        <div v-if="!isExpanded(item) && getTextLength(item.content) >250" 
+                             class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none">
+                        </div>
                     </div>
                 </div>
 
@@ -405,6 +452,8 @@ export default {
                 type: 'discussion',
                 title: discussion.title,
                 content: discussion.content,
+                status: discussion.status || 'active',
+                moderation_reason: discussion.moderation_reason || null,
                 user: discussion.user,
                 created_at: discussion.created_at,
                 updated_at: discussion.updated_at,
@@ -422,6 +471,8 @@ export default {
                 type: 'review',
                 title: review.book?.title || 'Рецензія',
                 content: review.content,
+                status: review.status || 'active',
+                moderation_reason: review.moderation_reason || null,
                 user: review.user,
                 created_at: review.created_at,
                 updated_at: review.updated_at,
@@ -435,6 +486,7 @@ export default {
                 book: review.book,
                 url: `/books/${review.book?.slug}/reviews/${review.id}`,
                 top_comment: review.top_comment || null,
+                contains_spoiler: review.contains_spoiler || false,
             }));
 
             return [...discussions, ...reviews].filter(item => item.user && item.user.id);
@@ -986,8 +1038,44 @@ export default {
 }
 
 /* Стили для форматирования текста внутри контента */
+.content-preview {
+    line-height: 1.7;
+}
+
 .content-preview >>> p {
-    margin-bottom: 0.5em;
+    margin-bottom: 1em;
+    margin-top: 0;
+    line-height: 1.7;
+}
+
+.content-preview >>> p:first-child {
+    margin-top: 0;
+}
+
+.content-preview >>> p:last-child {
+    margin-bottom: 0;
+}
+
+/* Додаємо відступи для br тегів - створюємо візуальний розрив */
+.content-preview >>> br + br {
+    display: block;
+    content: "";
+    margin-top: 0.75em;
+}
+
+/* Відступи для div елементів */
+.content-preview >>> div {
+    margin-bottom: 1em;
+}
+
+.content-preview >>> div:last-child {
+    margin-bottom: 0;
+}
+
+/* Додаємо відступи для тексту без параграфів - обробка інлайн контенту */
+.content-preview {
+    word-spacing: 0.05em;
+    letter-spacing: 0.01em;
 }
 
 .content-preview >>> strong,
@@ -1007,7 +1095,7 @@ export default {
 .content-preview >>> blockquote {
     border-left: 3px solid #e5e7eb;
     padding-left: 1rem;
-    margin: 0.5rem 0;
+    margin: 1rem 0;
     font-style: italic;
     color: #6b7280;
 }
@@ -1032,11 +1120,34 @@ export default {
 .content-preview >>> ul,
 .content-preview >>> ol {
     margin-left: 1.5rem;
-    margin-bottom: 0.5em;
+    margin-bottom: 1em;
+    margin-top: 0.5em;
 }
 
 .content-preview >>> li {
-    margin-bottom: 0.25em;
+    margin-bottom: 0.5em;
+    line-height: 1.6;
+}
+
+.content-preview >>> h1,
+.content-preview >>> h2,
+.content-preview >>> h3,
+.content-preview >>> h4,
+.content-preview >>> h5,
+.content-preview >>> h6 {
+    margin-top: 1em;
+    margin-bottom: 0.75em;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.content-preview >>> h1:first-child,
+.content-preview >>> h2:first-child,
+.content-preview >>> h3:first-child,
+.content-preview >>> h4:first-child,
+.content-preview >>> h5:first-child,
+.content-preview >>> h6:first-child {
+    margin-top: 0;
 }
 
 .line-clamp-3 {

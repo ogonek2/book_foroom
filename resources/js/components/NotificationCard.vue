@@ -9,7 +9,7 @@
         <div class="flex items-start lg:space-x-4">
             <!-- Icon -->
             <div class="flex-shrink-0 lg:block hidden">
-                <div v-if="notification.type === 'review_reply' || notification.type === 'review_comment_reply'" class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <div v-if="notification.type === 'review_reply' || notification.type === 'review_comment_reply' || notification.type === 'review_comment_mention'" class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                     <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd"/>
                     </svg>

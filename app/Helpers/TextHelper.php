@@ -26,7 +26,7 @@ class TextHelper
         return preg_replace_callback($pattern, function ($matches) {
             $username = $matches[1];
             $profileUrl = route('users.public.profile', $username);
-            return '<a href="' . e($profileUrl) . '" class="mention-link text-brand-500 dark:text-brand-400 hover:text-brand-600 dark:hover:text-brand-300 font-medium transition-colors" target="_blank">@' . e($username) . '</a>';
+            return '<a href="' . e($profileUrl) . '" class="mention-link text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold transition-colors" target="_blank">@' . e($username) . '</a>';
         }, $escaped);
     }
 }

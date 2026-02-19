@@ -13,7 +13,7 @@ class FactPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->isModerator() || $user->isAdmin();
     }
 
     /**
@@ -21,7 +21,7 @@ class FactPolicy
      */
     public function view(User $user, Fact $fact): bool
     {
-        return false;
+        return $user->isModerator() || $user->isAdmin();
     }
 
     /**

@@ -2,6 +2,45 @@
 
 @section('title', $author->full_name . ' - Книжковий форум')
 
+@push('head')
+@php
+    $description = 'Книги автора ' . $author->full_name . ' на FOXY. Рецензії, цитати та обговорення творів.';
+    $keywords = $author->full_name . ', автор, книги, рецензії, FOXY';
+    $ogImage = $author->photo 
+        ? (str_starts_with($author->photo, 'http') ? $author->photo : ($author->photo ? asset('storage/' . $author->photo) : asset('favicon.svg')))
+        : asset('favicon.svg');
+@endphp
+<meta name="description" content="{{ $description }}">
+<meta name="keywords" content="{{ $keywords }}">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="{{ $author->full_name . ' - FOXY' }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:url" content="{{ route('authors.show', $author) }}">
+<meta property="og:image" content="{{ $ogImage }}">
+<meta property="profile:first_name" content="{{ $author->first_name ?? '' }}">
+<meta property="profile:last_name" content="{{ $author->last_name ?? '' }}">
+<link rel="canonical" href="{{ route('authors.show', $author) }}">
+
+{{-- Structured Data (JSON-LD) --}}
+@php
+$structuredData = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Person',
+    'name' => $author->full_name,
+    'url' => route('authors.show', $author),
+];
+
+if ($author->photo) {
+    $structuredData['image'] = str_starts_with($author->photo, 'http') 
+        ? $author->photo 
+        : asset('storage/' . $author->photo);
+}
+@endphp
+<script type="application/ld+json">
+{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
+
 @section('main')
     <div
         class="min-h-screen from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
@@ -199,6 +238,8 @@
                                                 'content' => $review->content,
                                                 'rating' => $review->rating,
                                                 'contains_spoiler' => $review->contains_spoiler ?? false,
+                                                'status' => $review->status ?? 'active',
+                                                'moderation_reason' => $review->moderation_reason ?? null,
                                                 'book_slug' => $review->book->slug,
                                                 'user' => $review->user
                                                     ? [

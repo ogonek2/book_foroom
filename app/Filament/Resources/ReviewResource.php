@@ -124,6 +124,7 @@ class ReviewResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['parent.book', 'book', 'user']))
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
@@ -173,8 +174,18 @@ class ReviewResource extends Resource
                     ->label('Тип')
                     ->badge()
                     ->color(fn ($state): string => $state ? 'gray' : 'success')
-                    ->formatStateUsing(fn ($state): string => $state ? 'Ответ' : 'Рецензия')
-                    ->toggleable(),
+                    ->formatStateUsing(function ($state, Review $record): string {
+                        if ($state) {
+                            $parentReview = $record->parent;
+                            if ($parentReview && $parentReview->book) {
+                                return 'Коментар до: ' . \Illuminate\Support\Str::limit($parentReview->book->title, 30);
+                            }
+                            return 'Коментар';
+                        }
+                        return 'Рецензія';
+                    })
+                    ->searchable(false)
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('replies_count')
                     ->label('Ответы')

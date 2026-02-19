@@ -4,6 +4,30 @@
 
 @push('head')
 <meta name="csrf-token" content="{{ csrf_token() }}">
+@php
+    $reviewContent = strip_tags($review->content);
+    $description = \Illuminate\Support\Str::limit($reviewContent, 160) ?: 'Рецензія на книгу "' . $book->title . '" від ' . ($review->user->name ?? 'користувача');
+    $keywords = $book->title . ', ' . $book->author . ', рецензія, відгук, ' . ($review->user->name ?? '');
+    $ogImage = $book->cover_image 
+        ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : ($book->cover_image ? asset('storage/' . $book->cover_image) : ($review->user->avatar_display ?? asset('favicon.svg'))))
+        : ($review->user->avatar_display ?? asset('favicon.svg'));
+@endphp
+<meta name="description" content="{{ $description }}">
+<meta name="keywords" content="{{ $keywords }}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{ 'Рецензія на ' . $book->title . ' - FOXY' }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:url" content="{{ route('books.reviews.show', [$book, $review]) }}">
+<meta property="og:image" content="{{ $ogImage }}">
+<meta property="article:author" content="{{ $review->user->name ?? 'Користувач' }}">
+<meta property="article:published_time" content="{{ $review->created_at->toIso8601String() }}">
+<meta property="article:modified_time" content="{{ $review->updated_at->toIso8601String() }}">
+@if($review->categories->isNotEmpty())
+@foreach($review->categories->take(3) as $category)
+<meta property="article:tag" content="{{ $category->name }}">
+@endforeach
+@endif
+<link rel="canonical" href="{{ route('books.reviews.show', [$book, $review]) }}">
 @endpush
 
 @push('styles')
@@ -137,9 +161,36 @@
                 @endif
                 
                 <!-- Review Content -->
-                <div id="review-content" class="lg:px-6 py-6 leading-7 text-slate-900 dark:text-slate-100 prose prose-slate dark:prose-invert max-w-none break-words" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
-                    {!! $review->content !!}
-                </div>
+                @if($review->status === 'blocked')
+                    <div class="lg:px-6 py-6">
+                        <div class="border-2 border-red-300 dark:border-red-700 rounded-lg bg-red-50/50 dark:bg-red-900/20 p-4">
+                            <div class="relative overflow-hidden rounded-md mb-3">
+                                <div id="review-content" class="leading-7 text-slate-900 dark:text-slate-100 prose prose-slate dark:prose-invert max-w-none break-words blur-sm filter" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                                    {!! $review->content !!}
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+                                <div class="flex-shrink-0 mt-0.5">
+                                    <i class="fas fa-exclamation-triangle text-red-500 dark:text-red-400 text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs text-red-700 dark:text-red-300 font-medium mb-1">
+                                        Контент заблоковано адміністрацією сайту
+                                    </p>
+                                    @if($review->moderation_reason)
+                                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                            Причина: {{ $review->moderation_reason }}
+                                        </p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div id="review-content" class="lg:px-6 py-6 leading-7 text-slate-900 dark:text-slate-100 prose prose-slate dark:prose-invert max-w-none break-words" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                        {!! $review->content !!}
+                    </div>
+                @endif
                 
                 <!-- Review Actions -->
                 <div class="px-6 py-4 border-t border-white/60 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
@@ -215,6 +266,8 @@
                     return [
                         'id' => $reply->id,
                         'content' => $reply->content,
+                        'status' => $reply->status ?? 'active',
+                        'moderation_reason' => $reply->moderation_reason ?? null,
                         'created_at' => $reply->created_at->toISOString(),
                         'user_id' => $reply->user_id,
                         'parent_id' => $reply->parent_id,

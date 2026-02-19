@@ -155,15 +155,29 @@ export default {
         
         getNotificationUrl(notification) {
             if (notification.type === 'review_reply' && notification.data) {
-                // Используем book_slug (новые уведомления) или fallback на book_id (старые уведомления)
+                // Для відповідей на рецензії використовуємо reply_id (ID коментаря-відповіді)
                 const bookIdentifier = notification.data.book_slug || notification.data.book_id;
-                return `/books/${bookIdentifier}/reviews/${notification.data.review_id}`;
+                // Використовуємо reply_id (новий формат) або review_id (старий формат) як fallback
+                const replyId = notification.data.reply_id || notification.data.review_id;
+                if (bookIdentifier && replyId) {
+                    return `/books/${bookIdentifier}/reviews/${replyId}`;
+                }
             } else if (notification.type === 'review_comment_reply' && notification.data) {
-                // Для ответов на коментарі до рецензії переходимо на окрему сторінку коментаря
+                // Для ответов на коментарі до рецензії переходимо на окрему сторінку коментаря-відповіді
                 const bookIdentifier = notification.data.book_slug || notification.data.book_id;
-                const commentId = notification.data.review_id; // ID комментария, на который ответили
-                if (bookIdentifier && commentId) {
+                // Використовуємо reply_id (новий формат) або review_id (старий формат) як fallback
+                const replyId = notification.data.reply_id || notification.data.review_id;
+                if (bookIdentifier && replyId) {
                     // Переходимо на окрему сторінку коментаря (з хлібними крихтами до рецензії)
+                    return `/books/${bookIdentifier}/reviews/${replyId}`;
+                }
+            } else if (notification.type === 'review_comment_mention' && notification.data) {
+                // Для згадок у коментарях до рецензії переходимо на сторінку коментаря
+                const bookIdentifier = notification.data.book_slug || notification.data.book_id;
+                // Використовуємо comment_id (новий формат) або review_id (старий формат) як fallback
+                const commentId = notification.data.comment_id || notification.data.review_id;
+                if (bookIdentifier && commentId) {
+                    // Переходимо на сторінку коментаря
                     return `/books/${bookIdentifier}/reviews/${commentId}`;
                 }
             } else if (['review_like', 'review_like_milestone', 'review_comment_like'].includes(notification.type) && notification.data) {

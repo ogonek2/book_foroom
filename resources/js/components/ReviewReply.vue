@@ -65,10 +65,37 @@
             </div>
 
             <!-- Reply Content -->
-            <div v-if="!isEditing" 
-                 class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm break-words" 
-                 style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
-                {{ reply.content }}
+            <div v-if="!isEditing">
+                <!-- Blocked Content -->
+                <div v-if="reply.status === 'blocked'" class="my-3">
+                    <div class="border-2 border-red-300 dark:border-red-700 rounded-lg bg-red-50/50 dark:bg-red-900/20 p-4">
+                        <div class="relative overflow-hidden rounded-md mb-3">
+                            <p class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm break-words blur-sm filter"
+                               style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;">
+                                {{ reply.content }}
+                            </p>
+                        </div>
+                        <div class="flex items-start gap-3 pt-2 border-t border-red-200 dark:border-red-800">
+                            <div class="flex-shrink-0 mt-0.5">
+                                <i class="fas fa-exclamation-triangle text-red-500 dark:text-red-400 text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs text-red-700 dark:text-red-300 font-medium mb-1">
+                                    Контент заблоковано адміністрацією сайту
+                                </p>
+                                <p v-if="reply.moderation_reason" class="text-xs text-red-600 dark:text-red-400 mt-1">
+                                    Причина: {{ reply.moderation_reason }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Normal Content -->
+                <div v-else
+                     class="text-light-text-primary dark:text-dark-text-primary leading-relaxed text-sm break-words" 
+                     style="word-break: break-word; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto;"
+                     v-html="formatContent(reply.content)">
+                </div>
             </div>
 
             <!-- Edit Form -->
@@ -606,6 +633,27 @@ export default {
         },
         profileUrl(username) {
             return username ? `/users/${username}` : '#';
+        },
+        
+        formatContent(content) {
+            if (!content) return '';
+            
+            // Escape HTML to prevent XSS
+            const escaped = content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            
+            // Replace @username mentions with styled links
+            // Supports Cyrillic, Latin, numbers, underscores, and hyphens
+            const mentionRegex = /@([a-zA-Zа-яА-ЯёЁіІїЇєЄ0-9_-]+)/gu;
+            
+            return escaped.replace(mentionRegex, (match, username) => {
+                const profileUrl = `/users/${username}`;
+                return `<a href="${profileUrl}" class="mention-link text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold transition-colors" target="_blank">@${username}</a>`;
+            });
         }
     }
 };
@@ -681,5 +729,25 @@ export default {
         border-left-width: 1px;
         padding-left: 0.25rem;
     }
+}
+
+/* Mention link styles */
+.mention-link {
+    color: #9333ea; /* purple-600 */
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+.mention-link:hover {
+    color: #7e22ce; /* purple-700 */
+}
+
+.dark .mention-link {
+    color: #a855f7; /* purple-400 */
+}
+
+.dark .mention-link:hover {
+    color: #c084fc; /* purple-300 */
 }
 </style>

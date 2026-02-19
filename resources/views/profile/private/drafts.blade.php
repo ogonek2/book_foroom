@@ -59,7 +59,7 @@
                                         {{ $review->updated_at->diffForHumans() }}
                                     </span>
                                 </div>
-                                <p class="text-gray-700 dark:text-gray-300 line-clamp-2">{{ Str::limit($review->content, 150) }}</p>
+                                <div class="text-gray-700 dark:text-gray-300 line-clamp-2 prose prose-sm max-w-none">{!! Str::limit($review->content, 150) !!}</div>
                                 @if($review->rating)
                                     <div class="mt-2 text-yellow-500">
                                         @for($i = 0; $i < $review->rating; $i++)

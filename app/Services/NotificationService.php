@@ -202,5 +202,34 @@ class NotificationService
 
         UserNotificationHelper::send('discussion_reply_mention', $mentionedUser, $sender, $payload, $reply);
     }
+
+    /**
+     * Создать уведомление об упоминании в комментарии к рецензии
+     */
+    public static function createReviewCommentMentionNotification($reply, $mentionedUser, $sender)
+    {
+        $reply->load('book');
+        
+        // Находим ID основной рецензии (без parent_id)
+        $mainReviewId = $reply->id;
+        $currentReview = Review::find($reply->id);
+        while ($currentReview && $currentReview->parent_id) {
+            $currentReview = Review::find($currentReview->parent_id);
+        }
+        if ($currentReview) {
+            $mainReviewId = $currentReview->id;
+        }
+        
+        $payload = [
+            'book_id'       => $reply->book_id,
+            'book_slug'     => $reply->book->slug ?? null,
+            'book_title'    => $reply->book->title ?? 'Книга',
+            'review_id'     => $mainReviewId, // ID основной рецензии для URL
+            'comment_id'    => $reply->id, // ID комментария, в котором упомянули
+            'comment_content' => mb_substr($reply->content, 0, 100),
+        ];
+
+        UserNotificationHelper::send('review_comment_mention', $mentionedUser, $sender, $payload, $reply);
+    }
 }
 
