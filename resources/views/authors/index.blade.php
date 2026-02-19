@@ -2,6 +2,18 @@
 
 @section('title', 'Автори - Книжковий форум')
 
+@section('description', 'Каталог авторів на FOXY. Знайдіть улюблених авторів, перегляньте їхні книги та рецензії.')
+@section('keywords', 'автори, письменники, книги, рецензії, FOXY')
+@section('canonical', route('authors.index'))
+@section('og_type', 'website')
+@section('og_title', 'Автори - FOXY')
+@section('og_description', 'Каталог авторів на FOXY. Знайдіть улюблених авторів, перегляньте їхні книги та рецензії.')
+@section('og_url', route('authors.index'))
+@section('og_image', asset('favicon.svg'))
+@section('twitter_title', 'Автори - FOXY')
+@section('twitter_description', 'Каталог авторів на FOXY. Знайдіть улюблених авторів, перегляньте їхні книги та рецензії.')
+@section('twitter_image', asset('favicon.svg'))
+
 @section('main')
     <div id="authors-page" class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300" v-cloak>
         <!-- Header -->

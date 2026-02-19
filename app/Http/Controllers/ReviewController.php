@@ -479,6 +479,7 @@ class ReviewController extends Controller
         $review->load([
             'user',
             'book.author',
+            'book.categories',
             'replies' => function ($query) {
                 $query->where('is_draft', false)
                     ->whereIn('status', ['active', 'blocked']) // Включаем заблокированные

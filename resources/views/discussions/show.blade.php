@@ -1,6 +1,24 @@
 @extends('layouts.app')
 
-@section('title', $discussion->title)
+@section('title', $discussion->title . ' - Книжковий форум')
+
+@php
+    $description = \Illuminate\Support\Str::limit(strip_tags($discussion->content ?? ''), 160) ?: 'Обговорення "' . $discussion->title . '" на FOXY';
+    $keywords = $discussion->title . ', обговорення, книги, FOXY';
+    $ogImage = $discussion->user->avatar_display ?? asset('favicon.svg');
+@endphp
+
+@section('description', $description)
+@section('keywords', $keywords)
+@section('canonical', route('discussions.show', $discussion))
+@section('og_type', 'article')
+@section('og_title', $discussion->title . ' - FOXY')
+@section('og_description', $description)
+@section('og_url', route('discussions.show', $discussion))
+@section('og_image', $ogImage)
+@section('twitter_title', $discussion->title . ' - FOXY')
+@section('twitter_description', $description)
+@section('twitter_image', $ogImage)
 
 @section('main')
     <div class="min-h-screen duration-300">

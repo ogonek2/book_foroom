@@ -212,6 +212,7 @@
                     © 2026 <span class="font-semibold bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">FoxyBooks</span>. Всі права захищені.
                 </p>
                 <div class="flex items-center space-x-6 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                    <a href="{{ route('rules') }}" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Правила спільноти</a>
                     <a href="#" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Політика конфіденційності</a>
                     <a href="#" class="hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-200">Умови використання</a>
                 </div>

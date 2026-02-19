@@ -27,6 +27,32 @@
         </script>
 
         <title>@yield('title', 'Книжковий форум')</title>
+        
+        {{-- SEO Meta Tags --}}
+        <meta name="description" content="@yield('description', 'FOXY — українська книжкова спільнота для читачів, рецензій та власних бібліотек. Обговорюйте книги, діліться рецензіями та знаходьте нові твори.')">
+        <meta name="keywords" content="@yield('keywords', 'книги, рецензії, книжковий форум, українська література, читачі, бібліотека, автори')">
+        <meta name="author" content="FOXY Books Club">
+        <meta name="robots" content="@yield('robots', 'index, follow')">
+        <link rel="canonical" href="@yield('canonical', url()->current())">
+        
+        {{-- Open Graph Meta Tags --}}
+        <meta property="og:type" content="@yield('og_type', 'website')">
+        <meta property="og:title" content="@yield('og_title', 'FOXY — Книжковий форум')">
+        <meta property="og:description" content="@yield('og_description', 'Українська книжкова спільнота для читачів, рецензій та власних бібліотек')">
+        <meta property="og:url" content="@yield('og_url', url()->current())">
+        <meta property="og:site_name" content="FOXY Books Club">
+        <meta property="og:image" content="@yield('og_image', asset('favicon.svg'))">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:locale" content="uk_UA">
+        
+        {{-- Twitter Card Meta Tags --}}
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="@yield('twitter_title', 'FOXY — Книжковий форум')">
+        <meta name="twitter:description" content="@yield('twitter_description', 'Українська книжкова спільнота для читачів, рецензій та власних бібліотек')">
+        <meta name="twitter:image" content="@yield('twitter_image', asset('favicon.svg'))">
+        
+        @stack('head')
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">

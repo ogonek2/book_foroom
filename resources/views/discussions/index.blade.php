@@ -1,6 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Обговорення')
+@section('title', 'Обговорення - Книжковий форум')
+
+@section('description', 'Обговорення книг на FOXY. Знайдіть цікаві теми для обговорення або створіть власну.')
+@section('keywords', 'обговорення, книги, форум, рецензії, FOXY')
+@section('canonical', route('discussions.index'))
+@section('og_type', 'website')
+@section('og_title', 'Обговорення - FOXY')
+@section('og_description', 'Обговорення книг на FOXY. Знайдіть цікаві теми для обговорення або створіть власну.')
+@section('og_url', route('discussions.index'))
+@section('og_image', asset('favicon.svg'))
+@section('twitter_title', 'Обговорення - FOXY')
+@section('twitter_description', 'Обговорення книг на FOXY. Знайдіть цікаві теми для обговорення або створіть власну.')
+@section('twitter_image', asset('favicon.svg'))
 
 @section('main')
     <div id="app" class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300">

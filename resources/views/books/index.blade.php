@@ -1,6 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Каталог книг')
+@section('title', 'Каталог книг - Книжковий форум')
+
+@section('description', 'Каталог книг на FOXY. Знайдіть цікаві книги, прочитайте рецензії та додайте їх до своєї бібліотеки.')
+@section('keywords', 'книги, каталог, бібліотека, рецензії, автори, FOXY')
+@section('canonical', route('books.index'))
+@section('og_type', 'website')
+@section('og_title', 'Каталог книг - FOXY')
+@section('og_description', 'Каталог книг на FOXY. Знайдіть цікаві книги, прочитайте рецензії та додайте їх до своєї бібліотеки.')
+@section('og_url', route('books.index'))
+@section('og_image', asset('favicon.svg'))
+@section('twitter_title', 'Каталог книг - FOXY')
+@section('twitter_description', 'Каталог книг на FOXY. Знайдіть цікаві книги, прочитайте рецензії та додайте їх до своєї бібліотеки.')
+@section('twitter_image', asset('favicon.svg'))
 
 @section('main')
     @php

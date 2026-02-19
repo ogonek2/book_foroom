@@ -2,7 +2,6 @@
 
 @section('title', $book->title . ' - Книжковий форум')
 
-@push('head')
 @php
     $description = $book->annotation 
         ? \Illuminate\Support\Str::limit(strip_tags($book->annotation), 160) 
@@ -11,24 +10,30 @@
     if ($book->categories->isNotEmpty()) {
         $keywords .= ', ' . $book->categories->pluck('name')->implode(', ');
     }
-    $ogImage = $book->cover_image 
-        ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : ($book->cover_image ? asset('storage/' . $book->cover_image) : asset('favicon.svg')))
-        : asset('favicon.svg');
+    $ogImage = $book->cover_image_display ?? ($book->cover_image 
+        ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : asset('storage/' . $book->cover_image))
+        : asset('favicon.svg'));
 @endphp
-<meta name="description" content="{{ $description }}">
-<meta name="keywords" content="{{ $keywords }}">
-<meta property="og:type" content="book">
-<meta property="og:title" content="{{ $book->title . ' - FOXY' }}">
-<meta property="og:description" content="{{ $description }}">
-<meta property="og:url" content="{{ route('books.show', $book) }}">
-<meta property="og:image" content="{{ $ogImage }}">
+
+@section('description', $description)
+@section('keywords', $keywords)
+@section('canonical', route('books.show', $book))
+@section('og_type', 'book')
+@section('og_title', $book->title . ' - FOXY')
+@section('og_description', $description)
+@section('og_url', route('books.show', $book))
+@section('og_image', $ogImage)
+@section('twitter_title', $book->title . ' - FOXY')
+@section('twitter_description', $description)
+@section('twitter_image', $ogImage)
+
+@push('head')
 @if($book->author)
 <meta property="book:author" content="{{ $book->author }}">
 @endif
 @if($book->isbn)
 <meta property="book:isbn" content="{{ $book->isbn }}">
 @endif
-<link rel="canonical" href="{{ route('books.show', $book) }}">
 
 {{-- Structured Data (JSON-LD) --}}
 @php

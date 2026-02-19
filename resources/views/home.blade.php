@@ -2,6 +2,18 @@
 
 @section('title', 'Головна - Книжковий форум')
 
+@section('description', 'FOXY — українська книжкова спільнота для читачів, рецензій та власних бібліотек. Обговорюйте книги, діліться рецензіями та знаходьте нові твори.')
+@section('keywords', 'книги, рецензії, книжковий форум, українська література, читачі, бібліотека, автори, обговорення')
+@section('canonical', url('/'))
+@section('og_type', 'website')
+@section('og_title', 'FOXY — Книжковий форум')
+@section('og_description', 'Українська книжкова спільнота для читачів, рецензій та власних бібліотек')
+@section('og_url', url('/'))
+@section('og_image', asset('favicon.svg'))
+@section('twitter_title', 'FOXY — Книжковий форум')
+@section('twitter_description', 'Українська книжкова спільнота для читачів, рецензій та власних бібліотек')
+@section('twitter_image', asset('favicon.svg'))
+
 @section('main')
     <!-- Hero Banner -->
     <section class="relative mb-12 overflow-hidden">

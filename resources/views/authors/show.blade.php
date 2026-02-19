@@ -2,24 +2,29 @@
 
 @section('title', $author->full_name . ' - Книжковий форум')
 
-@push('head')
 @php
     $description = 'Книги автора ' . $author->full_name . ' на FOXY. Рецензії, цитати та обговорення творів.';
     $keywords = $author->full_name . ', автор, книги, рецензії, FOXY';
     $ogImage = $author->photo 
-        ? (str_starts_with($author->photo, 'http') ? $author->photo : ($author->photo ? asset('storage/' . $author->photo) : asset('favicon.svg')))
+        ? (str_starts_with($author->photo, 'http') ? $author->photo : asset('storage/' . $author->photo))
         : asset('favicon.svg');
 @endphp
-<meta name="description" content="{{ $description }}">
-<meta name="keywords" content="{{ $keywords }}">
-<meta property="og:type" content="profile">
-<meta property="og:title" content="{{ $author->full_name . ' - FOXY' }}">
-<meta property="og:description" content="{{ $description }}">
-<meta property="og:url" content="{{ route('authors.show', $author) }}">
-<meta property="og:image" content="{{ $ogImage }}">
+
+@section('description', $description)
+@section('keywords', $keywords)
+@section('canonical', route('authors.show', $author))
+@section('og_type', 'profile')
+@section('og_title', $author->full_name . ' - FOXY')
+@section('og_description', $description)
+@section('og_url', route('authors.show', $author))
+@section('og_image', $ogImage)
+@section('twitter_title', $author->full_name . ' - FOXY')
+@section('twitter_description', $description)
+@section('twitter_image', $ogImage)
+
+@push('head')
 <meta property="profile:first_name" content="{{ $author->first_name ?? '' }}">
 <meta property="profile:last_name" content="{{ $author->last_name ?? '' }}">
-<link rel="canonical" href="{{ route('authors.show', $author) }}">
 
 {{-- Structured Data (JSON-LD) --}}
 @php

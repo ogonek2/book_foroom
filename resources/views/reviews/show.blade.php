@@ -2,32 +2,40 @@
 
 @section('title', 'Рецензія на ' . $book->title . ' - Книжковий форум')
 
-@push('head')
-<meta name="csrf-token" content="{{ csrf_token() }}">
 @php
     $reviewContent = strip_tags($review->content);
     $description = \Illuminate\Support\Str::limit($reviewContent, 160) ?: 'Рецензія на книгу "' . $book->title . '" від ' . ($review->user->name ?? 'користувача');
     $keywords = $book->title . ', ' . $book->author . ', рецензія, відгук, ' . ($review->user->name ?? '');
-    $ogImage = $book->cover_image 
-        ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : ($book->cover_image ? asset('storage/' . $book->cover_image) : ($review->user->avatar_display ?? asset('favicon.svg'))))
-        : ($review->user->avatar_display ?? asset('favicon.svg'));
+    $ogImage = $book->cover_image_display ?? ($book->cover_image 
+        ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : asset('storage/' . $book->cover_image))
+        : ($review->user->avatar_display ?? asset('favicon.svg')));
+    if (!$ogImage || $ogImage === asset('favicon.svg')) {
+        $ogImage = $review->user->avatar_display ?? asset('favicon.svg');
+    }
 @endphp
-<meta name="description" content="{{ $description }}">
-<meta name="keywords" content="{{ $keywords }}">
-<meta property="og:type" content="article">
-<meta property="og:title" content="{{ 'Рецензія на ' . $book->title . ' - FOXY' }}">
-<meta property="og:description" content="{{ $description }}">
-<meta property="og:url" content="{{ route('books.reviews.show', [$book, $review]) }}">
-<meta property="og:image" content="{{ $ogImage }}">
+
+@section('description', $description)
+@section('keywords', $keywords)
+@section('canonical', route('books.reviews.show', [$book, $review]))
+@section('og_type', 'article')
+@section('og_title', 'Рецензія на ' . $book->title . ' - FOXY')
+@section('og_description', $description)
+@section('og_url', route('books.reviews.show', [$book, $review]))
+@section('og_image', $ogImage)
+@section('twitter_title', 'Рецензія на ' . $book->title . ' - FOXY')
+@section('twitter_description', $description)
+@section('twitter_image', $ogImage)
+
+@push('head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <meta property="article:author" content="{{ $review->user->name ?? 'Користувач' }}">
 <meta property="article:published_time" content="{{ $review->created_at->toIso8601String() }}">
 <meta property="article:modified_time" content="{{ $review->updated_at->toIso8601String() }}">
-@if($review->categories->isNotEmpty())
-@foreach($review->categories->take(3) as $category)
+@if($book->categories && $book->categories->isNotEmpty())
+@foreach($book->categories->take(3) as $category)
 <meta property="article:tag" content="{{ $category->name }}">
 @endforeach
 @endif
-<link rel="canonical" href="{{ route('books.reviews.show', [$book, $review]) }}">
 @endpush
 
 @push('styles')

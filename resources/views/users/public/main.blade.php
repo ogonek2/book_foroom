@@ -2,22 +2,26 @@
 
 @section('title', $user->name . ' - Публічний профіль')
 
-@push('head')
 @php
     $description = 'Профіль користувача ' . $user->name . ' на FOXY. Рецензії, бібліотека, обговорення та активність у книжковій спільноті.';
     $keywords = $user->name . ', профіль, рецензії, книги, FOXY';
     $ogImage = $user->avatar_display ?? asset('favicon.svg');
 @endphp
-<meta name="description" content="{{ $description }}">
-<meta name="keywords" content="{{ $keywords }}">
-<meta property="og:type" content="profile">
-<meta property="og:title" content="{{ $user->name . ' - FOXY' }}">
-<meta property="og:description" content="{{ $description }}">
-<meta property="og:url" content="{{ route('users.public.profile', $user->username) }}">
-<meta property="og:image" content="{{ $ogImage }}">
+
+@section('description', $description)
+@section('keywords', $keywords)
+@section('canonical', route('users.public.profile', $user->username))
+@section('og_type', 'profile')
+@section('og_title', $user->name . ' - FOXY')
+@section('og_description', $description)
+@section('og_url', route('users.public.profile', $user->username))
+@section('og_image', $ogImage)
+@section('twitter_title', $user->name . ' - FOXY')
+@section('twitter_description', $description)
+@section('twitter_image', $ogImage)
+
+@push('head')
 <meta property="profile:username" content="{{ $user->username }}">
-<link rel="canonical" href="{{ route('users.public.profile', $user->username) }}">
-@endpush
 
 @push('styles')
 <style>
