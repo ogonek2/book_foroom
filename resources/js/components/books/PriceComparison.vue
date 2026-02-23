@@ -17,6 +17,10 @@
                             <img v-if="price.bookstore.logo_url" 
                                  :src="price.bookstore.logo_url" 
                                  :alt="price.bookstore.name"
+                                 loading="lazy"
+                                 decoding="async"
+                                 width="32"
+                                 height="32"
                                  class="w-8 h-8 rounded-full object-cover">
                             <div v-else 
                                  class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">

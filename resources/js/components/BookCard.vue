@@ -9,6 +9,11 @@
                         <a :href="bookUrl" class="block">
                             <img :src="book.cover_image || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=300&fit=crop&crop=center'"
                                 :alt="book.title"
+                                :loading="loadPriority ? 'eager' : 'lazy'"
+                                :fetchpriority="loadPriority ? 'high' : undefined"
+                                decoding="async"
+                                width="120"
+                                height="180"
                                 class="aspect-[3/4] object-cover rounded-lg shadow-md group-hover:shadow-lg transition-all duration-300"
                                 style="width: 120px; height: auto; aspect-ratio: 2 / 3;">
                         </a>
@@ -192,6 +197,10 @@ export default {
         book: {
             type: Object,
             required: true
+        },
+        loadPriority: {
+            type: Boolean,
+            default: false
         },
         userLibraries: {
             type: Array,

@@ -52,7 +52,7 @@
                         <div class="flex items-center space-x-4 mb-4">
                             <a href="{{ route('users.public.profile', $reply->user->username) }}">
                                 <img src="{{ $reply->user->avatar_display }}" alt="{{ $reply->user->name }}"
-                                    class="w-12 h-12 rounded-full">
+                                    class="w-12 h-12 rounded-full" loading="lazy" decoding="async" width="48" height="48">
                             </a>
                             <div class="flex-1">
                                 <div class="flex items-center space-x-2">
@@ -149,7 +149,7 @@
                             <!-- Author Avatar and Info -->
                             <div class="text-center mb-4">
                                 <img src="{{ $reply->user->avatar_display }}" alt="{{ $reply->user->name }}"
-                                    class="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-light-border dark:border-dark-border">
+                                    class="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-light-border dark:border-dark-border" loading="lazy" decoding="async" width="80" height="80">
                                 <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-1">
                                     {{ $reply->user->name }}
                                 </h3>

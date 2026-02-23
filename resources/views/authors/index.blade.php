@@ -87,10 +87,16 @@
                                     class="group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-xs border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-xl transition-all duration-300">
                                     <a href="{{ route('authors.show', $author) }}" class="block">
                                         <!-- Card Container -->
-                                        <div class="aspect-[3/4] relative">
-                                            <img src="{{ $author->photo_url }}" alt="{{ $author->full_name ?? 'Автор' }}"
+                                        <div class="aspect-[3/4] relative bg-gray-100 dark:bg-gray-700">
+                                            <img src="{{ $author->photo_display }}"
+                                                alt="{{ $author->full_name ?? 'Автор' }}"
                                                 class="w-full h-full object-cover"
-                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                loading="{{ $loop->iteration <= 8 ? 'eager' : 'lazy' }}"
+                                                decoding="async"
+                                                @if($loop->iteration <= 8) fetchpriority="high" @endif
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                                width="300"
+                                                height="400">
 
                                             <!-- Icon Fallback (only shown when image fails to load) -->
                                             <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800"

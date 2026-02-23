@@ -88,6 +88,10 @@
                                             <img v-if="userAvatar(quote.user)"
                                                  :src="userAvatar(quote.user)"
                                                  :alt="quote.user.name"
+                                                 loading="lazy"
+                                                 decoding="async"
+                                                 width="40"
+                                                 height="40"
                                                  class="w-10 h-10 rounded-full transition-transform duration-200 group-hover:scale-110">
                                             <div v-else
                                                  class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-light-text-primary dark:text-dark-text-primary font-semibold transition-transform duration-200 group-hover:scale-110">

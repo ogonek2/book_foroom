@@ -165,7 +165,7 @@
                     </div>
                     <div v-else-if="books.length > 0" key="results">
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
-                            <book-card v-for="book in books" :key="book.id" :book="book" :user-libraries="userLibraries"
+                            <book-card v-for="(book, index) in books" :key="book.id" :book="book" :load-priority="index < 8" :user-libraries="userLibraries"
                                 :is-authenticated="isAuthenticated" @notification="handleNotification" />
                         </div>
 

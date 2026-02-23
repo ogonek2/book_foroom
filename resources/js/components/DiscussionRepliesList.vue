@@ -35,6 +35,10 @@
                              ]">
                             <img :src="user.avatar_display || user.avatar || '/storage/avatars/default.png'" 
                                  :alt="user.name"
+                                 loading="lazy"
+                                 decoding="async"
+                                 width="32"
+                                 height="32"
                                  class="w-8 h-8 rounded-full flex-shrink-0">
                             <div class="flex-1 min-w-0">
                                 <div class="text-sm font-medium text-gray-900 dark:text-white truncate">

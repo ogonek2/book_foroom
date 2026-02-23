@@ -6,7 +6,7 @@
             <div class="flex items-center space-x-3">
                 <!-- Avatar -->
                 <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <img :src="library.user.avatar" alt="Avatar" class="w-10 h-10 rounded-full" v-if="library.user.avatar">
+                    <img :src="library.user.avatar" alt="Avatar" class="w-10 h-10 rounded-full" loading="lazy" decoding="async" width="40" height="40" v-if="library.user.avatar">
                     <span class="text-white font-bold text-sm" v-else>{{ library.user.name.charAt(0) }}</span>
                 </div>
                 <div>
@@ -29,6 +29,10 @@
                 <div v-if="library.books && library.books.length > 0" class="flex-shrink-0" style="width: 32%">
                     <img :src="library.books[0].cover_image || defaultCover"
                          :alt="library.books[0].title"
+                         loading="lazy"
+                         decoding="async"
+                         width="120"
+                         height="180"
                          class="object-cover rounded-lg shadow-md w-full h-[180px]" style="aspect-ratio: 2 / 3;">
                 </div>
                 <div v-else class="bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">
@@ -41,6 +45,10 @@
                 <div v-if="library.books && library.books.length > 1" class="flex-shrink-0"  style="width: 32%">
                     <img :src="library.books[1].cover_image || defaultCover"
                          :alt="library.books[1].title"
+                         loading="lazy"
+                         decoding="async"
+                         width="120"
+                         height="180"
                          class="object-cover rounded-lg shadow-md w-full h-[180px]" style="aspect-ratio: 2 / 3;">
                 </div>
                 <div v-else class="bg-gray-300 dark:bg-gray-600 rounded-lg flex items-center justify-center">

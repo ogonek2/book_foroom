@@ -177,20 +177,21 @@ class DiscussionController extends Controller
                 ]
             );
             
-            // Загружаем только нужные данные для текущей страницы
+            // Використовуємо вже завантажені колекції — без повторних запитів до БД
             $discussionIds = $paginatedContent->where('type', 'discussion')->pluck('id');
             $reviewIds = $paginatedContent->where('type', 'review')->pluck('id');
-            
-            $discussions = $discussionIds->isNotEmpty() 
-                ? $discussionsQuery->whereIn('id', $discussionIds)->get()->keyBy('id')
-                : collect();
-            $reviews = $reviewIds->isNotEmpty() 
-                ? $reviewsQuery->whereIn('id', $reviewIds)->get()->keyBy('id')
-                : collect();
+            $discussionsKeyed = $discussions->keyBy('id');
+            $reviewsKeyed = $reviews->keyBy('id');
+            $discussions = $discussionIds->map(fn ($id) => $discussionsKeyed->get($id))->filter()->values();
+            $reviews = $reviewIds->map(fn ($id) => $reviewsKeyed->get($id))->filter()->values();
         }
 
-        $discussionsData = $this->prepareDiscussionPayload($discussions);
-        $reviewsData = $this->prepareReviewPayload($reviews);
+        $likedDiscussionIds = $this->getLikedDiscussionIdsForUser($discussions, Auth::id());
+        $likedReviewIds = $this->getLikedReviewIdsForUser($reviews, Auth::id());
+        $favoritedReviewIds = $this->getFavoritedReviewIdsForUser($reviews, Auth::id());
+
+        $discussionsData = $this->prepareDiscussionPayload($discussions, $likedDiscussionIds);
+        $reviewsData = $this->prepareReviewPayload($reviews, $likedReviewIds, $favoritedReviewIds);
 
         // Если запрос ожидает JSON (API запрос)
         if ($request->expectsJson() || $request->wantsJson()) {
@@ -326,9 +327,12 @@ class DiscussionController extends Controller
                     ? $allReviews->whereIn('id', $reviewIds)->keyBy('id')
                     : collect();
                 
-                $discussionsData = $this->prepareDiscussionPayload($discussions);
-                $reviewsData = $this->prepareReviewPayload($reviews);
-                
+                $likedDiscussionIds = $this->getLikedDiscussionIdsForUser(collect($discussions)->flatten(), Auth::id());
+                $likedReviewIds = $this->getLikedReviewIdsForUser(collect($reviews)->flatten(), Auth::id());
+                $favoritedReviewIds = $this->getFavoritedReviewIdsForUser(collect($reviews)->flatten(), Auth::id());
+                $discussionsData = $this->prepareDiscussionPayload($discussions, $likedDiscussionIds);
+                $reviewsData = $this->prepareReviewPayload($reviews, $likedReviewIds, $favoritedReviewIds);
+
                 $totalItems = $allContent->count();
                 $hasMore = $totalItems > ($currentPage * $perPage);
             } else {
@@ -344,9 +348,12 @@ class DiscussionController extends Controller
                     $discussions = collect();
                     $hasMore = $paginated->hasMorePages();
                 }
-                
-                $discussionsData = $this->prepareDiscussionPayload($discussions);
-                $reviewsData = $this->prepareReviewPayload($reviews);
+
+                $likedDiscussionIds = $this->getLikedDiscussionIdsForUser(collect($discussions)->flatten(), Auth::id());
+                $likedReviewIds = $this->getLikedReviewIdsForUser(collect($reviews)->flatten(), Auth::id());
+                $favoritedReviewIds = $this->getFavoritedReviewIdsForUser(collect($reviews)->flatten(), Auth::id());
+                $discussionsData = $this->prepareDiscussionPayload($discussions, $likedDiscussionIds);
+                $reviewsData = $this->prepareReviewPayload($reviews, $likedReviewIds, $favoritedReviewIds);
             }
 
             return response()->json([
@@ -658,7 +665,7 @@ class DiscussionController extends Controller
         return view('discussions.show', compact('discussion', 'replies'));
     }
 
-    protected function prepareDiscussionPayload($items): array
+    protected function prepareDiscussionPayload($items, ?array $likedDiscussionIds = null): array
     {
         $collection = $this->normalizeItems($items);
 
@@ -667,31 +674,26 @@ class DiscussionController extends Controller
         }
 
         $topComments = $this->getTopDiscussionComments($collection->pluck('id'));
-        $currentUserId = Auth::id();
         $isAuthenticated = Auth::check();
+        $likedIds = $likedDiscussionIds ?? [];
 
-        return $collection->map(function ($discussion) use ($topComments, $currentUserId, $isAuthenticated) {
+        return $collection->map(function ($discussion) use ($topComments, $isAuthenticated, $likedIds) {
             $discussionArray = $this->modelToArray($discussion);
-            $topComment = $topComments->get($discussionArray['id'] ?? null);
+            $id = $discussionArray['id'] ?? (is_object($discussion) ? $discussion->id : null);
+            $topComment = $topComments->get($id);
             $discussionArray['top_comment'] = $this->formatTopComment($topComment);
-            
-            // Убеждаемся, что slug включен
+
             if (!isset($discussionArray['slug']) && is_object($discussion)) {
                 $discussionArray['slug'] = $discussion->slug ?? null;
             }
 
-            // Добавляем поле is_liked для текущего пользователя
-            if ($isAuthenticated && is_object($discussion)) {
-                $discussionArray['is_liked'] = $discussion->isLikedBy($currentUserId);
-            } else {
-                $discussionArray['is_liked'] = false;
-            }
+            $discussionArray['is_liked'] = $isAuthenticated && in_array($id, $likedIds, true);
 
             return $discussionArray;
         })->values()->toArray();
     }
 
-    protected function prepareReviewPayload($items): array
+    protected function prepareReviewPayload($items, ?array $likedReviewIds = null, ?array $favoritedReviewIds = null): array
     {
         $collection = $this->normalizeItems($items);
 
@@ -700,15 +702,15 @@ class DiscussionController extends Controller
         }
 
         $topComments = $this->getTopReviewComments($collection->pluck('id'));
-        $currentUserId = Auth::id();
         $isAuthenticated = Auth::check();
+        $likedIds = $likedReviewIds ?? [];
+        $favoritedIds = $favoritedReviewIds ?? [];
 
-        return $collection->map(function ($review) use ($topComments, $currentUserId, $isAuthenticated) {
+        return $collection->map(function ($review) use ($topComments, $isAuthenticated, $likedIds, $favoritedIds) {
             $reviewArray = $this->modelToArray($review);
-            $topComment = $topComments->get($reviewArray['id'] ?? null);
-            $reviewArray['top_comment'] = $this->formatTopComment($topComment);
-            
-            // Убеждаемся, что opinion_type включен
+            $id = $reviewArray['id'] ?? (is_object($review) ? $review->id : null);
+            $reviewArray['top_comment'] = $this->formatTopComment($topComments->get($id));
+
             if (!isset($reviewArray['opinion_type']) && is_object($review)) {
                 $reviewArray['opinion_type'] = $review->opinion_type ?? null;
             }
@@ -716,14 +718,8 @@ class DiscussionController extends Controller
                 $reviewArray['review_type'] = $review->review_type ?? null;
             }
 
-            // Добавляем поле is_liked для текущего пользователя
-            if ($isAuthenticated && is_object($review)) {
-                $reviewArray['is_liked'] = $review->isLikedBy($currentUserId);
-                $reviewArray['is_favorited'] = $review->isFavoritedBy($currentUserId);
-            } else {
-                $reviewArray['is_liked'] = false;
-                $reviewArray['is_favorited'] = false;
-            }
+            $reviewArray['is_liked'] = $isAuthenticated && in_array($id, $likedIds, true);
+            $reviewArray['is_favorited'] = $isAuthenticated && in_array($id, $favoritedIds, true);
 
             return $reviewArray;
         })->values()->toArray();
@@ -767,6 +763,67 @@ class DiscussionController extends Controller
             ->get();
 
         return $replies->groupBy('parent_id')->map->first();
+    }
+
+    /**
+     * Отримати id обговорень, які користувач лайкнув (один запит замість N).
+     */
+    protected function getLikedDiscussionIdsForUser($discussions, ?int $userId): array
+    {
+        if (!$userId) {
+            return [];
+        }
+        $ids = collect($discussions)->pluck('id')->filter()->unique()->values()->all();
+        if (empty($ids)) {
+            return [];
+        }
+        return \App\Models\Like::query()
+            ->where('user_id', $userId)
+            ->where('vote', 1)
+            ->where('likeable_type', Discussion::class)
+            ->whereIn('likeable_id', $ids)
+            ->pluck('likeable_id')
+            ->all();
+    }
+
+    /**
+     * Отримати id рецензій, які користувач лайкнув (один запит замість N).
+     */
+    protected function getLikedReviewIdsForUser($reviews, ?int $userId): array
+    {
+        if (!$userId) {
+            return [];
+        }
+        $ids = collect($reviews)->pluck('id')->filter()->unique()->values()->all();
+        if (empty($ids)) {
+            return [];
+        }
+        return \App\Models\Like::query()
+            ->where('user_id', $userId)
+            ->where('vote', 1)
+            ->where('likeable_type', \App\Models\Review::class)
+            ->whereIn('likeable_id', $ids)
+            ->pluck('likeable_id')
+            ->all();
+    }
+
+    /**
+     * Отримати id рецензій, які користувач додав в обране (один запит замість N).
+     */
+    protected function getFavoritedReviewIdsForUser($reviews, ?int $userId): array
+    {
+        if (!$userId) {
+            return [];
+        }
+        $ids = collect($reviews)->pluck('id')->filter()->unique()->values()->all();
+        if (empty($ids)) {
+            return [];
+        }
+        return \Illuminate\Support\Facades\DB::table('favorite_reviews')
+            ->where('user_id', $userId)
+            ->whereIn('review_id', $ids)
+            ->pluck('review_id')
+            ->all();
     }
 
     protected function normalizeItems($items): Collection

@@ -162,6 +162,10 @@
                                 <div class="aspect-[3/4] mb-3">
                                     <img src="{{ $book->cover_image }}" 
                                          alt="{{ $book->title }}"
+                                         loading="lazy"
+                                         decoding="async"
+                                         width="200"
+                                         height="300"
                                          class="w-full h-full object-cover rounded-lg shadow-md">
                                 </div>
                                 

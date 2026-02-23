@@ -12,6 +12,10 @@
                             <div>
                                 <img v-if="quote.user.avatar_display" :src="quote.user.avatar_display"
                                     :alt="quote.user.name"
+                                    loading="lazy"
+                                    decoding="async"
+                                    width="32"
+                                    height="32"
                                     class="w-8 h-8 rounded-full transition-transform duration-200 group-hover:scale-110">
                                 <div v-else
                                     class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm transition-transform duration-200 group-hover:scale-110">
@@ -34,7 +38,12 @@
                     </template>
                     <template v-else>
                         <img v-if="quote.user && quote.user.avatar_display" :src="quote.user.avatar_display"
-                            :alt="quote.user?.name || 'Користувач'" class="w-8 h-8 rounded-full">
+                            :alt="quote.user?.name || 'Користувач'"
+                            loading="lazy"
+                            decoding="async"
+                            width="32"
+                            height="32"
+                            class="w-8 h-8 rounded-full">
                         <div v-else
                             class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-sm">
                             {{ (quote.user?.name || 'U').charAt(0).toUpperCase() }}

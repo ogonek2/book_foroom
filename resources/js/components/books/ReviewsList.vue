@@ -49,6 +49,10 @@
                                             <img v-if="review.user.avatar_display"
                                                 :src="review.user.avatar_display"
                                                 :alt="review.user.name"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="40"
+                                                height="40"
                                                 class="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-700 transition-transform duration-200 group-hover:scale-105">
                                             <div v-else
                                                 class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-lg transition-transform duration-200 group-hover:scale-105">
@@ -73,6 +77,10 @@
                                     <template v-if="review.user && review.user.avatar_display">
                                         <img :src="review.user.avatar_display"
                                             :alt="review.user.name"
+                                            loading="lazy"
+                                            decoding="async"
+                                            width="40"
+                                            height="40"
                                             class="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-700">
                                     </template>
                                     <div v-else-if="review.is_guest"

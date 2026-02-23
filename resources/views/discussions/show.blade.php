@@ -57,7 +57,7 @@
                                 <div class="flex items-center space-x-4">
                                     <a href="{{ route('users.public.profile', $discussion->user->username) }}" class="flex items-center space-x-4 group">
                                         <img src="{{ $discussion->user->avatar_display }}" alt="{{ $discussion->user->name }}"
-                                            class="w-12 h-12 rounded-full">
+                                            class="w-12 h-12 rounded-full" loading="eager" decoding="async" width="48" height="48">
                                         <div>
                                             <div class="text-light-text-primary dark:text-dark-text-primary font-medium">
                                                 {{ $discussion->user->name }}
@@ -200,7 +200,7 @@
                         <!-- Author Avatar and Info -->
                         <div class="text-center mb-4">
                             <img src="{{ $discussion->user->avatar_display }}" alt="{{ $discussion->user->name }}"
-                                class="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-light-border dark:border-dark-border">
+                                class="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-light-border dark:border-dark-border" loading="lazy" decoding="async" width="80" height="80">
                             <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-1">
                                 {{ $discussion->user->name }}
                             </h3>

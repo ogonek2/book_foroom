@@ -5,6 +5,10 @@
             <div>
                 <!-- Book Cover -->
                 <img v-if="book.cover_image" :src="book.cover_image" :alt="book.title"
+                    loading="lazy"
+                    decoding="async"
+                    width="200"
+                    height="267"
                     class="aspect-[3/4] object-cover rounded-lg shadow-md group-hover:shadow-lg transition-all duration-300"
                     @error="handleImageError" style="width: 120px; height: 170px;">
                 <div v-else

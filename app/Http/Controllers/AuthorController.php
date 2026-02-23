@@ -8,6 +8,7 @@ use App\Models\Review;
 use App\Models\Quote;
 use App\Models\Fact;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 
 class AuthorController extends Controller
@@ -41,18 +42,21 @@ class AuthorController extends Controller
 
         $authors = $query->paginate(24);
 
-        // Получаем уникальные национальности для фильтра
-        $nationalities = Author::select('nationality')
-            ->whereNotNull('nationality')
-            ->distinct()
-            ->orderBy('nationality')
-            ->pluck('nationality');
+        // Кешуємо списки для фільтрів (рідко змінюються) — пришвидшує завантаження
+        $nationalities = Cache::remember('authors_nationalities', 3600, function () {
+            return Author::select('nationality')
+                ->whereNotNull('nationality')
+                ->distinct()
+                ->orderBy('nationality')
+                ->pluck('nationality');
+        });
 
-        // Получаем буквы для алфавитного указателя
-        $letters = Author::selectRaw('UPPER(SUBSTRING(last_name, 1, 1)) as letter')
-            ->distinct()
-            ->orderBy('letter')
-            ->pluck('letter');
+        $letters = Cache::remember('authors_letters', 3600, function () {
+            return Author::selectRaw('UPPER(SUBSTRING(last_name, 1, 1)) as letter')
+                ->distinct()
+                ->orderBy('letter')
+                ->pluck('letter');
+        });
 
         return view('authors.index', compact('authors', 'nationalities', 'letters'));
     }

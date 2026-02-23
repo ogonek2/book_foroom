@@ -47,6 +47,10 @@
                     <img 
                         :src="book.cover_image || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=80&h=120&fit=crop'"
                         :alt="book.title"
+                        loading="lazy"
+                        decoding="async"
+                        width="48"
+                        height="64"
                         class="w-12 h-16 object-cover rounded shadow-sm">
                 </div>
                 

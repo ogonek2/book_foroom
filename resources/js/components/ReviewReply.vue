@@ -12,6 +12,10 @@
                                 <img v-if="reply.user.avatar_display" 
                                      :src="reply.user.avatar_display"
                                      :alt="reply.user.name"
+                                     loading="lazy"
+                                     decoding="async"
+                                     width="32"
+                                     height="32"
                                      class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
                                 <div v-else class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
                                     {{ (reply.user?.name || 'U').charAt(0).toUpperCase() }}
@@ -36,6 +40,10 @@
                         <template v-if="reply.user && reply.user.avatar_display">
                             <img :src="reply.user.avatar_display" 
                                  :alt="reply.user?.name || 'Користувач'"
+                                 loading="lazy"
+                                 decoding="async"
+                                 width="32"
+                                 height="32"
                                  class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0">
                         </template>
                         <div v-else-if="reply.is_guest" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
@@ -203,6 +211,10 @@
                          ]">
                         <img :src="user.avatar_display || user.avatar || '/storage/avatars/default.png'" 
                              :alt="user.name"
+                             loading="lazy"
+                             decoding="async"
+                             width="32"
+                             height="32"
                              class="w-8 h-8 rounded-full flex-shrink-0">
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-medium text-gray-900 dark:text-white truncate">

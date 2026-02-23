@@ -10,6 +10,10 @@
                            @click.stop>
                             <img :src="reply.user.avatar_display || reply.user.avatar || '/storage/avatars/default.png'"
                                  :alt="reply.user.name"
+                                 loading="lazy"
+                                 decoding="async"
+                                 width="32"
+                                 height="32"
                                  class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0 transition-transform duration-200 group-hover:scale-110">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center space-x-2">
@@ -29,6 +33,10 @@
                     <template v-else>
                         <img :src="reply.user.avatar_display || reply.user.avatar || '/storage/avatars/default.png'" 
                              :alt="reply.user.name"
+                             loading="lazy"
+                             decoding="async"
+                             width="32"
+                             height="32"
                              class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0">
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center space-x-2">
@@ -182,6 +190,10 @@
                          ]">
                         <img :src="user.avatar_display || user.avatar || '/storage/avatars/default.png'" 
                              :alt="user.name"
+                             loading="lazy"
+                             decoding="async"
+                             width="32"
+                             height="32"
                              class="w-8 h-8 rounded-full flex-shrink-0">
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-medium text-gray-900 dark:text-white truncate">

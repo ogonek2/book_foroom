@@ -24,7 +24,7 @@
                 <div class="text-center mb-4">
                     <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 border-2 border-slate-200 dark:border-slate-700">
                         @if($library->user->avatar)
-                            <img src="{{ $library->user->avatar }}" alt="{{ $library->user->name }}" class="w-20 h-20 rounded-full">
+                            <img src="{{ $library->user->avatar }}" alt="{{ $library->user->name }}" class="w-20 h-20 rounded-full" loading="lazy" decoding="async" width="80" height="80">
                         @else
                             <span class="text-white font-bold text-2xl">{{ $library->user->name[0] }}</span>
                         @endif
@@ -77,7 +77,7 @@
                         <div class="flex items-center gap-3">
                             <a href="{{ route('users.public.profile', $library->user->username) }}" class="flex items-center gap-2">
                                 @if($library->user->avatar)
-                                    <img src="{{ $library->user->avatar }}" alt="{{ $library->user->name }}" class="w-10 h-10 rounded-full">
+                                    <img src="{{ $library->user->avatar }}" alt="{{ $library->user->name }}" class="w-10 h-10 rounded-full" loading="lazy" decoding="async" width="40" height="40">
                                 @else
                                     <span class="text-white font-bold text-2xl">{{ $library->user->name[0] }}</span>
                                 @endif

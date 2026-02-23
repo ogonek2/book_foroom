@@ -66,6 +66,10 @@
                                     <img v-if="userAvatar(item.user)"
                                          :src="userAvatar(item.user)"
                                          :alt="item.user.name"
+                                         loading="lazy"
+                                         decoding="async"
+                                         width="40"
+                                         height="40"
                                          class="w-10 h-10 rounded-full transition-transform duration-200 group-hover:scale-110">
                                     <div v-else
                                          class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-light-text-primary dark:text-dark-text-primary font-semibold transition-transform duration-200 group-hover:scale-110">
@@ -87,6 +91,10 @@
                                 <img v-if="userAvatar(item.user)"
                                      :src="userAvatar(item.user)"
                                      :alt="item.user ? (item.user.name || item.user.username || 'Користувач') : 'Користувач'"
+                                     loading="lazy"
+                                     decoding="async"
+                                     width="40"
+                                     height="40"
                                      class="w-10 h-10 rounded-full">
                                 <div v-else
                                      class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
@@ -266,6 +274,10 @@
                                 <img v-if="userAvatar(item.top_comment.user)"
                                      :src="userAvatar(item.top_comment.user)"
                                      :alt="item.top_comment.user.name"
+                                     loading="lazy"
+                                     decoding="async"
+                                     width="32"
+                                     height="32"
                                      class="w-8 h-8 rounded-full ring-2 ring-white/60 dark:ring-white/10">
                                 <div v-else
                                      class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-semibold">

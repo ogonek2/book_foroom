@@ -8,7 +8,7 @@
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center space-x-2 sm:space-x-3">
                 <img src="{{ $reply->user->avatar_display }}" alt="{{ $reply->user->name }}"
-                    class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0">
+                    class="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0" loading="lazy" decoding="async" width="32" height="32">
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center space-x-2">
                         <div
