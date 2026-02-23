@@ -6,7 +6,7 @@
                     <!-- Logo -->
                         <a href="{{ route('home') }}" class="flex items-center group" style="width: 100px">
                             <!--<img class="block light:hidden" src="{{ asset('storage/src/logo/logo-dark.svg') }}">-->
-                            <svg id="_Шар_1" data-name="Шар_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 479.71 275.55">
+                            <svg id="nav-logo" class="block w-[100px] h-auto flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 479.71 275.55" width="100" height="57" role="img" aria-label="Логотип">
                               <!-- Generator: Adobe Illustrator 30.1.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 136)  -->
                               <defs>
                                 <style>
