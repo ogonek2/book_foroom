@@ -152,16 +152,29 @@
                             </span>
                         @endif
                         @if ($review->language)
+                            @php
+                                $languageNames = [
+                                    'uk' => 'Українська',
+                                    'en' => 'Англійська',
+                                    'pl' => 'Польська',
+                                    'de' => 'Німецька',
+                                    'fr' => 'Французька',
+                                    'it' => 'Італійська',
+                                    'es' => 'Іспанська',
+                                    'pt' => 'Португальська',
+                                    'nl' => 'Нідерландська',
+                                    'sv' => 'Шведська',
+                                    'no' => 'Норвезька',
+                                    'da' => 'Данська',
+                                    'cs' => 'Чеська',
+                                    'sk' => 'Словацька',
+                                    'ro' => 'Румунська',
+                                    'hu' => 'Угорська',
+                                ];
+                                $languageLabel = $languageNames[$review->language] ?? strtoupper($review->language);
+                            @endphp
                             <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/60 dark:bg-emerald-600/60 border border-emerald-400 dark:border-emerald-500 text-white">
-                                @if($review->language === 'uk')
-                                    Українська
-                                @elseif($review->language === 'en')
-                                    English
-                                @elseif($review->language === 'de')
-                                    Deutsch
-                                @else
-                                    {{ $review->language }}
-                                @endif
+                                {{ $languageLabel }}
                             </span>
                         @endif
                     </div>

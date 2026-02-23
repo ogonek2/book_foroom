@@ -15,7 +15,8 @@
 @section('twitter_image', asset('favicon.svg'))
 
 @section('main')
-    <div id="app" class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300">
+    <div class="content-with-skeleton relative min-h-[480px]">
+    <div id="discussions-app" class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300" v-cloak>
         <!-- Header -->
         <div class="flex items-center justify-between py-8">
             <div>
@@ -115,12 +116,35 @@
         </transition>
     </div>
 
+    <!-- Skeleton: список обговорень/контенту -->
+    <div class="skeleton-placeholder pointer-events-none" aria-hidden="true">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="hidden lg:block lg:w-80 flex-shrink-0"><div class="h-48 skeleton rounded-2xl"></div></div>
+            <div class="flex-1 space-y-4">
+                @for($i = 0; $i < 5; $i++)
+                <div class="bg-white/60 dark:bg-gray-800/60 rounded-2xl border border-gray-200/30 dark:border-gray-700/30 p-6">
+                    <div class="flex gap-4">
+                        <div class="skeleton w-12 h-12 rounded-full flex-shrink-0"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="skeleton h-4 w-1/3 rounded"></div>
+                            <div class="skeleton h-3 w-full rounded"></div>
+                            <div class="skeleton h-3 w-2/3 rounded"></div>
+                            <div class="skeleton h-3 w-1/4 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+                @endfor
+            </div>
+        </div>
+    </div>
+    </div>
+
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 // Vue приложение для страницы обсуждений
                 const discussionsApp = new Vue({
-                    el: '#app',
+                    el: '#discussions-app',
                     data: {
                         showMobileFilters: false,
                         currentFilter: '{{ $filter }}',

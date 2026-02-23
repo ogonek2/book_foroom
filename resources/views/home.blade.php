@@ -269,8 +269,8 @@
         }
     </style>
 
-    <!-- Swiper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <!-- Swiper JS (defer to not block rendering) -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
 
     <!-- 2. Рекомендовані книги -->
     <section class="mb-16">
@@ -321,12 +321,12 @@
                                                     class="relative overflow-hidden h-80 lg:h-full bg-light-bg-secondary/20 dark:bg-gray-900/20">
                                                     <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=1200&fit=crop&crop=center' }}"
                                                         alt="{{ $book->title }} (background)"
-                                                        class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70">
+                                                        class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70" loading="lazy">
                                                     <div class="absolute inset-0 flex items-center justify-center p-4">
                                                         <div class="relative w-36 h-52 md:w-44 md:h-64">
                                                             <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=176&h=256&fit=crop&crop=center' }}"
                                                                 alt="{{ $book->title }}"
-                                                                class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10">
+                                                                class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10" loading="lazy">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -494,7 +494,7 @@
                                                     @if ($reviewUserAvatar)
                                                         <img src="{{ $reviewUserAvatar }}"
                                                             alt="{{ $reviewUserName ?: $reviewUserInitial }}"
-                                                            class="w-10 h-10 rounded-full object-cover flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+                                                            class="w-10 h-10 rounded-full object-cover flex-shrink-0 transition-transform duration-200 group-hover:scale-105" loading="lazy">
                                                     @else
                                                         <div
                                                             class="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-accent-500 flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
@@ -516,7 +516,7 @@
                                             @else
                                                 @if ($reviewUserAvatar)
                                                     <img src="{{ $reviewUserAvatar }}" alt="{{ $reviewUserName ?? 'Користувач' }}"
-                                                        class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                                                        class="w-10 h-10 rounded-full object-cover flex-shrink-0" loading="lazy">
                                                 @else
                                                     <div
                                                         class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">

@@ -15,6 +15,7 @@
 @section('twitter_image', asset('favicon.svg'))
 
 @section('main')
+    <div class="content-with-skeleton max-w-7xl mx-auto relative min-h-[480px]">
     @php
         $initialBooks = $books->getCollection()->map(function ($book) {
             return [
@@ -300,6 +301,27 @@
         </transition>
     </div>
 
+    <!-- Skeleton: сітка карток книг поки Vue не підтягнувся -->
+    <div class="skeleton-placeholder pointer-events-none" aria-hidden="true">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div class="hidden lg:block lg:col-span-1"><div class="h-64 skeleton rounded-2xl"></div></div>
+            <div class="lg:col-span-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
+                    @for($i = 0; $i < 6; $i++)
+                    <div class="bg-white/60 dark:bg-gray-800/60 rounded-2xl border border-gray-200/30 dark:border-gray-700/30 overflow-hidden">
+                        <div class="skeleton aspect-[2/3] w-full rounded-t-2xl"></div>
+                        <div class="p-4 space-y-3">
+                            <div class="skeleton h-4 w-3/4 rounded"></div>
+                            <div class="skeleton h-3 w-1/2 rounded"></div>
+                            <div class="skeleton h-3 w-full rounded"></div>
+                        </div>
+                    </div>
+                    @endfor
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
 
     @push('scripts')
         <script>

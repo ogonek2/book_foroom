@@ -405,27 +405,28 @@
             }, { passive: false });
         });
 
-        // Инициализация Vue приложения для уведомлений
-        @auth
-        if (document.getElementById('notification-app')) {
-            new Vue({
-                el: '#notification-app'
-            });
-        }
-        @endauth
-
-        // Инициализация Vue приложения для поиска
-        if (window.Vue) {
+        // Инициализация Vue (поиск, уведомления) — после загрузки app.js (defer), чтобы Vue был доступен
+        function initNavVueApps() {
+            if (typeof window.Vue === 'undefined') {
+                setTimeout(initNavVueApps, 50);
+                return;
+            }
+            @auth
+            if (document.getElementById('notification-app')) {
+                new Vue({ el: '#notification-app' });
+            }
+            @endauth
             if (document.getElementById('nav-search-app')) {
-                new Vue({
-                    el: '#nav-search-app'
-                });
+                new Vue({ el: '#nav-search-app' });
             }
             if (document.getElementById('mobile-search-app')) {
-                new Vue({
-                    el: '#mobile-search-app'
-                });
+                new Vue({ el: '#mobile-search-app' });
             }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initNavVueApps);
+        } else {
+            initNavVueApps();
         }
     </script>
     @endpush

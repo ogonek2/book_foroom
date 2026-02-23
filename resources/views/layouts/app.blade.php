@@ -58,12 +58,12 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
-        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
         @stack('styles')
         
         <style>
@@ -285,6 +285,41 @@
                 /* Убираем анимацию при загрузке, чтобы избежать мелькания */
                 transform: translateY(100%);
             }
+
+            /* Поки Vue не змонтувався — ховаємо корінь з v-cloak, тоді видно скелетон */
+            [v-cloak] {
+                display: none !important;
+            }
+
+            /* Skeleton loader (shimmer) — плейсхолдери поки не підтягнулись компоненти */
+            @keyframes skeleton-shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+            .skeleton {
+                background: linear-gradient(
+                    90deg,
+                    rgba(148, 163, 184, 0.2) 0%,
+                    rgba(148, 163, 184, 0.4) 50%,
+                    rgba(148, 163, 184, 0.2) 100%
+                );
+                background-size: 200% 100%;
+                animation: skeleton-shimmer 1.5s ease-in-out infinite;
+                border-radius: 0.5rem;
+            }
+            .dark .skeleton {
+                background: linear-gradient(
+                    90deg,
+                    rgba(71, 85, 105, 0.3) 0%,
+                    rgba(71, 85, 105, 0.5) 50%,
+                    rgba(71, 85, 105, 0.3) 100%
+                );
+                background-size: 200% 100%;
+            }
+            /* Ховаємо скелетон, коли Vue вже відмалював контент (немає v-cloak) */
+            .content-with-skeleton > [id]:not([v-cloak]) ~ .skeleton-placeholder {
+                display: none !important;
+            }
         </style>
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-1B39NK0YRQ"></script>
@@ -316,9 +351,7 @@
             window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
         </script>
         
-        <script src="{{ mix('js/app.js') }}"></script>
-        
-        <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+        <script src="{{ mix('js/app.js') }}" defer></script>
         @stack('scripts')
         <!-- Alpine.js for dropdowns -->
         <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -435,16 +468,11 @@
                 }
 
                 enableTransitions() {
-                    // Добавляем плавные переходы для изменения темы
+                    // Плавні переходи тільки для основних блоків (не * — це сповільнює мобільні)
                     const style = document.createElement('style');
                     style.textContent = `
-                        * {
-                            transition: background-color 0.3s ease, 
-                                       border-color 0.3s ease, 
-                                       color 0.3s ease,
-                                       box-shadow 0.3s ease,
-                                       transform 0.3s ease,
-                                       opacity 0.3s ease !important;
+                        body, main, header, footer, [class*="bg-"], [class*="border-"], [class*="text-"] {
+                            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
                         }
                     `;
                     document.head.appendChild(style);

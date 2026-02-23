@@ -133,7 +133,7 @@
             </div>
 
             <!-- Opinion Type -->
-            <div class="mb-6" id="opinion-type-container" style="display: {{ ($review->review_type ?? 'review') === 'opinion' ? 'block' : 'none' }};">
+            <div class="mb-6" id="opinion-type-container">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Тип думки
                 </label>
@@ -146,7 +146,7 @@
                     </button>
                     @endforeach
                 </div>
-                <input type="hidden" name="opinion_type" id="opinion-type-input" value="{{ $review->opinion_type ?? 'positive' }}" data-review-type="{{ $review->review_type ?? 'review' }}">
+                <input type="hidden" name="opinion_type" id="opinion-type-input" value="{{ $review->opinion_type ?? 'positive' }}">
             </div>
 
             <!-- Book Type -->
@@ -215,7 +215,6 @@
                 </label>
                 <textarea name="content" 
                           id="content-textarea-review"
-                          style="display: none;"
                           required>{{ old('content', $review->content ?? '') }}</textarea>
                 <div id="quill-editor-review"></div>
                 <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -468,7 +467,13 @@
         return temp.innerHTML;
     }
     
-    // Update hidden textarea when content changes
+        // Hide original textarea once Quill is ready (progressive enhancement)
+        const originalTextarea = document.getElementById('content-textarea-review');
+        if (originalTextarea) {
+            originalTextarea.style.display = 'none';
+        }
+        
+        // Update hidden textarea when content changes
     quillReview.on('text-change', function() {
         const contentInput = document.getElementById('content-textarea-review');
         if (contentInput) {
@@ -567,27 +572,6 @@
             });
         }
         
-        // Обробка відправки форми - для рецензій не відправляємо opinion_type
-        const form = document.getElementById('edit-review-form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const reviewTypeSelect = document.querySelector('select[name="review_type"]');
-                const opinionTypeInput = document.getElementById('opinion-type-input');
-                
-                if (reviewTypeSelect && opinionTypeInput) {
-                    // Якщо це рецензія (не відгук), видаляємо opinion_type з форми перед відправкою
-                    if (reviewTypeSelect.value === 'review') {
-                        opinionTypeInput.removeAttribute('name');
-                    } else {
-                        // Для відгуків забезпечуємо, що поле має name
-                        if (!opinionTypeInput.hasAttribute('name')) {
-                            opinionTypeInput.setAttribute('name', 'opinion_type');
-                        }
-                    }
-                }
-            });
-        }
-
         // Book type buttons (inside initQuillEditor, but doesn't depend on Quill)
         const bookTypeButtons = document.querySelectorAll('[data-book-type]');
         const bookTypeInput = document.getElementById('book-type-input');
@@ -609,9 +593,8 @@
             });
         }
 
-        // Review type select - show/hide opinion type and update character limits
+        // Review type select - update character limits (opinion type доступний для всіх)
         const reviewTypeSelect = document.querySelector('select[name="review_type"]');
-        const opinionTypeContainer = document.getElementById('opinion-type-container');
         const contentLength = document.getElementById('content-length-review');
         const contentMax = document.getElementById('content-max-review');
         const contentMin = document.getElementById('content-min-review');
@@ -649,52 +632,14 @@
                 contentLength.classList.add('text-gray-500');
             }
         }
-        
-        if (reviewTypeSelect && opinionTypeContainer) {
+                
+        if (reviewTypeSelect) {
             reviewTypeSelect.addEventListener('change', function() {
-                const opinionInput = document.getElementById('opinion-type-input');
-                if (this.value === 'opinion') {
-                    opinionTypeContainer.style.display = 'block';
-                    // Для відгуків забезпечуємо, що поле має name
-                    if (opinionInput && !opinionInput.hasAttribute('name')) {
-                        opinionInput.setAttribute('name', 'opinion_type');
-                    }
-                } else {
-                    opinionTypeContainer.style.display = 'none';
-                    // Для рецензій видаляємо name, щоб не відправляти opinion_type
-                    if (opinionInput) {
-                        opinionInput.removeAttribute('name');
-                    }
-                }
                 updateCharacterLimits();
             });
             
-            // Ініціалізуємо стан при завантаженні сторінки
-            const opinionInput = document.getElementById('opinion-type-input');
-            if (reviewTypeSelect.value === 'review' && opinionInput) {
-                opinionInput.removeAttribute('name');
-            }
-        }
-        
-        // Обробка відправки форми - для рецензій не відправляємо opinion_type
-        const form = document.getElementById('edit-review-form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const reviewTypeSelect = document.querySelector('select[name="review_type"]');
-                const opinionTypeInput = document.getElementById('opinion-type-input');
-                
-                if (reviewTypeSelect && opinionTypeInput) {
-                    // Якщо це рецензія (не відгук), видаляємо opinion_type з форми перед відправкою
-                    if (reviewTypeSelect.value === 'review') {
-                        opinionTypeInput.removeAttribute('name');
-                    } else {
-                        // Для відгуків забезпечуємо, що поле має name
-                        if (!opinionTypeInput.hasAttribute('name')) {
-                            opinionTypeInput.setAttribute('name', 'opinion_type');
-                        }
-                    }
-                }
-            });
+            // Ініціалізуємо ліміти при завантаженні сторінки
+            updateCharacterLimits();
         }
         
         // Character counter for content (using Quill)

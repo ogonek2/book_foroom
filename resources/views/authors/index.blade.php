@@ -15,6 +15,7 @@
 @section('twitter_image', asset('favicon.svg'))
 
 @section('main')
+    <div class="content-with-skeleton relative min-h-[480px]">
     <div id="authors-page" class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300" v-cloak>
         <!-- Header -->
         <div class="mb-2">
@@ -238,6 +239,24 @@
                 </transition>
             </div>
         </transition>
+    </div>
+
+    <!-- Skeleton: сітка авторів -->
+    <div class="skeleton-placeholder pointer-events-none" aria-hidden="true">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="hidden lg:block lg:w-80 flex-shrink-0"><div class="h-64 skeleton rounded-2xl"></div></div>
+            <div class="flex-1">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    @for($i = 0; $i < 8; $i++)
+                    <div class="rounded-2xl overflow-hidden border border-gray-200/30 dark:border-gray-700/30">
+                        <div class="skeleton aspect-[3/4] w-full"></div>
+                        <div class="p-3"><div class="skeleton h-5 w-full rounded"></div></div>
+                    </div>
+                    @endfor
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 
     @push('scripts')
