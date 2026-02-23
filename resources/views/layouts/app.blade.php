@@ -342,6 +342,54 @@
             </main>
             @include('layouts.footer')
         </div>
+
+        <!-- Cookie consent banner (показується при першому відвідуванні) -->
+        <div id="cookie-consent-banner" role="dialog" aria-label="Повідомлення про використання файлів cookie"
+             class="fixed bottom-0 left-0 right-0 z-[100] px-4 py-4 sm:px-6 sm:py-5 shadow-2xl border-t border-white/20 dark:border-white/10 transition-transform duration-300 ease-out hidden"
+             style="background: linear-gradient(135deg, #F97316 0%, #EA580C 40%, #7C3AED 70%, #6D28D9 100%);">
+            <div class="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex items-start sm:items-center gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-white/20 dark:bg-white/10 flex items-center justify-center">
+                        <i class="fas fa-cookie-bite text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold text-sm sm:text-base mb-0.5">
+                            <i class="fas fa-info-circle mr-1.5 opacity-90"></i> Сайт використовує файли cookie
+                        </p>
+                        <p class="text-white/90 text-sm leading-relaxed">
+                            Ми використовуємо cookie для зручності роботи сайту, збереження ваших налаштувань та аналітики. Продовжуючи перегляд, ви погоджуєтесь з нашою
+                            <a href="{{ route('privacy') }}" class="underline hover:text-white font-medium">Політикою конфіденційності</a>.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-shrink-0 items-center gap-3">
+                    <a href="{{ route('privacy') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-colors">
+                        <i class="fas fa-external-link-alt text-xs"></i>
+                        Детальніше
+                    </a>
+                    <button type="button" id="cookie-consent-accept"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-orange-600 hover:bg-white/95 font-semibold text-sm shadow-lg transition-all hover:scale-[1.02]">
+                        <i class="fas fa-check"></i>
+                        Прийняти
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            (function() {
+                var key = 'cookie-consent-accepted';
+                var banner = document.getElementById('cookie-consent-banner');
+                var btn = document.getElementById('cookie-consent-accept');
+                if (!banner || !btn) return;
+                if (localStorage.getItem(key) === 'true') return;
+                banner.classList.remove('hidden');
+                btn.addEventListener('click', function() {
+                    localStorage.setItem(key, 'true');
+                    banner.classList.add('hidden');
+                });
+            })();
+        </script>
         
         <!-- Global Alert Modal -->
         <div id="global-alert-modal-container"></div>
