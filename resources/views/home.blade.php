@@ -34,10 +34,8 @@
                 <!-- Subtitle -->
                 <p
                     class="text-base md:text-lg text-light-text-secondary dark:text-dark-text-secondary mb-6 max-w-2xl mx-auto leading-relaxed">
-                    Приєднуйтесь до найбільшої спільноти читачів України.
-                    <span class="text-brand-500 dark:text-brand-300 font-medium">Діліться думками, відкривайте нових авторів
-                        та
-                        знаходьте натхнення.</span>
+                    Приєднуйтесь до книжкової спільноти, де читачі діляться думками та відкривають нових авторів.
+                    Знаходьте книги, які хочеться обговорювати.
                 </p>
 
                 <!-- CTA Buttons -->
@@ -300,7 +298,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
-                        Приєднатися до обговорення
+                        Приєднатись до обговорень
                     </a>
                 </div>
             </div>

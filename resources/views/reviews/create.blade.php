@@ -279,8 +279,8 @@
                                     </label>
                                 </div>
 
-                                <!-- Opinion Type (тільки для відгуків) -->
-                                <div class="mb-6" v-if="reviewType === 'opinion'">
+                                <!-- Opinion Type (для відгуків і рецензій) -->
+                                <div class="mb-6">
                                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-3">Тип
                                         думки</label>
                                     <div class="grid grid-cols-3 gap-3">
@@ -673,11 +673,8 @@
                                     formData.set('rating', this.rating);
                                 }
                                 formData.set('review_type', this.reviewType);
-                                // Opinion type тільки для відгуків
-                                if (this.reviewType === 'opinion') {
-                                    formData.set('opinion_type', this.opinionType);
-                                }
-                                // Для рецензій не відправляємо opinion_type
+                                // Тип думки потрібен і для відгуків, і для рецензій
+                                formData.set('opinion_type', this.opinionType);
                                 formData.set('book_type', this.bookType);
                                 // Використовуємо otherLanguage якщо вибрано "other", інакше використовуємо language
                                 formData.set('language', this.language === 'other' ? this.otherLanguage : this.language);

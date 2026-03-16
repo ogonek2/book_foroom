@@ -329,11 +329,9 @@ class ReviewController extends Controller
         // Для чернеток rating може бути null
         $reviewRating = $isDraft ? ($request->input('rating') ?: null) : $rating;
         
-        // Opinion type тільки для відгуків, для рецензій використовуємо default значення
+        // Тип думки потрібен і для відгуків, і для рецензій
         $reviewType = $request->input('review_type', 'review');
-        $opinionType = ($reviewType === 'opinion') 
-            ? ($request->input('opinion_type', 'positive')) 
-            : 'positive'; // Для рецензій встановлюємо default, оскільки колонка не nullable
+        $opinionType = $request->input('opinion_type', 'positive');
 
         $review = Review::create([
             'content' => $content,
@@ -863,14 +861,8 @@ class ReviewController extends Controller
             'is_draft' => $isDraft,
         ];
         
-        // Opinion type тільки для відгуків - для рецензій залишаємо старе значення або встановлюємо default
-        if ($reviewType === 'opinion') {
-            $updateData['opinion_type'] = $request->input('opinion_type', $review->opinion_type ?? 'positive');
-        } else {
-            // Для рецензій залишаємо старе значення, якщо воно є, інакше встановлюємо default
-            // Оскільки колонка не nullable, потрібно завжди мати значення
-            $updateData['opinion_type'] = $review->opinion_type ?? 'positive';
-        }
+        // Тип думки потрібен і для відгуків, і для рецензій
+        $updateData['opinion_type'] = $request->input('opinion_type', $review->opinion_type ?? 'positive');
         
         // Обрабатываем rating в зависимости от того, публикуем ли мы
         if (!$isDraft) {

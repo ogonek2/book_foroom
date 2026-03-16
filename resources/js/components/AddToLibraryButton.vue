@@ -38,7 +38,7 @@
         <!-- Модальное окно статусов чтения -->
         <add-to-library-modal v-if="isAuthenticated" :show="showModal" :book="book" :user-libraries="userLibraries"
             :current-status="currentStatus"
-            @close="closeModal" @status-selected="handleStatusSelected" @open-custom-library="handleOpenCustomLibrary" />
+            @close="closeModal" @status-selected="handleStatusSelected" @remove-status="removeStatus" @open-custom-library="handleOpenCustomLibrary" />
 
         <!-- Модальное окно выбора добірки -->
         <div v-if="showCustomLibraryModal"

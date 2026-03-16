@@ -2,11 +2,11 @@
     <div v-if="show" 
          class="fixed inset-0 bg-black/55 z-50 flex items-center justify-center p-4"
          @click="handleBackdropClick">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4"
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col"
              @click.stop>
-            <div class="p-6">
-                <!-- Header -->
-                <div class="flex items-center justify-between mb-6">
+            <!-- Header -->
+            <div class="p-6 pb-4 sm:pb-6 border-b border-slate-200/70 dark:border-slate-700/60 sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur z-10">
+                <div class="flex items-center justify-between">
                     <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Додати до списку</h3>
                     <button @click="closeModal"
                             class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
@@ -16,9 +16,34 @@
                         </svg>
                     </button>
                 </div>
+            </div>
 
+            <!-- Content (scrollable on small screens) -->
+            <div class="p-6 pt-4 sm:pt-6 overflow-y-auto overscroll-contain">
                 <!-- Status Options -->
                 <div class="space-y-3">
+                    <!-- Remove current status -->
+                    <button v-if="currentStatus" @click="removeCurrentStatus"
+                            class="w-full text-left p-4 rounded-xl border-2 border-transparent hover:border-red-500 dark:hover:border-red-400 transition-all duration-300 bg-slate-50 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/20 group">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center mr-4 group-hover:bg-red-200 dark:group-hover:bg-red-800/40 transition-colors">
+                                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-lg font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                                        Прибрати статус</h4>
+                                </div>
+                                <p class="text-sm text-slate-600 dark:text-slate-400">Зробити книгу без статусу читання</p>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Divider -->
+                    <div v-if="currentStatus" class="border-t border-slate-200 dark:border-slate-600 my-4"></div>
+
                     <!-- Прочитано -->
                     <button @click="selectStatus('read')"
                             :class="[
@@ -193,6 +218,9 @@ export default {
         },
         selectStatus(status) {
             this.$emit('status-selected', status);
+        },
+        removeCurrentStatus() {
+            this.$emit('remove-status');
         },
         openCustomLibraryModal() {
             // Эмитим событие для открытия модального окна с кастомными библиотеками

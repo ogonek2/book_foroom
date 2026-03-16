@@ -101,7 +101,7 @@
         <!-- Reading Status Modal -->
         <add-to-library-modal v-if="isAuthenticated" :show="showModal" :book="book" :user-libraries="userLibraries"
             :current-status="currentStatus"
-            @close="closeModal" @status-selected="handleStatusSelected" @open-custom-library="openCustomLibraryModal"
+            @close="closeModal" @status-selected="handleStatusSelected" @remove-status="handleRemoveStatus" @open-custom-library="openCustomLibraryModal"
             @notification="$emit('notification', $event)" />
 
         <!-- Custom Library Modal -->
@@ -324,6 +324,31 @@ export default {
             } catch (error) {
                 console.error('Error:', error);
                 this.showAlert('Помилка при збереженні статусу', 'Помилка', 'error');
+            }
+
+            this.closeModal();
+        },
+        async handleRemoveStatus() {
+            try {
+                // Використовуємо ID з об'єкта книги, якщо він є
+                const bookId = this.book.id || await this.getBookIdBySlug(this.book.slug);
+                const response = await axios.delete(`/api/reading-status/book/${bookId}`);
+
+                if (response.data && response.data.success) {
+                    this.currentStatus = null;
+
+                    // Видаляємо з кешу
+                    if (window.bookStatusCache) {
+                        window.bookStatusCache.remove(bookId);
+                    }
+
+                    this.showAlert('Статус видалено!', 'Успіх', 'success');
+                } else {
+                    this.showAlert(response.data?.message || 'Помилка при видаленні статусу', 'Помилка', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showAlert('Помилка при видаленні статусу', 'Помилка', 'error');
             }
 
             this.closeModal();
