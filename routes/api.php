@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('web')->group(function () {
     Route::get('/quotes/featured', [App\Http\Controllers\Api\QuoteController::class, 'featured'])->name('quotes.featured');
 
+    // Open Library — открытая база книг (без API-ключа)
+    Route::prefix('open-library')->name('open-library.')->group(function () {
+        Route::get('/', [App\Http\Controllers\OpenLibraryController::class, 'index'])->name('index');
+        Route::get('/isbn/{isbn}', [App\Http\Controllers\OpenLibraryController::class, 'showByIsbn'])->name('isbn');
+        Route::get('/work/{key}', [App\Http\Controllers\OpenLibraryController::class, 'showWork'])->name('work');
+    });
+
     // Маршруты для книг
     Route::prefix('books')->name('books.')->group(function () {
         // Получение ID книги по slug

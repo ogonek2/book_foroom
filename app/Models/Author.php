@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 
 class Author extends Model
@@ -66,9 +67,21 @@ class Author extends Model
         });
     }
 
+    /**
+     * Книги автора по полю author_id (для обратной совместимости).
+     */
     public function books(): HasMany
     {
         return $this->hasMany(Book::class);
+    }
+
+    /**
+     * Книги автора через связывающую таблицу author_book (many-to-many).
+     */
+    public function booksMany(): BelongsToMany
+    {
+        return $this->belongsToMany(Book::class, 'author_book')
+                    ->withTimestamps();
     }
 
     public function getFullNameAttribute(): string

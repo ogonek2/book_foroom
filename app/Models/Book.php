@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Cache;
 class Book extends Model
 {
     protected $fillable = [
+        'google_volume_id',
+        'open_library_work_id',
         'title',
         'book_name_ua',
         'slug',
@@ -54,7 +56,17 @@ class Book extends Model
         
         static::creating(function ($book) {
             if (empty($book->slug)) {
-                $book->slug = Str::slug($book->title);
+                $sourceTitle = $book->book_name_ua ?: $book->title;
+                $baseSlug = Str::slug($sourceTitle);
+                $slug = $baseSlug;
+                $counter = 1;
+
+                while (self::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+
+                $book->slug = $slug;
             }
         });
     }
@@ -79,6 +91,15 @@ class Book extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(Author::class);
+    }
+
+    /**
+     * Несколько авторов книги через связывающую таблицу author_book.
+     */
+    public function authors(): BelongsToMany
+    {
+        return $this->belongsToMany(Author::class, 'author_book')
+                    ->withTimestamps();
     }
 
     public function reviews(): HasMany
