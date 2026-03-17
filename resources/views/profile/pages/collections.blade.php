@@ -46,7 +46,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     @foreach ($libraries as $library)
                         <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer group"
-                            @click="openLibrary({{ $library->id }})">
+                            @click="openLibrary({{ $library->id }}, '{{ $library->slug }}')">
                             <!-- Header with library info -->
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex-1">
@@ -205,7 +205,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     @foreach ($savedLibraries as $library)
                         <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/30 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer group"
-                            @click="openLibrary({{ $library->id }})">
+                            @click="openLibrary({{ $library->id }}, '{{ $library->slug }}')">
                             <!-- Header with library info -->
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex-1">
@@ -368,8 +368,17 @@
                         @endauth
                     },
                     methods: {
-                        openLibrary(libraryId) {
-                            window.location.href = `/libraries/${libraryId}`;
+                        openLibrary(libraryId, librarySlug = null) {
+                            @auth
+                                const username = '{{ auth()->user()->username }}';
+                                if (librarySlug) {
+                                    window.location.href = `/users/${username}/libraries/${librarySlug}`;
+                                } else {
+                                    window.location.href = `/libraries/${libraryId}`;
+                                }
+                            @else
+                                window.location.href = `/libraries/${libraryId}`;
+                            @endauth
                         },
                         toggleLibraryMenu(libraryId) {
                             this.activeMenuId = this.activeMenuId === libraryId ? null : libraryId;

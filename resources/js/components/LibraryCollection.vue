@@ -159,7 +159,8 @@ export default {
             }
 
             try {
-                const response = await axios.post(`/libraries/${this.library.id}/like`);
+                const key = this.library.slug || this.library.id;
+                const response = await axios.post(`/libraries/${key}/like`);
                 if (response.data.success) {
                     this.$emit('liked', {
                         libraryId: this.library.id,
@@ -177,7 +178,8 @@ export default {
             }
 
             try {
-                const response = await axios.post(`/libraries/${this.library.id}/save`, {}, {
+                const key = this.library.slug || this.library.id;
+                const response = await axios.post(`/libraries/${key}/save`, {}, {
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                         'Content-Type': 'application/json',
