@@ -83,9 +83,12 @@
                     @if ($authors->count() > 0)
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                             @foreach ($authors as $author)
+                                @php
+                                    $authorUrl = $author->slug ? route('authors.show', $author->slug) : null;
+                                @endphp
                                 <div
                                     class="group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-xs border border-gray-200/30 dark:border-gray-700/30 overflow-hidden hover:shadow-xl transition-all duration-300">
-                                    <a href="{{ route('authors.show', $author) }}" class="block">
+                                    <a @if($authorUrl) href="{{ $authorUrl }}" @endif class="block @if(!$authorUrl) pointer-events-none cursor-default @endif">
                                         <!-- Card Container -->
                                         <div class="aspect-[3/4] relative bg-gray-100 dark:bg-gray-700">
                                             <img src="{{ $author->photo_display }}"

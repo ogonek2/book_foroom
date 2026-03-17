@@ -18,8 +18,8 @@
     <!-- Hero Banner -->
     <section class="relative mb-12 overflow-hidden">
         <!-- Main Banner Content -->
-        <div class="relative z-10 py-12">
-            <div class="text-center max-w-4xl mx-auto">
+        <div class="relative z-10 py-12 flex flex-col lg:flex-row items-center justify-center">
+            <div class="text-left max-w-4xl mx-auto lg:mr-12">
                 <!-- Main Heading -->
                 <h1 class="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4">
                     <span class="block text-light-text-primary dark:text-dark-text-primary">
@@ -41,29 +41,21 @@
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-3 justify-center mb-6">
                     <a href="{{ route('books.index') }}"
-                        class="bg-gradient-to-r from-brand-500 to-accent-500 text-white px-6 py-3 rounded-lg font-semibold text-base hover:from-brand-600 hover:to-accent-600 transition-all duration-300 shadow-lg hover:shadow-xl">
+                        class="bg-gradient-to-r from-brand-500 to-accent-500 text-center text-white px-6 py-3 rounded-lg font-semibold text-base hover:from-brand-600 hover:to-accent-600 transition-all duration-300 shadow-lg hover:shadow-xl">
                         <span class="flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
                             Переглянути книги
                         </span>
                     </a>
                     <a href="{{ route('discussions.index') }}"
-                        class="bg-light-text-primary/50 backdrop-blur-sm border border-light-border/50 text-white px-6 py-3 rounded-lg font-semibold text-base hover:bg-light-text-secondary/50 transition-all duration-300 shadow-lg hover:shadow-xl">
+                        class="bg-light-text-primary/50 backdrop-blur-sm border text-center border-light-border/50 text-white px-6 py-3 rounded-lg font-semibold text-base hover:bg-light-text-secondary/50 transition-all duration-300 shadow-lg hover:shadow-xl">
                         <span class="flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
                             Приєднатися до обговорення
                         </span>
                     </a>
                 </div>
 
                 <!-- Stats -->
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div
                         class="dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
                         <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">
@@ -79,7 +71,7 @@
                         <div class="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Книг у каталозі</div>
                     </div>
                     <div
-                        class="dark:bg-dark-bg-secondary/30 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
+                        class="dark:bg-dark-bg-secondary/30 col-span-2 backdrop-blur-sm border border-light-border dark:border-dark-border/30 rounded-xl p-4 text-center bg-light-bg-secondary dark:hover:bg-dark-bg-secondary/40 transition-all duration-300 shadow-sm">
                         <div class="text-xl font-bold text-brand-500 dark:text-brand-400 mb-1">
                             {{ number_format($stats['reviews']) }}
                         </div>
@@ -87,6 +79,9 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="img-container">
+                <img src="{{ asset('storage/illustrations/foxy_on_sky.jpg') }}" alt="Home Banner" class="w-full h-full object-cover">
             </div>
         </div>
     </section>

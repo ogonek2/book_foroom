@@ -22,6 +22,14 @@ Route::middleware('web')->group(function () {
         Route::get('/work/{key}', [App\Http\Controllers\OpenLibraryController::class, 'showWork'])->name('work');
     });
 
+    // Українські книгарні — парсинг пошуку по кількох магазинах паралельно
+    Route::prefix('ukr-bookstores')->name('ukr-bookstores.')->group(function () {
+        Route::get('/', [App\Http\Controllers\UkrBookstoresController::class, 'index'])->name('index');
+        Route::get('/stores', [App\Http\Controllers\UkrBookstoresController::class, 'stores'])->name('stores');
+        Route::post('/save', [App\Http\Controllers\UkrBookstoresController::class, 'save'])->name('save');
+        Route::post('/search-and-save', [App\Http\Controllers\UkrBookstoresController::class, 'searchAndSave'])->name('search-and-save');
+    });
+
     // Маршруты для книг
     Route::prefix('books')->name('books.')->group(function () {
         // Получение ID книги по slug
