@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\BookReadingStatusController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\GutenbergController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,14 @@ Route::middleware('web')->group(function () {
         Route::get('/', [App\Http\Controllers\OpenLibraryController::class, 'index'])->name('index');
         Route::get('/isbn/{isbn}', [App\Http\Controllers\OpenLibraryController::class, 'showByIsbn'])->name('isbn');
         Route::get('/work/{key}', [App\Http\Controllers\OpenLibraryController::class, 'showWork'])->name('work');
+    });
+
+    // Project Gutenberg — через RapidAPI (нужен API-ключ)
+    Route::prefix('gutenberg')->name('gutenberg.')->group(function () {
+        Route::get('/', [GutenbergController::class, 'index'])->name('index');
+        Route::get('/subjects', [GutenbergController::class, 'subjects'])->name('subjects');
+        Route::get('/books/{id}', [GutenbergController::class, 'book'])->name('book');
+        Route::get('/{id}/text', [GutenbergController::class, 'text'])->name('text');
     });
 
     // Українські книгарні — парсинг пошуку по кількох магазинах паралельно

@@ -14,6 +14,7 @@ class Book extends Model
     protected $fillable = [
         'google_volume_id',
         'open_library_work_id',
+        'gutenberg_book_id',
         'ukr_store_url',
         'title',
         'book_name_ua',

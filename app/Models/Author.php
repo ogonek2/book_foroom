@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 class Author extends Model
 {
     protected $fillable = [
+        'gutenberg_author_id',
         'first_name',
         'last_name',
         'middle_name',
