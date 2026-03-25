@@ -141,13 +141,20 @@ class BookController extends Controller
                     'title' => $book->title,
                     'book_name_ua' => $book->book_name_ua,
                     'author' => $book->author,
-                    'cover_image' => $book->cover_image,
+                    'cover_image' => $book->cover_image_display,
+                    'isbn' => $book->isbn,
+                    'publisher' => $book->publisher,
+                    'series' => $book->series,
+                    'series_number' => $book->series_number,
+                    'synonyms' => $book->synonyms ?? [],
                     'rating' => (float) $book->rating,
                     'reviews_count' => (int) $book->reviews_count,
                     'pages' => (int) $book->pages,
                     'publication_year' => $book->publication_year,
+                    'first_publish_year' => $book->first_publish_year,
                     'categories' => $book->categories->pluck('name'),
                     'language' => $book->language,
+                    'original_language' => $book->original_language,
                 ];
             });
 
@@ -526,6 +533,10 @@ class BookController extends Controller
                 'book_name_ua' => $book->book_name_ua,
                 'author' => $book->author,
                 'cover_image' => $book->cover_image_display ?? $book->cover_image,
+                'isbn' => $book->isbn,
+                'publisher' => $book->publisher,
+                'series' => $book->series,
+                'series_number' => $book->series_number,
                 'rating' => (float) ($book->rating ?? 0),
                 'reviews_count' => (int) ($book->reviews_count ?? 0),
             ];

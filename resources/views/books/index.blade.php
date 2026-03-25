@@ -25,10 +25,18 @@
                 'book_name_ua' => $book->book_name_ua,
                 'author' => $book->author,
                 'cover_image' => $book->cover_image_display,
+                'isbn' => $book->isbn,
+                'publisher' => $book->publisher,
+                'series' => $book->series,
+                'series_number' => $book->series_number,
+                'synonyms' => $book->synonyms ?? [],
                 'rating' => (float) $book->rating,
                 'reviews_count' => (int) $book->reviews_count,
                 'pages' => (int) $book->pages,
                 'publication_year' => $book->publication_year,
+                'first_publish_year' => $book->first_publish_year,
+                'language' => $book->language,
+                'original_language' => $book->original_language,
             ];
         })->values();
 

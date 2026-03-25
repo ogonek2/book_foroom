@@ -113,6 +113,9 @@ class ImportGutenbergToDb extends Command
                 $originalSummary = $bookRow['summary'] ?? null;
                 $originalSummary = is_string($originalSummary) ? $originalSummary : null;
 
+                $alternativeTitle = $bookRow['alternative_title'] ?? null;
+                $alternativeTitle = is_string($alternativeTitle) ? trim($alternativeTitle) : null;
+
                 $uaTitle = $doTranslate ? $this->translator->translateToUkrainian($originalTitle) : $originalTitle;
                 $uaSummary = $doTranslate ? $this->translator->translateToUkrainian($originalSummary) : $originalSummary;
 
@@ -176,7 +179,11 @@ class ImportGutenbergToDb extends Command
                     'rating' => 0,
                     'reviews_count' => 0,
                     'interesting_facts' => null,
-                    'synonyms' => [],
+                    'synonyms' => array_values(array_unique(array_filter([
+                        $originalTitleDb,
+                        $uaTitleDb !== $originalTitleDb ? $uaTitleDb : null,
+                        $alternativeTitle,
+                    ], fn ($v) => is_string($v) && trim($v) !== ''))),
                     'series' => null,
                     'series_number' => null,
                 ]);

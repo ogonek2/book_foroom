@@ -53,6 +53,15 @@ class ImportGoogleBooksBatch implements ShouldQueue
             $translatedTitle = $translator->translateToUkrainian($originalTitle);
             $translatedDescription = $translator->translateToUkrainian($originalDescription);
 
+            $subtitle = $volume['subtitle'] ?? null;
+            $subtitle = is_string($subtitle) ? trim($subtitle) : null;
+
+            $synonyms = array_values(array_unique(array_filter([
+                is_string($originalTitle) ? trim($originalTitle) : null,
+                is_string($translatedTitle) ? trim($translatedTitle) : null,
+                $subtitle,
+            ], fn ($v) => is_string($v) && $v !== '')));
+
             $book = Book::firstOrCreate(
                 ['google_volume_id' => $googleId],
                 [
@@ -75,7 +84,7 @@ class ImportGoogleBooksBatch implements ShouldQueue
                     'rating' => $volume['average_rating'] ?? 0,
                     'reviews_count' => $volume['ratings_count'] ?? 0,
                     'interesting_facts' => null,
-                    'synonyms' => [],
+                    'synonyms' => empty($synonyms) ? [] : $synonyms,
                     'series' => null,
                     'series_number' => null,
                 ]
@@ -123,9 +132,10 @@ class ImportGoogleBooksBatch implements ShouldQueue
             }
 
             if ($primaryAuthorId !== null) {
-                $book->author_id = $primaryAuthorId;
-                $book->author = $authorNames[0] ?? $book->author;
-                $book->save();
+                $book->forceFill([
+                    'author_id' => $primaryAuthorId,
+                    'author' => $authorNames[0] ?? $book->getAttribute('author'),
+                ])->save();
             }
 
             if (! empty($authorIds)) {
