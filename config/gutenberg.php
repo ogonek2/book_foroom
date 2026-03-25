@@ -24,6 +24,10 @@ return [
     'search_page_size_default' => (int) env('GUTENBERG_SEARCH_PAGE_SIZE', 10),
     'search_page_size_max' => 100,
 
+    /** Cache to avoid re-fetching the same pages/authors repeatedly */
+    'cache_enabled' => filter_var(env('GUTENBERG_CACHE_ENABLED', true), FILTER_VALIDATE_BOOL),
+    'cache_ttl_minutes' => (int) env('GUTENBERG_CACHE_TTL_MINUTES', 1440), // 24h
+
     /** Text cleaning mode for /text endpoint */
     'text_cleaning_mode_default' => env('GUTENBERG_TEXT_CLEANING_MODE', 'simple'),
 ];

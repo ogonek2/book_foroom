@@ -104,6 +104,7 @@ class ImportGutenbergToDb extends Command
                 if ($existingBook) {
                     $skippedExisting++;
                     if ($enrichAuthors) {
+                        // Не дергаем авторов каждый раз: обогащаем только если действительно не хватает данных.
                         $this->enrichAuthorsForExistingBook($existingBook, $bookRow, $authorCache, $doTranslate, $authorsLimit, $enrichAuthors);
                     }
                     continue;
@@ -246,6 +247,22 @@ class ImportGutenbergToDb extends Command
             } elseif (is_string($a)) {
                 $authorName = $a;
             }
+            // Если автора уже достаточно "обогащён", не делаем лишние запросы.
+            if ($authorApiId && $authorApiId > 0) {
+                $existing = Author::where('gutenberg_author_id', $authorApiId)->first();
+                if ($existing) {
+                    $hasPhoto = is_string($existing->photo) && trim($existing->photo) !== '';
+                    $hasBio = is_string($existing->biography) && trim($existing->biography) !== '';
+                    $hasUaNames = is_string($existing->first_name_ua) && trim($existing->first_name_ua) !== ''
+                        && is_string($existing->last_name_ua) && trim($existing->last_name_ua) !== '';
+
+                    // Если уже есть фото+био и (если включён перевод) UA имена — пропускаем
+                    if ($hasPhoto && $hasBio && (! $translate || $hasUaNames)) {
+                        continue;
+                    }
+                }
+            }
+
             $this->upsertAuthorFromGutenberg($authorApiId, $authorName, $authorCache, $translate, $enrichAuthors);
         }
     }

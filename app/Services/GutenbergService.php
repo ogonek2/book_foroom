@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class GutenbergService
@@ -48,32 +49,90 @@ class GutenbergService
         $expandAuthors = (bool) config('gutenberg.expand_authors_default', true);
         $expandLimit = max(0, (int) config('gutenberg.expand_authors_limit', 5));
 
-        $response = null;
-        foreach ($this->booksIndexPaths as $path) {
-            $response = $this->requestWith429Retry(
-                "{$this->baseUrl}{$path}",
-                [
-                    'q' => $query,
-                    'page_size' => $pageSize,
-                    'page' => $page,
-                ],
-            );
+        $cacheEnabled = (bool) config('gutenberg.cache_enabled', true);
+        $ttlMinutes = max(0, (int) config('gutenberg.cache_ttl_minutes', 1440));
+        $cacheKey = 'gutenberg:search:' . md5(json_encode([
+            'q' => $query,
+            'page_size' => $pageSize,
+            'page' => $page,
+        ], JSON_UNESCAPED_UNICODE));
 
-            if ($response->successful()) {
-                break;
-            }
+        $data = null;
+        if ($cacheEnabled && $ttlMinutes > 0) {
+            $data = Cache::remember($cacheKey, now()->addMinutes($ttlMinutes), function () use ($query, $pageSize, $page) {
+                $response = null;
+                foreach ($this->booksIndexPaths as $path) {
+                    $response = $this->requestWith429Retry(
+                        "{$this->baseUrl}{$path}",
+                        [
+                            'q' => $query,
+                            'page_size' => $pageSize,
+                            'page' => $page,
+                        ],
+                    );
 
-            if (! $this->looksLikeMissingApiRoute($response->json())) {
-                break;
-            }
+                    if ($response->successful()) {
+                        break;
+                    }
+
+                    if (! $this->looksLikeMissingApiRoute($response->json())) {
+                        break;
+                    }
+                }
+
+                if ($response === null || ! $response->successful()) {
+                    return null;
+                }
+
+                $json = $response->json();
+                return is_array($json) ? $json : null;
+            });
         }
 
-        if ($response === null || ! $response->successful()) {
+        if ($data === null) {
+            $response = null;
+            foreach ($this->booksIndexPaths as $path) {
+                $response = $this->requestWith429Retry(
+                    "{$this->baseUrl}{$path}",
+                    [
+                        'q' => $query,
+                        'page_size' => $pageSize,
+                        'page' => $page,
+                    ],
+                );
+
+                if ($response->successful()) {
+                    break;
+                }
+
+                if (! $this->looksLikeMissingApiRoute($response->json())) {
+                    break;
+                }
+            }
+
+            if ($response === null || ! $response->successful()) {
+                return [
+                    'ok' => false,
+                    'status' => $response?->status() ?? 500,
+                    'message' => $response?->json('detail') ?? 'Gutenberg API request failed.',
+                    'raw' => $response?->json(),
+                    'items' => collect(),
+                    'next' => null,
+                    'previous' => null,
+                    'page' => $page,
+                    'page_size' => $pageSize,
+                ];
+            }
+
+            $data = $response->json() ?? [];
+        }
+
+        if (! is_array($data)) {
             return [
                 'ok' => false,
-                'status' => $response?->status() ?? 500,
-                'message' => $response?->json('detail') ?? 'Gutenberg API request failed.',
-                'raw' => $response?->json(),
+                'status' => 500,
+                'message' => 'Gutenberg API request failed.',
+                'raw' => $data,
                 'items' => collect(),
                 'next' => null,
                 'previous' => null,
@@ -82,7 +141,6 @@ class GutenbergService
             ];
         }
 
-        $data = $response->json() ?? [];
         $results = $data['results'] ?? [];
 
         return [
@@ -219,21 +277,41 @@ class GutenbergService
 
     public function getAuthor(int $authorId): array
     {
-        $response = $this->requestWith429Retry("{$this->baseUrl}/authors/{$authorId}", []);
+        $cacheEnabled = (bool) config('gutenberg.cache_enabled', true);
+        $ttlMinutes = max(0, (int) config('gutenberg.cache_ttl_minutes', 1440));
+        $cacheKey = "gutenberg:author:{$authorId}";
 
-        if (! $response->successful()) {
+        $json = null;
+        if ($cacheEnabled && $ttlMinutes > 0) {
+            $json = Cache::remember($cacheKey, now()->addMinutes($ttlMinutes), function () use ($authorId) {
+                $response = $this->requestWith429Retry("{$this->baseUrl}/authors/{$authorId}", []);
+                if (! $response->successful()) {
+                    return null;
+                }
+                $j = $response->json();
+                return is_array($j) ? $j : null;
+            });
+        }
+
+        $response = null;
+        if ($json === null) {
+            $response = $this->requestWith429Retry("{$this->baseUrl}/authors/{$authorId}", []);
+            $json = $response->json();
+        }
+
+        if (! is_array($json) || ($response !== null && ! $response->successful())) {
             return [
                 'ok' => false,
-                'status' => $response->status(),
-                'message' => $response->json('detail') ?? 'Gutenberg API request failed.',
-                'raw' => $response->json(),
+                'status' => $response?->status() ?? 500,
+                'message' => is_array($json) ? ($json['detail'] ?? 'Gutenberg API request failed.') : 'Gutenberg API request failed.',
+                'raw' => $json,
             ];
         }
 
         return [
             'ok' => true,
             'status' => 200,
-            'item' => $this->localizeGutenbergPayload($this->unwrapSingleResult($response->json())),
+            'item' => $this->localizeGutenbergPayload($this->unwrapSingleResult($json)),
         ];
     }
 
