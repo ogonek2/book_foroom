@@ -2135,6 +2135,9 @@ select{
 .min-h-screen{
   min-height: 100vh;
 }
+.min-h-\[3\.25rem\]{
+  min-height: 3.25rem;
+}
 .w-1\.5{
   width: 0.375rem;
 }
@@ -3822,6 +3825,9 @@ select{
 }
 .leading-tight{
   line-height: 1.25;
+}
+.leading-snug{
+  line-height: 1.375;
 }
 .tracking-\[0\.18em\]{
   letter-spacing: 0.18em;

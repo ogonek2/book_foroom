@@ -24,8 +24,8 @@
                     <div class="flex w-full flex-col h-auto justify-between">
                         <div>
                             <h3
-                                class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors mb-1">
-                                <a :href="bookUrl">{{ book.book_name_ua }}</a>
+                                class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors mb-1 leading-snug line-clamp-2 min-h-[3.25rem]">
+                                <a :href="bookUrl">{{ book.book_name_ua || book.title }}</a>
                             </h3>
                             <p class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-2">{{ book.author }}</p>
 
@@ -566,6 +566,7 @@ export default {
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
