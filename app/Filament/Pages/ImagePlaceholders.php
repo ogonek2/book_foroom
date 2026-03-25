@@ -102,14 +102,27 @@ class ImagePlaceholders extends Page
         $publicDir = public_path('images/placeholders');
 
         if (! is_dir($publicDir)) {
-            mkdir($publicDir, 0775, true);
+            if (! @mkdir($publicDir, 0775, true) && ! is_dir($publicDir)) {
+                throw new \RuntimeException("Не удалось создать папку для заглушек: {$publicDir}");
+            }
+        }
+
+        if (! is_writable($publicDir)) {
+            throw new \RuntimeException(
+                "Папка не доступна для записи: {$publicDir}. " .
+                "Выдай права на запись пользователю PHP-FPM (например: chown/chmod для public/images/placeholders)."
+            );
         }
 
         $ext = strtolower($file->getClientOriginalExtension() ?: 'png');
         $filename = $prefix . '-' . Str::uuid()->toString() . '.' . $ext;
 
         $targetPath = $publicDir . DIRECTORY_SEPARATOR . $filename;
-        copy($file->getRealPath(), $targetPath);
+        if (! @copy($file->getRealPath(), $targetPath)) {
+            $err = error_get_last();
+            $msg = $err['message'] ?? 'unknown error';
+            throw new \RuntimeException("Не удалось сохранить файл в {$targetPath}: {$msg}");
+        }
 
         // Возвращаем публичный путь, который затем сохранится в БД.
         return '/images/placeholders/' . $filename;
