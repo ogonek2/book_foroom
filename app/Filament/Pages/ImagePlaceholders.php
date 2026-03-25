@@ -43,6 +43,7 @@ class ImagePlaceholders extends Page
                         Forms\Components\FileUpload::make('book_cover_upload')
                             ->label('Загрузить файл (перезапишет URL)')
                             ->image()
+                            ->multiple(false)
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
                             ->maxSize(2048)
                             ->fetchFileInformation(false)
@@ -55,9 +56,20 @@ class ImagePlaceholders extends Page
                                     return;
                                 }
 
-                                // Filament может вернуть строку пути после saveUploadedFileUsing
+                                // Filament может вернуть строку или массив (uuid => path)
+                                $path = null;
+
                                 if (is_string($state)) {
-                                    $set('book_cover', $state);
+                                    $path = $state;
+                                } elseif (is_array($state)) {
+                                    $first = reset($state);
+                                    if (is_string($first)) {
+                                        $path = $first;
+                                    }
+                                }
+
+                                if (is_string($path) && $path !== '') {
+                                    $set('book_cover', $path);
                                 }
                             }),
                     ])
@@ -74,6 +86,7 @@ class ImagePlaceholders extends Page
                         Forms\Components\FileUpload::make('author_photo_upload')
                             ->label('Загрузить файл (перезапишет URL)')
                             ->image()
+                            ->multiple(false)
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
                             ->maxSize(2048)
                             ->fetchFileInformation(false)
@@ -86,8 +99,19 @@ class ImagePlaceholders extends Page
                                     return;
                                 }
 
+                                $path = null;
+
                                 if (is_string($state)) {
-                                    $set('author_photo', $state);
+                                    $path = $state;
+                                } elseif (is_array($state)) {
+                                    $first = reset($state);
+                                    if (is_string($first)) {
+                                        $path = $first;
+                                    }
+                                }
+
+                                if (is_string($path) && $path !== '') {
+                                    $set('author_photo', $path);
                                 }
                             }),
                     ])
