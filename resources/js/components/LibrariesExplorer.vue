@@ -408,7 +408,7 @@ export default {
             }, 3000);
         },
     },
-    beforeDestroy() {
+    beforeUnmount() {
         clearTimeout(this.searchTimer);
     },
     mounted() {

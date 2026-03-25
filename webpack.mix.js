@@ -3,8 +3,10 @@ const path = require('path');
 
 mix.js('resources/js/app.js', 'public/js')
    .js('resources/js/lexical-editor.js', 'public/js')
+   .js('resources/js/account/app.js', 'public/js')
    .vue()
    .sass('resources/css/app.scss', 'public/css')
+   .sass('resources/css/account.scss', 'public/css')
    .options({
       processCssUrls: false,
       postCss: [

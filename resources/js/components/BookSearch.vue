@@ -109,7 +109,7 @@ export default {
         // Close suggestions when clicking outside
         document.addEventListener('click', this.handleClickOutside);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener('click', this.handleClickOutside);
         if (this.searchTimeout) {
             clearTimeout(this.searchTimeout);

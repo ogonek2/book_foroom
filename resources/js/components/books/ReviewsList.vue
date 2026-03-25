@@ -419,7 +419,7 @@ export default {
             }
         }
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.cooldownTimer) {
             clearInterval(this.cooldownTimer);
         }
@@ -719,7 +719,7 @@ export default {
         };
         document.addEventListener('click', this.handleClickOutside);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.handleClickOutside) {
             document.removeEventListener('click', this.handleClickOutside);
         }

@@ -207,7 +207,7 @@ export default {
         // Listen for hash changes
         window.addEventListener('hashchange', this.handleHashAnchor);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener('hashchange', this.handleHashAnchor);
     },
     methods: {

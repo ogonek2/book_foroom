@@ -5,6 +5,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\DraftController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
@@ -35,6 +36,12 @@ Route::get('/authors/{author:slug}/facts', [AuthorController::class, 'facts'])->
 
 // Users routes
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
+
+// Account кабинет (экспериментальный, Vue SPA)
+Route::get('/account/{username?}', [AccountController::class, 'show'])->name('account.show');
+Route::get('/account/{any}', [AccountController::class, 'show'])
+    ->where('any', '.*')
+    ->name('account.spa');
 
 // Public profile routes (new design)
 Route::get('/users/{username}', [UserController::class, 'publicProfile'])->name('users.public.profile');

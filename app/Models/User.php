@@ -29,6 +29,14 @@ class User extends Authenticatable
         'password',
         'avatar',
         'bio',
+        'profile_header_title',
+        'profile_header_subtitle',
+        'profile_header_image',
+        'profile_accent_color',
+        'profile_secondary_color',
+        'profile_frame_style',
+        'profile_card_style',
+        'profile_design',
         'birth_date',
         'city',
         'favorite_genres',
@@ -69,6 +77,7 @@ class User extends Authenticatable
             'birth_date' => 'date',
             'favorite_genres' => 'array',
             'newsletter_subscribed' => 'boolean',
+            'profile_design' => 'array',
         ];
     }
 

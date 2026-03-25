@@ -65,6 +65,7 @@
         "star-rating-svg": "^3.5.0",
         "tailwind-merge": "^3.2.0",
         "tw-animate-css": "^1.2.5",
-        "vue": "^2.7.16"
+        "vue": "^2.7.16",
+        "vue-router": "^3.6.5"
     }
 }

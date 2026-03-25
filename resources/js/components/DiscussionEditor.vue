@@ -326,7 +326,7 @@ export default {
     mounted() {
         this.initEditor();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.editor) {
             this.editor.destroy();
         }

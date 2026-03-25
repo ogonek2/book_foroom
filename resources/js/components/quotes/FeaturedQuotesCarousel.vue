@@ -225,7 +225,7 @@ export default {
         this.fetchQuotes();
         window.addEventListener('resize', this.handleResize);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener('resize', this.handleResize);
     },
     methods: {

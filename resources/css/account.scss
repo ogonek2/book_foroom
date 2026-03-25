@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .acc-shell {
+    /* minimal wrapper: no extra glass/background layers */
+    @apply relative min-h-[calc(100vh-6.5rem)];
+  }
+
+  .acc-glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .acc-card {
+    @apply acc-glass rounded-2xl;
+  }
+
+  .acc-btn {
+    @apply inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10 hover:text-white;
+  }
+
+  .acc-btn-primary {
+    @apply inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-sm font-bold text-white shadow-glow transition hover:from-indigo-400 hover:to-purple-500;
+  }
+
+  .acc-pill {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80;
+  }
+
+  .acc-nav-item {
+    @apply flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-white/75 transition hover:bg-white/10 hover:text-white;
+  }
+
+  .acc-nav-item--active {
+    @apply bg-white/10 text-white shadow-glow;
+  }
+}
+
+@layer utilities {
+  .acc-bg-grid {
+    background-image:
+      radial-gradient(circle at 20% 15%, rgba(124, 58, 237, 0.35), transparent 35%),
+      radial-gradient(circle at 80% 25%, rgba(59, 130, 246, 0.25), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(236, 72, 153, 0.20), transparent 45%),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.06), transparent 40%),
+      linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: auto, auto, auto, auto, 48px 48px, 48px 48px;
+    background-position: center, center, center, top, center, center;
+  }
+
+  .acc-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+  }
+
+  .acc-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .acc-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .acc-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+  }
+
+  .acc-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.55);
+  }
+}
+

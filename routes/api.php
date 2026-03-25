@@ -14,6 +14,18 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('web')->group(function () {
+    Route::prefix('account')->name('account.')->group(function () {
+        Route::get('/profile/{username}', [\App\Http\Controllers\AccountController::class, 'profile'])->name('profile.show');
+
+        Route::middleware('auth')->group(function () {
+            Route::put('/profile', [\App\Http\Controllers\AccountController::class, 'update'])->name('profile.update');
+            Route::put('/profile/design', [\App\Http\Controllers\AccountController::class, 'updateDesign'])->name('profile.design.update');
+            Route::post('/profile/header-image', [\App\Http\Controllers\AccountController::class, 'updateHeaderImage'])->name('profile.header-image.update');
+            Route::post('/profile/avatar', [\App\Http\Controllers\AccountController::class, 'updateAvatar'])->name('profile.avatar.update');
+            Route::delete('/profile/avatar', [\App\Http\Controllers\AccountController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+        });
+    });
+
     Route::get('/quotes/featured', [App\Http\Controllers\Api\QuoteController::class, 'featured'])->name('quotes.featured');
 
     // Open Library — открытая база книг (без API-ключа)

@@ -305,7 +305,7 @@ export default {
         async handleStatusSelected(status) {
             try {
                 // Використовуємо ID з об'єкта книги, якщо він є
-                let bookId = this.book.id || await this.getBookIdBySlug(this.book.slug);
+                const bookId = this.book.id || await this.getBookIdBySlug(this.book.slug);
 
                 // Отправляем запрос на сервер
                 const normalizedStatus = status === 'want-to-read' ? 'want_to_read' : status;

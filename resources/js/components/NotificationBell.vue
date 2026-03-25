@@ -131,7 +131,7 @@ export default {
         // Close dropdown when clicking outside
         document.addEventListener('click', this.closeDropdown);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.stopPolling();
         document.removeEventListener('click', this.closeDropdown);
     },

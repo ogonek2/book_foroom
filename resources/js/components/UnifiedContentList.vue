@@ -593,7 +593,7 @@ export default {
             if (!item.content) return '';
             
             // Удаляем опасные теги
-            let content = this.stripDangerousTags(item.content);
+            const content = this.stripDangerousTags(item.content);
             
             // Если контент не раскрыт и длина больше 150 символов
             if (!this.isExpanded(item) && this.getTextLength(content) > 150) {
