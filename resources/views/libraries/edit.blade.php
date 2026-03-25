@@ -160,7 +160,7 @@
                         @foreach($books as $book)
                             <div class="bg-slate-50 dark:bg-slate-700 rounded-xl p-4 hover:shadow-lg transition-all duration-300">
                                 <div class="aspect-[3/4] mb-3">
-                                    <img src="{{ $book->cover_image }}" 
+                                    <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                                          alt="{{ $book->title }}"
                                          loading="lazy"
                                          decoding="async"

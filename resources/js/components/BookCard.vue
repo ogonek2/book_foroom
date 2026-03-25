@@ -7,7 +7,7 @@
                     <!-- Book Cover -->
                     <div class="flex-shrink-0">
                         <a :href="bookUrl" class="block">
-                            <img :src="book.cover_image || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=300&fit=crop&crop=center'"
+                            <img :src="book.cover_image || bookCoverPlaceholder"
                                 :alt="book.title"
                                 :loading="loadPriority ? 'eager' : 'lazy'"
                                 :fetchpriority="loadPriority ? 'high' : undefined"
@@ -15,7 +15,8 @@
                                 width="120"
                                 height="180"
                                 class="aspect-[3/4] object-cover rounded-lg shadow-md group-hover:shadow-lg transition-all duration-300"
-                                style="width: 120px; height: auto; aspect-ratio: 2 / 3;">
+                                style="width: 120px; height: auto; aspect-ratio: 2 / 3;"
+                                @error="onCoverError">
                         </a>
                     </div>
 
@@ -24,7 +25,7 @@
                         <div>
                             <h3
                                 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors mb-1">
-                                <a :href="bookUrl">{{ book.title }}</a>
+                                <a :href="bookUrl">{{ book.book_name_ua }}</a>
                             </h3>
                             <p class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-2">{{ book.author }}</p>
 
@@ -240,6 +241,11 @@ export default {
         }
     },
     computed: {
+        bookCoverPlaceholder() {
+            return (window.imagePlaceholders && window.imagePlaceholders.bookCover)
+                ? window.imagePlaceholders.bookCover
+                : '/images/placeholders/book-cover.svg';
+        },
         bookUrl() {
             return `/books/${this.book.slug}`;
         },
@@ -280,6 +286,13 @@ export default {
     methods: {
         formatRating(rating) {
             return rating ? Number(rating).toFixed(1) : '0.0';
+        },
+        onCoverError(event) {
+            // Replace broken image with placeholder (avoid infinite loop)
+            const fallback = this.bookCoverPlaceholder;
+            if (event?.target?.src && event.target.src !== fallback) {
+                event.target.src = fallback;
+            }
         },
         openReadingStatusModal() {
             console.log('Opening modal, isAuthenticated:', this.isAuthenticated);

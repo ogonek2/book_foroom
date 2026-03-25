@@ -398,6 +398,41 @@
             // Встановлюємо глобальну змінну для авторизації ПЕРЕД завантаженням app.js
             window.isAuthenticated = {{ auth()->check() ? 'true' : 'false' }};
         </script>
+
+        <script>
+            // Глобальні заглушки для зображень (щоб не прокидати через контролери)
+            window.imagePlaceholders = @json(\App\Services\ImagePlaceholderService::forFrontend());
+        </script>
+
+        <script>
+            // Универсальный fallback для <img data-fallback="bookCover|authorPhoto"> при 404/битом URL
+            window.__applyImageFallback = function (img) {
+                try {
+                    if (!img || !img.dataset) return;
+                    const key = img.dataset.fallback;
+                    if (!key) return;
+
+                    const map = (window.imagePlaceholders || {});
+                    const fallback =
+                        (key === 'bookCover') ? (map.bookCover || '/images/placeholders/book-cover.svg')
+                        : (key === 'authorPhoto') ? (map.authorPhoto || '/images/placeholders/author-photo.svg')
+                        : null;
+
+                    if (!fallback) return;
+                    if (img.src === fallback) return;
+                    img.src = fallback;
+                } catch (e) {
+                    // no-op
+                }
+            };
+
+            document.addEventListener('error', function (e) {
+                const target = e && e.target;
+                if (target && target.tagName === 'IMG') {
+                    window.__applyImageFallback(target);
+                }
+            }, true);
+        </script>
         
         <script src="{{ mix('js/app.js') }}" defer></script>
         @stack('scripts')

@@ -56,7 +56,7 @@
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
                     <div class="p-4">
                         <div class="aspect-w-3 aspect-h-4 mb-4">
-                            <img src="{{ $book->cover_image ?: '/images/book-placeholder.jpg' }}" 
+                            <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                                  alt="{{ $book->title }}" 
                                  class="w-full h-48 object-cover rounded-lg">
                         </div>

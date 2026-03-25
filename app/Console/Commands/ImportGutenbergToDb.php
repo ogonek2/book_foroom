@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Services\GutenbergService;
 use App\Services\TranslationService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class ImportGutenbergToDb extends Command
@@ -18,6 +19,7 @@ class ImportGutenbergToDb extends Command
                             {--page_size=20 : Размер страницы (page_size) при поиске}
                             {--max-pages=20 : Максимум страниц (page) за один запуск}
                             {--translate=1 : Переводить EN->UK (1/0)}
+                            {--enrich-authors=1 : Дотягивать детали/фото автора, даже если автор уже есть в БД}
                             {--categories-limit=8 : Максимум категорий на книгу}
                             {--authors-limit=5 : Максимум авторов на книгу}
                             {--retries=2 : Повторы при 429}
@@ -44,6 +46,7 @@ class ImportGutenbergToDb extends Command
         $pageSize = max(1, min(100, (int) $this->option('page_size')));
         $maxPages = max(1, (int) $this->option('max-pages'));
         $doTranslate = filter_var($this->option('translate'), FILTER_VALIDATE_BOOL);
+        $enrichAuthors = filter_var($this->option('enrich-authors'), FILTER_VALIDATE_BOOL);
         $categoriesLimit = max(0, (int) $this->option('categories-limit'));
         $authorsLimit = max(0, (int) $this->option('authors-limit'));
 
@@ -97,8 +100,12 @@ class ImportGutenbergToDb extends Command
                 }
                 $seenBookIds[$gutenbergId] = true;
 
-                if (Book::where('gutenberg_book_id', $gutenbergId)->exists()) {
+                $existingBook = Book::where('gutenberg_book_id', $gutenbergId)->first();
+                if ($existingBook) {
                     $skippedExisting++;
+                    if ($enrichAuthors) {
+                        $this->enrichAuthorsForExistingBook($existingBook, $bookRow, $authorCache, $doTranslate, $authorsLimit, $enrichAuthors);
+                    }
                     continue;
                 }
 
@@ -108,6 +115,10 @@ class ImportGutenbergToDb extends Command
 
                 $uaTitle = $doTranslate ? $this->translator->translateToUkrainian($originalTitle) : $originalTitle;
                 $uaSummary = $doTranslate ? $this->translator->translateToUkrainian($originalSummary) : $originalSummary;
+
+                // Защита от сверхдлинных заголовков (VARCHAR в MySQL)
+                $originalTitleDb = Str::limit($originalTitle, 250, '…');
+                $uaTitleDb = Str::limit((string) $uaTitle, 250, '…');
 
                 $authors = $bookRow['authors'] ?? [];
                 $authors = is_array($authors) ? $authors : [];
@@ -131,7 +142,7 @@ class ImportGutenbergToDb extends Command
                         $authorStringForBook = $authorName;
                     }
 
-                    $authorModel = $this->upsertAuthorFromGutenberg($authorApiId, $authorName, $authorCache, $doTranslate);
+                    $authorModel = $this->upsertAuthorFromGutenberg($authorApiId, $authorName, $authorCache, $doTranslate, $enrichAuthors);
                     if ($authorModel) {
                         $authorIds[] = $authorModel->id;
                         if ($primaryAuthorId === null) {
@@ -142,10 +153,16 @@ class ImportGutenbergToDb extends Command
 
                 $book = Book::create([
                     'gutenberg_book_id' => $gutenbergId,
-                    'title' => $originalTitle,
-                    'book_name_ua' => $uaTitle,
+                    'title' => $originalTitleDb,
+                    'book_name_ua' => $uaTitleDb,
                     'annotation' => $uaSummary,
                     'annotation_source' => $doTranslate ? 'gutenberg_translated_uk' : 'gutenberg_original',
+                    'gutenberg_summary_en' => $originalSummary,
+                    'gutenberg_download_count' => is_numeric($bookRow['download_count'] ?? null) ? (int) $bookRow['download_count'] : null,
+                    'gutenberg_issued_at' => $this->toTimestamp($bookRow['issued'] ?? null),
+                    'gutenberg_reading_ease_score' => is_numeric($bookRow['reading_ease_score'] ?? null) ? (float) $bookRow['reading_ease_score'] : null,
+                    'gutenberg_formats' => is_array($bookRow['formats'] ?? null) ? $bookRow['formats'] : null,
+                    'gutenberg_media_type' => is_string($bookRow['media_type'] ?? null) ? $bookRow['media_type'] : null,
                     'author' => $authorStringForBook,
                     'author_id' => $primaryAuthorId,
                     'isbn' => null,
@@ -207,7 +224,29 @@ class ImportGutenbergToDb extends Command
     /**
      * @param array<int, array<string, mixed>> $authorCache
      */
-    protected function upsertAuthorFromGutenberg(?int $authorApiId, ?string $authorName, array &$authorCache, bool $translate): ?Author
+    protected function enrichAuthorsForExistingBook(Book $book, array $bookRow, array &$authorCache, bool $translate, int $authorsLimit, bool $enrichAuthors): void
+    {
+        $authors = $bookRow['authors'] ?? [];
+        $authors = is_array($authors) ? $authors : [];
+        $authors = array_slice($authors, 0, $authorsLimit > 0 ? $authorsLimit : 0);
+
+        foreach ($authors as $a) {
+            $authorApiId = null;
+            $authorName = null;
+            if (is_array($a)) {
+                $authorApiId = isset($a['id']) ? (int) $a['id'] : null;
+                $authorName = isset($a['name']) ? (string) $a['name'] : null;
+            } elseif (is_string($a)) {
+                $authorName = $a;
+            }
+            $this->upsertAuthorFromGutenberg($authorApiId, $authorName, $authorCache, $translate, $enrichAuthors);
+        }
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $authorCache
+     */
+    protected function upsertAuthorFromGutenberg(?int $authorApiId, ?string $authorName, array &$authorCache, bool $translate, bool $enrichAuthors = true): ?Author
     {
         $authorName = is_string($authorName) ? trim($authorName) : null;
 
@@ -235,6 +274,8 @@ class ImportGutenbergToDb extends Command
         $birthYear = is_array($details) ? ($details['birth_year'] ?? null) : null;
         $deathYear = is_array($details) ? ($details['death_year'] ?? null) : null;
         $webpage = is_array($details) ? ($details['webpage'] ?? null) : null;
+        $aliases = is_array($details) ? ($details['aliases'] ?? null) : null;
+        $aliases = is_array($aliases) ? $aliases : [];
 
         $firstNameUa = $translate ? $this->translator->translateToUkrainian($firstName) : null;
         $lastNameUa = $translate ? $this->translator->translateToUkrainian($lastName) : null;
@@ -273,11 +314,48 @@ class ImportGutenbergToDb extends Command
         if ($author->death_date === null) {
             $author->death_date = $this->yearToDate($deathYear);
         }
-        if ($author->website === null && is_string($webpage)) {
-            $author->website = $webpage;
+        if (is_string($webpage) && trim($webpage) !== '') {
+            if ($author->website === null || ($enrichAuthors && trim((string) $author->website) === '')) {
+                $author->website = $webpage;
+            }
+            if ($author->web_page === null || ($enrichAuthors && trim((string) $author->web_page) === '')) {
+                $author->web_page = $webpage;
+            }
         }
-        if ($author->web_page === null && is_string($webpage)) {
-            $author->web_page = $webpage;
+
+        // Алиасы → synonyms/pseudonym
+        $aliasesClean = [];
+        foreach ($aliases as $a) {
+            if (! is_string($a)) {
+                continue;
+            }
+            $a = trim($a);
+            if ($a === '') {
+                continue;
+            }
+            $aliasesClean[] = $a;
+        }
+        $aliasesClean = array_values(array_unique($aliasesClean));
+
+        if (($author->synonyms === null || $author->synonyms === [] || $author->synonyms === '') && ! empty($aliasesClean)) {
+            $author->synonyms = $aliasesClean;
+        }
+        if (($author->pseudonym === null || trim((string) $author->pseudonym) === '') && ! empty($aliasesClean)) {
+            $author->pseudonym = $aliasesClean[0];
+        }
+
+        // Wikipedia: фото + биография (summary). Gutenberg API обычно не отдаёт фото/био.
+        if (is_string($webpage) && str_contains($webpage, 'wikipedia.org/wiki/')) {
+            $wiki = $this->fetchWikipediaSummaryData($webpage);
+
+            if (($author->photo === null || ($enrichAuthors && trim((string) $author->photo) === '')) && ($wiki['photo'] ?? null)) {
+                $author->photo = Str::limit((string) $wiki['photo'], 2000, '');
+            }
+
+            if (($author->biography === null || ($enrichAuthors && trim((string) $author->biography) === '')) && ($wiki['extract'] ?? null)) {
+                $bio = (string) $wiki['extract'];
+                $author->biography = $translate ? $this->translator->translateToUkrainian($bio) : $bio;
+            }
         }
 
         // slug выставит модель сама при creating, но если мы нашли по slug — он уже есть
@@ -356,6 +434,71 @@ class ImportGutenbergToDb extends Command
             return null;
         }
         return sprintf('%04d-01-01', $y);
+    }
+
+    protected function toTimestamp(mixed $value): ?string
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+        // Обычно приходит ISO 8601
+        try {
+            return (new \DateTimeImmutable($value))->format('Y-m-d H:i:s');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * @return array{photo?: string|null, extract?: string|null}
+     */
+    protected function fetchWikipediaSummaryData(string $webpage): array
+    {
+        try {
+            $path = parse_url($webpage, PHP_URL_PATH);
+            if (! is_string($path) || ! str_contains($path, '/wiki/')) {
+                return [];
+            }
+            $title = substr($path, strpos($path, '/wiki/') + 6);
+            $title = urldecode($title);
+            if ($title === '') {
+                return [];
+            }
+
+            $url = 'https://en.wikipedia.org/api/rest_v1/page/summary/' . rawurlencode($title);
+            $resp = Http::timeout(10)
+                ->withOptions(['verify' => false])
+                ->withHeaders(['User-Agent' => 'project_001/1.0'])
+                ->get($url);
+            if (! $resp->successful()) {
+                return [];
+            }
+            $json = $resp->json();
+            if (! is_array($json)) {
+                return [];
+            }
+
+            $extract = $json['extract'] ?? null;
+            $extract = is_string($extract) && trim($extract) !== '' ? $extract : null;
+
+            $photo = null;
+            $thumb = $json['thumbnail']['source'] ?? null;
+            if (is_string($thumb) && str_starts_with($thumb, 'http')) {
+                $photo = $thumb;
+            } else {
+                $orig = $json['originalimage']['source'] ?? null;
+                if (is_string($orig) && str_starts_with($orig, 'http')) {
+                    $photo = $orig;
+                }
+            }
+
+            return [
+                'photo' => $photo,
+                'extract' => $extract,
+            ];
+        } catch (\Throwable) {
+            return [];
+        }
     }
 }
 

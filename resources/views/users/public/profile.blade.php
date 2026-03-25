@@ -79,7 +79,7 @@
                                 'slug' => $readingStatus->book->slug,
                                 'title' => $readingStatus->book->title,
                                 'author' => $readingStatus->book->author->first_name ?? $readingStatus->book->author ?? 'Автор невідомий',
-                                'cover_image' => $readingStatus->book->cover_image,
+                                'cover_image' => $readingStatus->book->cover_image_display,
                                 'rating' => $readingStatus->rating ?? $readingStatus->book->rating ?? 0,
                                 'reviews_count' => $readingStatus->book->reviews_count ?? 0,
                                 'pages' => $readingStatus->book->pages ?? 0

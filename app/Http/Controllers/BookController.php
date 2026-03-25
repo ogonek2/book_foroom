@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\Author;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -14,13 +15,47 @@ class BookController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Book::with('categories');
+        $query = Book::with(['categories', 'author']);
 
         // Filter by category
         if ($request->has('category') && $request->category) {
-            $query->whereHas('categories', function ($q) use ($request) {
-                $q->where('slug', $request->category);
-            });
+            $raw = is_array($request->category) ? $request->category : (string) $request->category;
+            if (is_array($raw)) {
+                $slugs = $raw;
+            } else {
+                $slugs = preg_split('/\s*,\s*/', trim($raw));
+                $slugs = is_array($slugs) ? $slugs : [];
+            }
+            $slugs = array_values(array_filter(array_map(fn ($s) => is_string($s) ? trim($s) : '', $slugs)));
+
+            if (! empty($slugs)) {
+                $query->whereHas('categories', function ($q) use ($slugs) {
+                    $q->whereIn('slug', $slugs);
+                });
+            }
+        }
+
+        // Filter by language
+        if ($request->filled('language')) {
+            $lang = $request->string('language')->trim()->toString();
+            $query->where('language', $lang);
+        }
+
+        // Filter by author (text)
+        if ($request->filled('author')) {
+            $author = $request->string('author')->trim()->toString();
+            $query->where('author', 'like', "%{$author}%");
+        }
+
+        // Filter by year range
+        $yearFrom = $request->input('year_from');
+        $yearTo = $request->input('year_to');
+        $yearFrom = is_numeric($yearFrom) ? (int) $yearFrom : null;
+        $yearTo = is_numeric($yearTo) ? (int) $yearTo : null;
+        if ($yearFrom !== null || $yearTo !== null) {
+            $yearFrom = $yearFrom !== null ? max(0, $yearFrom) : 0;
+            $yearTo = $yearTo !== null ? max($yearFrom, $yearTo) : (int) date('Y');
+            $query->whereBetween('publication_year', [$yearFrom, $yearTo]);
         }
 
         // Search
@@ -83,6 +118,14 @@ class BookController extends Controller
             ->withCount('books')
             ->orderBy('name')
             ->get();
+
+        $languages = Book::query()
+            ->select('language')
+            ->whereNotNull('language')
+            ->where('language', '!=', '')
+            ->distinct()
+            ->orderBy('language')
+            ->pluck('language');
         
         // Get user's libraries for the add to library modal
         $userLibraries = collect();
@@ -104,6 +147,7 @@ class BookController extends Controller
                     'pages' => (int) $book->pages,
                     'publication_year' => $book->publication_year,
                     'categories' => $book->categories->pluck('name'),
+                    'language' => $book->language,
                 ];
             });
 
@@ -118,7 +162,7 @@ class BookController extends Controller
             ]);
         }
 
-        return view('books.index', compact('books', 'categories', 'userLibraries'));
+        return view('books.index', compact('books', 'categories', 'userLibraries', 'languages'));
     }
 
     /**

@@ -334,7 +334,7 @@ class BookResource extends Resource
                 Tables\Columns\ImageColumn::make('cover_image')
                     ->circular()
                     ->size(50)
-                    ->defaultImageUrl(url('/images/no-cover.png')),
+                    ->defaultImageUrl(\App\Services\ImagePlaceholderService::bookCoverUrl()),
                 Tables\Columns\TextColumn::make('title')
                     ->searchable()
                     ->sortable()

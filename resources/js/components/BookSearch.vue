@@ -45,7 +45,7 @@
                 <!-- Cover Image -->
                 <div class="flex-shrink-0">
                     <img 
-                        :src="book.cover_image || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=80&h=120&fit=crop'"
+                        :src="book.cover_image || bookCoverPlaceholder"
                         :alt="book.title"
                         loading="lazy"
                         decoding="async"
@@ -99,7 +99,10 @@ export default {
             suggestions: [],
             showSuggestions: false,
             selectedIndex: -1,
-            searchTimeout: null
+            searchTimeout: null,
+            bookCoverPlaceholder: (window.imagePlaceholders && window.imagePlaceholders.bookCover)
+                ? window.imagePlaceholders.bookCover
+                : '/images/placeholders/book-cover.svg'
         };
     },
     mounted() {

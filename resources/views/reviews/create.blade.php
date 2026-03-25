@@ -103,7 +103,7 @@
             <!-- Sticky Book Sidebar -->
             <aside class="w-full lg:max-w-[220px] lg:block lg:sticky top-4 space-y-6">
                 <div class="flex flex-row items-center lg:flex-col lg:items-start gap-x-4">
-                    <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
+                    <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                         alt="{{ $book->title }}" class="w-full max-w-[120px] lg:max-w-full object-cover rounded-lg mb-4" style="aspect-ratio: 2 / 3;">
                     <div>
                         <p class="text-xs uppercase text-slate-500 dark:text-slate-400 mb-1">Книга</p>

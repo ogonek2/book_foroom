@@ -104,7 +104,7 @@
                              data-created-at="{{ $readingStatus->created_at->timestamp }}">
                             <!-- Book Cover -->
                             <div class="aspect-[3/4] mb-3 relative">
-                                <img src="{{ $readingStatus->book->cover_image }}" 
+                                <img src="{{ $readingStatus->book->cover_image_display }}" data-fallback="bookCover"
                                      alt="{{ $readingStatus->book->title }}"
                                      class="w-full h-full object-cover rounded-lg shadow-md">
                                 

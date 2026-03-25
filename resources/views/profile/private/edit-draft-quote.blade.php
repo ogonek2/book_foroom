@@ -150,7 +150,7 @@
                         <div class="p-4">
                             <a href="{{ route('books.show', $book->slug) }}" class="block group">
                                 <div class="relative overflow-hidden rounded-xl shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                                    <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
+                                    <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                                          alt="{{ $book->title }}"
                                          class="w-full object-cover"
                                          style="aspect-ratio: 2 / 3;">

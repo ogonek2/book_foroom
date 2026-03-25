@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use App\Services\ImagePlaceholderService;
 
 class Book extends Model
 {
@@ -15,6 +16,12 @@ class Book extends Model
         'google_volume_id',
         'open_library_work_id',
         'gutenberg_book_id',
+        'gutenberg_download_count',
+        'gutenberg_issued_at',
+        'gutenberg_reading_ease_score',
+        'gutenberg_formats',
+        'gutenberg_media_type',
+        'gutenberg_summary_en',
         'ukr_store_url',
         'title',
         'book_name_ua',
@@ -50,6 +57,8 @@ class Book extends Model
         'is_featured' => 'boolean',
         'interesting_facts' => 'array',
         'synonyms' => 'array',
+        'gutenberg_formats' => 'array',
+        'gutenberg_issued_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -60,11 +69,23 @@ class Book extends Model
             if (empty($book->slug)) {
                 $sourceTitle = $book->book_name_ua ?: $book->title;
                 $baseSlug = Str::slug($sourceTitle);
+                // Guard against extremely long titles (MySQL VARCHAR limits / index limits)
+                if (is_string($baseSlug) && strlen($baseSlug) > 180) {
+                    $baseSlug = substr($baseSlug, 0, 180);
+                    $baseSlug = rtrim($baseSlug, '-');
+                }
                 $slug = $baseSlug;
                 $counter = 1;
 
                 while (self::where('slug', $slug)->exists()) {
-                    $slug = $baseSlug . '-' . $counter;
+                    $suffix = '-' . $counter;
+                    $maxLen = 190;
+                    $base = $baseSlug;
+                    if (is_string($base) && strlen($base . $suffix) > $maxLen) {
+                        $base = substr($base, 0, max(1, $maxLen - strlen($suffix)));
+                        $base = rtrim($base, '-');
+                    }
+                    $slug = $base . $suffix;
                     $counter++;
                 }
 
@@ -167,8 +188,7 @@ class Book extends Model
             return $this->cover_image_url;
         }
 
-        // Fallback на изображение по умолчанию
-        return asset('images/no-cover.png');
+        return ImagePlaceholderService::bookCoverUrl();
     }
 
     public function userLibraries(): HasMany

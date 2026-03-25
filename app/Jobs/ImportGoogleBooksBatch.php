@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ImportGoogleBooksBatch implements ShouldQueue
@@ -128,7 +129,26 @@ class ImportGoogleBooksBatch implements ShouldQueue
             }
 
             if (! empty($authorIds)) {
-                $book->authors()->syncWithoutDetaching($authorIds);
+                $authorIds = array_values(array_unique(array_map('intval', $authorIds)));
+
+                $rows = [];
+                $now = now();
+                foreach ($authorIds as $authorId) {
+                    if ($authorId <= 0) {
+                        continue;
+                    }
+                    $rows[] = [
+                        'author_id' => $authorId,
+                        'book_id' => $book->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                if (! empty($rows)) {
+                    // Атомарно и безопасно при параллельных запусках (не падает на UNIQUE).
+                    DB::table('author_book')->insertOrIgnore($rows);
+                }
             }
 
             $categories = $volume['categories'] ?? [];
@@ -159,7 +179,25 @@ class ImportGoogleBooksBatch implements ShouldQueue
                 }
 
                 if (! empty($categoryIds)) {
-                    $book->categories()->syncWithoutDetaching($categoryIds);
+                    $categoryIds = array_values(array_unique(array_map('intval', $categoryIds)));
+
+                    $rows = [];
+                    $now = now();
+                    foreach ($categoryIds as $categoryId) {
+                        if ($categoryId <= 0) {
+                            continue;
+                        }
+                        $rows[] = [
+                            'book_id' => $book->id,
+                            'category_id' => $categoryId,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+
+                    if (! empty($rows)) {
+                        DB::table('book_category')->insertOrIgnore($rows);
+                    }
                 }
             }
         }

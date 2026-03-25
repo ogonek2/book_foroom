@@ -5,9 +5,7 @@
 @php
     $description = 'Книги автора ' . $author->full_name . ' на FOXY. Рецензії, цитати та обговорення творів.';
     $keywords = $author->full_name . ', автор, книги, рецензії, FOXY';
-    $ogImage = $author->photo 
-        ? (str_starts_with($author->photo, 'http') ? $author->photo : asset('storage/' . $author->photo))
-        : asset('favicon.svg');
+    $ogImage = $author->photo_display ?? asset('favicon.svg');
 @endphp
 
 @section('description', $description)
@@ -35,10 +33,8 @@ $structuredData = [
     'url' => route('authors.show', $author),
 ];
 
-if ($author->photo) {
-    $structuredData['image'] = str_starts_with($author->photo, 'http') 
-        ? $author->photo 
-        : asset('storage/' . $author->photo);
+if ($author->photo_url) {
+    $structuredData['image'] = $author->photo_url;
 }
 @endphp
 <script type="application/ld+json">

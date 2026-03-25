@@ -24,7 +24,7 @@
                 'title' => $book->title,
                 'book_name_ua' => $book->book_name_ua,
                 'author' => $book->author,
-                'cover_image' => $book->cover_image,
+                'cover_image' => $book->cover_image_display,
                 'rating' => (float) $book->rating,
                 'reviews_count' => (int) $book->reviews_count,
                 'pages' => (int) $book->pages,
@@ -55,6 +55,8 @@
                 'is_private' => (bool) ($library->is_private ?? false),
             ];
         })->values();
+
+        $initialLanguages = collect($languages ?? [])->values();
     @endphp
 
     <div id="books-browser" class="max-w-7xl mx-auto" v-cloak>
@@ -99,6 +101,34 @@
                             </div>
 
                             <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Автор</label>
+                                <input type="text" v-model.trim="filters.author" @input="fetchBooksDebounced"
+                                    placeholder="Напр. Shakespeare"
+                                    class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Мова</label>
+                                <select v-model="filters.language" @change="fetchBooks"
+                                    class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                                    <option value="">Будь-яка</option>
+                                    <option v-for="lang in languages" :key="lang" :value="lang">@{{ lang }}</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Рік видання</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="number" v-model.number="filters.year_from" @change="fetchBooks"
+                                        placeholder="Від"
+                                        class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                                    <input type="number" v-model.number="filters.year_to" @change="fetchBooks"
+                                        placeholder="До"
+                                        class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                                </div>
+                            </div>
+
+                            <div>
                                 <label
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Рейтинг</label>
                                 <double-range-slider
@@ -127,20 +157,38 @@
                     <!-- Categories -->
                     <div
                         class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/30 dark:border-gray-700/30 p-6">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Жанри</h3>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Жанри</h3>
+                            <button v-if="filters.categories.length" @click="filters.categories = []; fetchBooks()"
+                                class="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
+                                Очистити
+                            </button>
+                        </div>
+
+                        <input type="text" v-model.trim="categorySearch" placeholder="Пошук жанру..."
+                            class="w-full mb-3 px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+
                         <div class="space-y-2 max-h-[420px] overflow-y-auto custom-scroll">
                             <button
                                 class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                                :class="filters.category === '' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
-                                @click="selectCategory('')">
+                                :class="filters.categories.length === 0 ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
+                                @click="filters.categories = []; fetchBooks()">
                                 <span>Всі категорії</span>
                                 <span class="text-xs text-gray-500 dark:text-gray-400">@{{ totalBooksCount }}</span>
                             </button>
-                            <button v-for="category in categories" :key="category.slug"
+
+                            <button v-for="category in filteredCategories" :key="category.slug"
                                 class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                                :class="filters.category === category.slug ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
-                                @click="selectCategory(category.slug)">
-                                <span class="text-left">@{{ category.name }}</span>
+                                :class="isCategorySelected(category.slug) ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
+                                @click="toggleCategory(category.slug)">
+                                <span class="flex items-center gap-2 text-left">
+                                    <span class="inline-flex w-4">
+                                        <svg v-if="isCategorySelected(category.slug)" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.2 7.2a1 1 0 01-1.42 0l-3.2-3.2a1 1 0 011.42-1.42l2.49 2.49 6.49-6.49a1 1 0 011.42 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                    @{{ category.name }}
+                                </span>
                                 <span class="text-xs text-gray-500 dark:text-gray-400">@{{ category.books_count }}</span>
                             </button>
                         </div>
@@ -150,6 +198,34 @@
 
             <!-- Books Grid -->
             <div class="lg:col-span-3">
+                <!-- Active filters chips -->
+                <div class="mb-4 flex flex-wrap gap-2" v-if="hasActiveFilters">
+                    <button v-if="filters.search" @click="filters.search=''; fetchBooks(1,false)"
+                        class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                        Пошук: @{{ filters.search }} ✕
+                    </button>
+                    <button v-if="filters.author" @click="filters.author=''; fetchBooks(1,false)"
+                        class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                        Автор: @{{ filters.author }} ✕
+                    </button>
+                    <button v-if="filters.language" @click="filters.language=''; fetchBooks()"
+                        class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                        Мова: @{{ filters.language }} ✕
+                    </button>
+                    <button v-if="filters.year_from || filters.year_to" @click="filters.year_from=null; filters.year_to=null; fetchBooks()"
+                        class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                        Рік: @{{ filters.year_from || '…' }}–@{{ filters.year_to || '…' }} ✕
+                    </button>
+                    <button v-if="filters.categories.length" @click="filters.categories=[]; fetchBooks()"
+                        class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-200 hover:opacity-90 transition">
+                        Жанри: @{{ filters.categories.length }} ✕
+                    </button>
+                    <button @click="resetFilters"
+                        class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition">
+                        Скинути все
+                    </button>
+                </div>
+
                 <transition name="fade" mode="out-in">
                     <div v-if="loading" key="loading"
                         class="flex items-center justify-center py-24 bg-white/60 dark:bg-gray-800/60 rounded-2xl border border-gray-200/30 dark:border-gray-700/30">
@@ -239,6 +315,34 @@
                                     </div>
 
                                     <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Автор</label>
+                                        <input type="text" v-model.trim="filters.author" @input="fetchBooksDebounced"
+                                            placeholder="Напр. Shakespeare"
+                                            class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Мова</label>
+                                        <select v-model="filters.language" @change="fetchBooks"
+                                            class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                                            <option value="">Будь-яка</option>
+                                            <option v-for="lang in languages" :key="lang" :value="lang">@{{ lang }}</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Рік видання</label>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <input type="number" v-model.number="filters.year_from" @change="fetchBooks"
+                                                placeholder="Від"
+                                                class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                                            <input type="number" v-model.number="filters.year_to" @change="fetchBooks"
+                                                placeholder="До"
+                                                class="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                                        </div>
+                                    </div>
+
+                                    <div>
                                         <label
                                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Рейтинг</label>
                                         <double-range-slider
@@ -270,16 +374,23 @@
                                 <div class="space-y-2 max-h-[420px] overflow-y-auto custom-scroll">
                                     <button
                                         class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                                        :class="filters.category === '' ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
-                                        @click="selectCategory('')">
+                                        :class="filters.categories.length === 0 ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
+                                        @click="filters.categories = []; fetchBooks()">
                                         <span>Всі категорії</span>
                                         <span class="text-xs text-gray-500 dark:text-gray-400">@{{ totalBooksCount }}</span>
                                     </button>
-                                    <button v-for="category in categories" :key="category.slug"
+                                    <button v-for="category in filteredCategories" :key="category.slug"
                                         class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                                        :class="filters.category === category.slug ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
-                                        @click="selectCategory(category.slug)">
-                                        <span class="text-left">@{{ category.name }}</span>
+                                        :class="isCategorySelected(category.slug) ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
+                                        @click="toggleCategory(category.slug)">
+                                        <span class="flex items-center gap-2 text-left">
+                                            <span class="inline-flex w-4">
+                                                <svg v-if="isCategorySelected(category.slug)" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.2 7.2a1 1 0 01-1.42 0l-3.2-3.2a1 1 0 011.42-1.42l2.49 2.49 6.49-6.49a1 1 0 011.42 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            </span>
+                                            @{{ category.name }}
+                                        </span>
                                         <span class="text-xs text-gray-500 dark:text-gray-400">@{{ category.books_count
                                             }}</span>
                                     </button>
@@ -333,6 +444,15 @@
                         computed: {
                             totalBooksCount() {
                                 return this.categories.reduce((total, category) => total + (Number(category.books_count) || 0), 0);
+                            },
+                            hasActiveFilters() {
+                                const y = (this.filters.year_from !== null && this.filters.year_from !== '') || (this.filters.year_to !== null && this.filters.year_to !== '');
+                                return !!(this.filters.search || this.filters.categories.length || this.filters.sort !== 'rating' || this.filters.author || this.filters.language || y || this.filters.rating_range[0] !== 1 || this.filters.rating_range[1] !== 10);
+                            },
+                            filteredCategories() {
+                                const q = (this.categorySearch || '').toLowerCase();
+                                if (!q) return this.categories;
+                                return this.categories.filter(c => (c.name || '').toLowerCase().includes(q));
                             }
                         },
                         data: {
@@ -340,15 +460,21 @@
                             pagination: @js($initialPagination),
                             userLibraries: @js($initialUserLibraries),
                             categories: @js($initialCategories),
+                            languages: @js($initialLanguages),
                             filters: {
                                 search: @json(request('search', '')),
-                                category: @json(request('category', '')),
+                                categories: (@json(request('category', '')) || '').toString().split(',').map(s => s.trim()).filter(Boolean),
+                                author: @json(request('author', '')),
+                                language: @json(request('language', '')),
+                                year_from: @json(request('year_from')),
+                                year_to: @json(request('year_to')),
                                 sort: @json(request('sort', 'rating')),
                                 rating_range: [
                                     Number(@json(request('rating_min', 1))),
                                     Number(@json(request('rating_max', 10)))
                                 ],
                             },
+                            categorySearch: '',
                             loading: false,
                             error: null,
                             debounceTimer: null,
@@ -374,7 +500,11 @@
 
                 const params = {
                     search: this.filters.search || undefined,
-                    category: this.filters.category || undefined,
+                    category: this.filters.categories.length ? this.filters.categories.join(',') : undefined,
+                    author: this.filters.author || undefined,
+                    language: this.filters.language || undefined,
+                    year_from: this.filters.year_from || undefined,
+                    year_to: this.filters.year_to || undefined,
                     sort: this.filters.sort || 'rating',
                     rating_min: this.filters.rating_range[0],
                     rating_max: this.filters.rating_range[1],
@@ -474,7 +604,11 @@
                     if (window.booksListCache) {
                         const params = {
                             search: this.filters.search || undefined,
-                            category: this.filters.category || undefined,
+                            category: this.filters.categories.length ? this.filters.categories.join(',') : undefined,
+                            author: this.filters.author || undefined,
+                            language: this.filters.language || undefined,
+                            year_from: this.filters.year_from || undefined,
+                            year_to: this.filters.year_to || undefined,
                             sort: this.filters.sort || 'rating',
                             rating_min: this.filters.rating_range[0],
                             rating_max: this.filters.rating_range[1],
@@ -556,13 +690,33 @@
                     }
                 }
             },
-            selectCategory(slug) {
-                this.filters.category = slug;
+            isCategorySelected(slug) {
+                return this.filters.categories.includes(slug);
+            },
+            toggleCategory(slug) {
+                if (!slug) {
+                    this.filters.categories = [];
+                    this.fetchBooks();
+                    return;
+                }
+                const idx = this.filters.categories.indexOf(slug);
+                if (idx >= 0) {
+                    this.filters.categories.splice(idx, 1);
+                } else {
+                    this.filters.categories.push(slug);
+                }
                 this.fetchBooks();
+            },
+            selectCategory(slug) {
+                this.toggleCategory(slug);
             },
             resetFilters() {
                 this.filters.search = '';
-                this.filters.category = '';
+                this.filters.categories = [];
+                this.filters.author = '';
+                this.filters.language = '';
+                this.filters.year_from = null;
+                this.filters.year_to = null;
                 this.filters.sort = 'rating';
                 this.filters.rating_range = [1, 10];
                 this.fetchBooks();
@@ -603,7 +757,7 @@
                 if (this.books && this.books.length > 0 && window.booksListCache) {
                     const params = {
                         search: this.filters.search || undefined,
-                        category: this.filters.category || undefined,
+                        category: this.filters.categories.length ? this.filters.categories.join(',') : undefined,
                         sort: this.filters.sort || 'rating',
                         rating_min: this.filters.rating_range[0],
                         rating_max: this.filters.rating_range[1],

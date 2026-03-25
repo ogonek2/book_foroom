@@ -19,6 +19,8 @@ return [
     'retry_sleep_ms' => (int) env('GUTENBERG_RETRY_SLEEP_MS', 1500),
     'expand_authors_default' => filter_var(env('GUTENBERG_EXPAND_AUTHORS', true), FILTER_VALIDATE_BOOL),
     'expand_authors_limit' => (int) env('GUTENBERG_EXPAND_AUTHORS_LIMIT', 5),
+    'translate_api_responses' => filter_var(env('GUTENBERG_TRANSLATE_API_RESPONSES', true), FILTER_VALIDATE_BOOL),
+    'translate_mode' => env('GUTENBERG_TRANSLATE_MODE', 'replace'), // replace|overlay
     'search_page_size_default' => (int) env('GUTENBERG_SEARCH_PAGE_SIZE', 10),
     'search_page_size_max' => 100,
 

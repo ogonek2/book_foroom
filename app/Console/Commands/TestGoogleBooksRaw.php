@@ -21,14 +21,36 @@ class TestGoogleBooksRaw extends Command
 
         $this->info("Запрос к Google Books: {$query}");
 
-        $response = Http::get('https://www.googleapis.com/books/v1/volumes', [
+        $verify = (bool) config('googlebooks.http_verify', true);
+
+        try {
+            $response = Http::withOptions(['verify' => $verify])
+                ->withHeaders(['User-Agent' => 'project_001/1.0'])
+                ->get('https://www.googleapis.com/books/v1/volumes', [
             'q' => $query,
             'maxResults' => $limit,
             'startIndex' => 0,
             'printType' => 'books',
             'projection' => 'lite',
             'key' => config('googlebooks.api_key'),
-        ]);
+                ]);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // Windows-local fallback: retry once with SSL verify disabled
+            if (str_contains($e->getMessage(), 'cURL error 60')) {
+                $response = Http::withOptions(['verify' => false])
+                    ->withHeaders(['User-Agent' => 'project_001/1.0'])
+                    ->get('https://www.googleapis.com/books/v1/volumes', [
+                        'q' => $query,
+                        'maxResults' => $limit,
+                        'startIndex' => 0,
+                        'printType' => 'books',
+                        'projection' => 'lite',
+                        'key' => config('googlebooks.api_key'),
+                    ]);
+            } else {
+                throw $e;
+            }
+        }
 
         if (! $response->successful()) {
             $this->error('Запрос неуспешен.');

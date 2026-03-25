@@ -89,7 +89,8 @@ class GutenbergService
             'ok' => true,
             'status' => 200,
             'items' => collect($results)->map(function (array $row) use ($expandAuthors, $expandLimit) {
-                return $this->mapBookRaw($row, $expandAuthors, $expandLimit);
+                $mapped = $this->mapBookRaw($row, $expandAuthors, $expandLimit);
+                return $this->localizeGutenbergPayload($mapped);
             })->values(),
             'next' => $data['next'] ?? null,
             'previous' => $data['previous'] ?? null,
@@ -144,7 +145,7 @@ class GutenbergService
         return [
             'ok' => true,
             'status' => 200,
-            'item' => $this->mapBookRaw($data, $expandAuthors, $expandLimit),
+            'item' => $this->localizeGutenbergPayload($this->mapBookRaw($data, $expandAuthors, $expandLimit)),
         ];
     }
 
@@ -207,6 +208,7 @@ class GutenbergService
         }
 
         $data = $response->json();
+        $data = $this->localizeGutenbergPayload($data);
 
         return [
             'ok' => true,
@@ -231,8 +233,122 @@ class GutenbergService
         return [
             'ok' => true,
             'status' => 200,
-            'item' => $this->unwrapSingleResult($response->json()),
+            'item' => $this->localizeGutenbergPayload($this->unwrapSingleResult($response->json())),
         ];
+    }
+
+    /**
+     * Переводит текстовые поля ответа Gutenberg API на украинский.
+     * Делает это максимально безопасно: переводит только строки, URL не трогает.
+     */
+    protected function localizeGutenbergPayload(mixed $payload): mixed
+    {
+        if (! (bool) config('gutenberg.translate_api_responses', true)) {
+            return $payload;
+        }
+
+        /** @var TranslationService $tr */
+        $tr = app(TranslationService::class);
+
+        if (! is_array($payload)) {
+            return $payload;
+        }
+
+        $mode = (string) config('gutenberg.translate_mode', 'replace'); // replace|overlay
+        $overlay = $mode === 'overlay';
+
+        // Book-like
+        foreach (['title', 'alternative_title', 'summary', 'name'] as $key) {
+            if (! isset($payload[$key]) || ! is_string($payload[$key]) || $payload[$key] === '') {
+                continue;
+            }
+
+            $translated = $tr->translateToUkrainian($payload[$key]);
+            if (! is_string($translated) || $translated === '') {
+                continue;
+            }
+
+            if ($overlay) {
+                $payload[$key . '_uk'] = $translated;
+            } else {
+                $payload[$key] = $translated;
+                unset($payload[$key . '_uk']);
+            }
+        }
+
+        // subjects/bookshelves arrays (strings)
+        foreach (['subjects', 'bookshelves'] as $key) {
+            if (isset($payload[$key]) && is_array($payload[$key])) {
+                $uk = [];
+                foreach ($payload[$key] as $s) {
+                    if (is_string($s) && $s !== '') {
+                        $uk[] = $tr->translateToUkrainian($s);
+                    }
+                }
+                if (! empty($uk)) {
+                    if ($overlay) {
+                        $payload[$key . '_uk'] = $uk;
+                    } else {
+                        $payload[$key] = $uk;
+                        unset($payload[$key . '_uk']);
+                    }
+                }
+            }
+        }
+
+        // authors array
+        if (isset($payload['authors']) && is_array($payload['authors'])) {
+            $authorsUk = [];
+            foreach ($payload['authors'] as $a) {
+                if (is_array($a)) {
+                    $a2 = $a;
+                    if (isset($a2['name']) && is_string($a2['name']) && $a2['name'] !== '') {
+                        $translated = $tr->translateToUkrainian($a2['name']);
+                        if (is_string($translated) && $translated !== '') {
+                            if ($overlay) {
+                                $a2['name_uk'] = $translated;
+                            } else {
+                                $a2['name'] = $translated;
+                                unset($a2['name_uk']);
+                            }
+                        }
+                    }
+                    $authorsUk[] = $a2;
+                } else {
+                    $authorsUk[] = $a;
+                }
+            }
+            $payload['authors'] = $authorsUk;
+        }
+
+        // authors_full (details)
+        if (isset($payload['authors_full']) && is_array($payload['authors_full'])) {
+            $af = [];
+            foreach ($payload['authors_full'] as $author) {
+                $af[] = $this->localizeGutenbergPayload($author);
+            }
+            $payload['authors_full'] = $af;
+        }
+
+        // lists with results (subjects/authors endpoints)
+        if (isset($payload['results']) && is_array($payload['results'])) {
+            $results = [];
+            foreach ($payload['results'] as $row) {
+                $results[] = $this->localizeGutenbergPayload($row);
+            }
+            $payload['results'] = $results;
+        }
+
+        // author books list
+        if (isset($payload['books']) && is_array($payload['books'])) {
+            $books = [];
+            foreach ($payload['books'] as $b) {
+                $books[] = $this->localizeGutenbergPayload($b);
+            }
+            $payload['books'] = $books;
+        }
+
+        return $payload;
     }
 
     protected function mapBookRaw(array $row, bool $expandAuthors, int $expandLimit): array

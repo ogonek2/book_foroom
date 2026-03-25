@@ -24,7 +24,7 @@
                     <div class="flex gap-4 flex-row md:flex-col lg:flex-col">
                         <!-- Book Cover -->
                         <div class="relative max-w-[10px] overflow-hidden rounded-xl">
-                                    <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
+                                    <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                                          alt="{{ $book->title }}"
                                          class="w-ful object-cover"
                                          style="aspect-ratio: 2 / 3;">

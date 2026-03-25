@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
+use App\Services\ImagePlaceholderService;
 
 class Author extends Model
 {
@@ -132,8 +133,7 @@ class Author extends Model
             return $this->photo_url;
         }
 
-        // Fallback на изображение по умолчанию
-        return asset('images/no-author.png');
+        return ImagePlaceholderService::authorPhotoUrl();
     }
 
     public function getAgeAttribute(): ?int

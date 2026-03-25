@@ -3,15 +3,44 @@
 namespace App\Services;
 
 use Illuminate\Support\Collection;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 class GoogleBooksService
 {
+    protected function client(): PendingRequest
+    {
+        $verify = (bool) config('googlebooks.http_verify', true);
+
+        return Http::withOptions([
+            'verify' => $verify,
+        ])->withHeaders([
+            'User-Agent' => 'project_001/1.0',
+        ]);
+    }
+
+    protected function requestVolumes(array $query): Response
+    {
+        try {
+            return $this->client()->get('https://www.googleapis.com/books/v1/volumes', $query);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            $msg = $e->getMessage();
+            if (is_string($msg) && str_contains($msg, 'cURL error 60')) {
+                // Windows-local fallback: retry once with SSL verify disabled
+                return Http::withOptions(['verify' => false])
+                    ->withHeaders(['User-Agent' => 'project_001/1.0'])
+                    ->get('https://www.googleapis.com/books/v1/volumes', $query);
+            }
+            throw $e;
+        }
+    }
+
     public function fetchFirstPageExcludingRussian(string $query, int $maxResults = 40): Collection
     {
         $maxResults = max(1, min($maxResults, (int) config('googlebooks.max_results_per_request', 40)));
 
-        $response = Http::get('https://www.googleapis.com/books/v1/volumes', [
+        $response = $this->requestVolumes([
             'q' => $query,
             'maxResults' => $maxResults,
             'startIndex' => 0,
@@ -50,7 +79,7 @@ class GoogleBooksService
         $currentIndex = $startIndex;
 
         while ($collected->count() < $batchSize) {
-            $response = Http::get('https://www.googleapis.com/books/v1/volumes', [
+            $response = $this->requestVolumes([
                 'q' => $query,
                 'maxResults' => $maxPerPage,
                 'startIndex' => $currentIndex,
@@ -104,7 +133,7 @@ class GoogleBooksService
                 break;
             }
 
-            $response = Http::get('https://www.googleapis.com/books/v1/volumes', [
+            $response = $this->requestVolumes([
                 'q' => $query,
                 'maxResults' => $maxPerPage,
                 'startIndex' => $startIndex,

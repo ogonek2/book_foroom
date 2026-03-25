@@ -7,6 +7,9 @@ return [
 
     'max_results_per_request' => env('GOOGLE_BOOKS_MAX_RESULTS', 40),
 
+    /** SSL verify for Windows local setups (cURL error 60). */
+    'http_verify' => filter_var(env('GOOGLE_BOOKS_HTTP_VERIFY', true), FILTER_VALIDATE_BOOL),
+
     /**
      * Список запросов для набора 500 книг (перебираем по очереди, пока не наберём целевое количество).
      */

@@ -24,7 +24,7 @@
 
         <div class="w-full flex items-start">
             <div class="w-full max-w-[220px] hidden md:block lg:sticky sm:sticky top-4">
-                <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
+                <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                     alt="{{ $book->title }}" class="w-full object-cover rounded-lg" style="aspect-ratio: 2 / 3;" loading="lazy" decoding="async" width="220" height="330">
                 <div class="py-4 space-y-4">
                     <div>
@@ -58,7 +58,7 @@
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div class="flex gap-4 items-center">
                             <div class="w-full max-w-[120px] block md:hidden lg:hidden">
-                                <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}"
+                                <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                                     alt="{{ $book->title }}" class="w-full object-cover rounded-lg"
                                     style="aspect-ratio: 2 / 3;" loading="lazy" decoding="async" width="120" height="180">
                             </div>

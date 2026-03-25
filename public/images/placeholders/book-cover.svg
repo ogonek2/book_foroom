@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="768" viewBox="0 0 512 768">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#9333ea"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="768" rx="36" fill="url(#bg)"/>
+  <rect x="48" y="72" width="416" height="40" rx="20" fill="#ffffff" opacity="0.18"/>
+  <rect x="48" y="140" width="320" height="24" rx="12" fill="#ffffff" opacity="0.14"/>
+  <rect x="48" y="186" width="360" height="24" rx="12" fill="#ffffff" opacity="0.14"/>
+  <g opacity="0.9">
+    <path fill="#ffffff" opacity="0.18" d="M152 540c0-53 43-96 96-96s96 43 96 96-43 96-96 96-96-43-96-96z"/>
+    <path fill="#ffffff" opacity="0.35" d="M248 476c-35.3 0-64 28.7-64 64s28.7 64 64 64 64-28.7 64-64-28.7-64-64-64zm0 24c22 0 40 18 40 40s-18 40-40 40-40-18-40-40 18-40 40-40z"/>
+    <path fill="#ffffff" opacity="0.35" d="M240 512h16v56h-16z"/>
+    <path fill="#ffffff" opacity="0.35" d="M220 532h56v16h-56z"/>
+  </g>
+  <rect x="36" y="24" width="120" height="720" rx="24" fill="#111827" opacity="0.18"/>
+  <rect x="36" y="24" width="476" height="768" rx="36" fill="url(#shine)"/>
+</svg>
+

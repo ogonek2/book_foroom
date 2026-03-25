@@ -1821,11 +1821,11 @@ select{
 .order-2{
   order: 2;
 }
-.col-span-full{
-  grid-column: 1 / -1;
-}
 .col-span-2{
   grid-column: span 2 / span 2;
+}
+.col-span-full{
+  grid-column: 1 / -1;
 }
 .-mx-6{
   margin-left: -1.5rem;
@@ -2117,11 +2117,11 @@ select{
 .max-h-\[90vh\]{
   max-height: 90vh;
 }
-.max-h-screen{
-  max-height: 100vh;
-}
 .max-h-\[calc\(100vh-2rem\)\]{
   max-height: calc(100vh - 2rem);
+}
+.max-h-screen{
+  max-height: 100vh;
 }
 .min-h-\[400px\]{
   min-height: 400px;
@@ -2853,6 +2853,9 @@ select{
 .border-slate-200\/30{
   border-color: rgb(226 232 240 / 0.3);
 }
+.border-slate-200\/70{
+  border-color: rgb(226 232 240 / 0.7);
+}
 .border-slate-300{
   --tw-border-opacity: 1;
   border-color: rgb(203 213 225 / var(--tw-border-opacity, 1));
@@ -2893,9 +2896,6 @@ select{
 .border-yellow-500{
   --tw-border-opacity: 1;
   border-color: rgb(234 179 8 / var(--tw-border-opacity, 1));
-}
-.border-slate-200\/70{
-  border-color: rgb(226 232 240 / 0.7);
 }
 .border-t-gray-900{
   --tw-border-opacity: 1;
@@ -3215,6 +3215,9 @@ select{
 .bg-white\/80{
   background-color: rgb(255 255 255 / 0.8);
 }
+.bg-white\/95{
+  background-color: rgb(255 255 255 / 0.95);
+}
 .bg-yellow-100{
   --tw-bg-opacity: 1;
   background-color: rgb(254 249 195 / var(--tw-bg-opacity, 1));
@@ -3243,9 +3246,6 @@ select{
 }
 .bg-yellow-900\/30{
   background-color: rgb(113 63 18 / 0.3);
-}
-.bg-white\/95{
-  background-color: rgb(255 255 255 / 0.95);
 }
 .bg-opacity-20{
   --tw-bg-opacity: 0.2;
@@ -4286,6 +4286,10 @@ select{
 .filter{
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
+.backdrop-blur{
+  --tw-backdrop-blur: blur(8px);
+  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+}
 .backdrop-blur-md{
   --tw-backdrop-blur: blur(12px);
   backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
@@ -4296,10 +4300,6 @@ select{
 }
 .backdrop-blur-xl{
   --tw-backdrop-blur: blur(24px);
-  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-}
-.backdrop-blur{
-  --tw-backdrop-blur: blur(8px);
   backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
 }
 .backdrop-filter{
@@ -6174,6 +6174,10 @@ select{
   background-color: rgb(31 41 55 / 0.8);
 }
 
+.dark\:bg-gray-800\/95:is(.dark *){
+  background-color: rgb(31 41 55 / 0.95);
+}
+
 .dark\:bg-gray-900:is(.dark *){
   --tw-bg-opacity: 1;
   background-color: rgb(17 24 39 / var(--tw-bg-opacity, 1));
@@ -6368,8 +6372,8 @@ select{
   background-color: rgb(113 63 18 / 0.3);
 }
 
-.dark\:bg-gray-800\/95:is(.dark *){
-  background-color: rgb(31 41 55 / 0.95);
+.dark\:bg-gray-900\/40:is(.dark *){
+  background-color: rgb(17 24 39 / 0.4);
 }
 
 .dark\:bg-opacity-95:is(.dark *){
@@ -6534,11 +6538,6 @@ select{
 .dark\:text-brand-200:is(.dark *){
   --tw-text-opacity: 1;
   color: rgb(254 215 170 / var(--tw-text-opacity, 1));
-}
-
-.dark\:text-brand-300:is(.dark *){
-  --tw-text-opacity: 1;
-  color: rgb(253 186 116 / var(--tw-text-opacity, 1));
 }
 
 .dark\:text-brand-400:is(.dark *){
@@ -7377,14 +7376,14 @@ select{
   .lg\:col-span-3{
     grid-column: span 3 / span 3;
   }
+  .lg\:mr-12{
+    margin-right: 3rem;
+  }
   .lg\:mt-0{
     margin-top: 0px;
   }
   .lg\:mt-\[90px\]{
     margin-top: 90px;
-  }
-  .lg\:mr-12{
-    margin-right: 3rem;
   }
   .lg\:block{
     display: block;

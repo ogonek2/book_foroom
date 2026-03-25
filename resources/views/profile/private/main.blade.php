@@ -338,7 +338,7 @@
                         @foreach ($recentReadBooks->take(3) as $readingStatus)
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-16 bg-gray-300 dark:bg-gray-700 rounded flex items-center justify-center">
-                                    <img src="{{ $readingStatus->book->cover_image }}" alt="{{ $readingStatus->book->title }}">
+                                    <img src="{{ $readingStatus->book->cover_image_display }}" data-fallback="bookCover" alt="{{ $readingStatus->book->title }}">
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <a href="{{ route('books.show', $readingStatus->book->slug) }}">

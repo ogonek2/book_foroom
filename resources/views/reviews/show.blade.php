@@ -71,7 +71,7 @@
              <!-- Sticky Book Sidebar -->
         <aside class="w-full max-w-[220px] hidden lg:block lg:sticky top-4 space-y-6">
             <div>
-                <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=450&fit=crop&crop=center' }}" 
+                <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                      alt="{{ $book->title }}" 
                      class="w-full object-cover rounded-lg mb-4" style="aspect-ratio: 2 / 3;">
                 <div>

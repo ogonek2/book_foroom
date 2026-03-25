@@ -128,7 +128,7 @@
                                     @for ($i = 0; $i < 3; $i++)
                                         @if ($i < $previewBooks->count())
                                             <div class="flex-shrink-0">
-                                                <img src="{{ $previewBooks[$i]->cover_image ?? 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=300&fit=crop&crop=center' }}"
+                                                <img src="{{ $previewBooks[$i]->cover_image_display ?? $previewBooks[$i]->cover_image ?? \App\Services\ImagePlaceholderService::bookCoverUrl() }}"
                                                     alt="{{ $previewBooks[$i]->title }}"
                                                     class="w-12 h-16 object-cover rounded-lg shadow-md">
                                             </div>
@@ -285,7 +285,7 @@
                                 @for ($i = 0; $i < 3; $i++)
                                     @if ($i < $previewBooks->count())
                                         <div class="flex-shrink-0">
-                                            <img src="{{ $previewBooks[$i]->cover_image ?? 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=300&fit=crop&crop=center' }}"
+                                            <img src="{{ $previewBooks[$i]->cover_image_display ?? $previewBooks[$i]->cover_image ?? \App\Services\ImagePlaceholderService::bookCoverUrl() }}"
                                                 alt="{{ $previewBooks[$i]->title }}"
                                                 class="w-12 h-16 object-cover rounded-lg shadow-md">
                                         </div>

@@ -27,6 +27,7 @@ class TranslateExistingBooks extends Command
         $processed = 0;
 
         Book::query()
+            ->where('language', 'en')
             ->orderBy('id')
             ->chunkById(100, function ($books) use (&$processed, $limit, $translator) {
                 foreach ($books as $book) {
@@ -47,7 +48,7 @@ class TranslateExistingBooks extends Command
 
                     $book->book_name_ua = $translatedTitle;
                     $book->annotation = $translatedDescription;
-                    $book->annotation_source = 'google_books_translated_uk';
+                    $book->annotation_source = 'translated_uk';
 
                     // Перегенерируем slug из украинского названия с учетом уникальности
                     $sourceTitle = $book->book_name_ua ?: $book->title;

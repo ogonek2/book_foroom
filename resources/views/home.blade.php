@@ -312,12 +312,12 @@
                                             <div class="relative">
                                                 <div
                                                     class="relative overflow-hidden h-80 lg:h-full bg-light-bg-secondary/20 dark:bg-gray-900/20">
-                                                    <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=1200&fit=crop&crop=center' }}"
+                                                    <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                                                         alt="{{ $book->title }} (background)"
                                                         class="absolute inset-0 w-full h-full object-cover blur-lg scale-110 opacity-70" loading="lazy">
                                                     <div class="absolute inset-0 flex items-center justify-center p-4">
                                                         <div class="relative w-36 h-52 md:w-44 md:h-64">
-                                                            <img src="{{ $book->cover_image ?: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=176&h=256&fit=crop&crop=center' }}"
+                                                            <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                                                                 alt="{{ $book->title }}"
                                                                 class="w-full h-full object-cover rounded-lg shadow-2xl ring-1 ring-white/10" loading="lazy">
                                                         </div>
@@ -544,7 +544,7 @@
                                         <div class="w-full flex flex-col space-y-3">
                                             <!-- Book cover -->
                                             <div class="w-full rounded-lg overflow-hidden shadow-md">
-                                                <img src="{{ $review->book->cover_image_display ?? 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=160&h=224&fit=crop' }}"
+                                                <img src="{{ $review->book->cover_image_display }}" data-fallback="bookCover"
                                                     alt="{{ $review->book->title }}" class="w-full h-42 object-cover"
                                                     loading="lazy">
                                             </div>

@@ -104,8 +104,19 @@ export default {
             window.location.href = this.bookUrl;
         },
         handleImageError(event) {
-            // Hide broken image and show placeholder
-            event.target.style.display = 'none';
+            const fallback = (window.imagePlaceholders && window.imagePlaceholders.bookCover)
+                ? window.imagePlaceholders.bookCover
+                : '/images/placeholders/book-cover.svg';
+
+            if (event?.target?.src && event.target.src !== fallback) {
+                event.target.src = fallback;
+                return;
+            }
+
+            // Worst case: hide broken image
+            if (event?.target) {
+                event.target.style.display = 'none';
+            }
         }
     }
 }

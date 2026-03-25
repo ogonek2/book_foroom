@@ -203,7 +203,7 @@ class AuthorResource extends Resource
                 Tables\Columns\ImageColumn::make('photo')
                     ->circular()
                     ->size(50)
-                    ->defaultImageUrl(url('/images/no-author.png')),
+                    ->defaultImageUrl(\App\Services\ImagePlaceholderService::authorPhotoUrl()),
                 Tables\Columns\TextColumn::make('first_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('last_name')

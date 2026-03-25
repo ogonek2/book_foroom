@@ -27,7 +27,7 @@
             <div class="flex space-x-2">
                 <!-- First book cover -->
                 <div v-if="library.books && library.books.length > 0" class="flex-shrink-0" style="width: 32%">
-                    <img :src="library.books[0].cover_image || defaultCover"
+                    <img :src="library.books[0].cover_image || bookCoverPlaceholder"
                          :alt="library.books[0].title"
                          loading="lazy"
                          decoding="async"
@@ -43,7 +43,7 @@
 
                 <!-- Second book cover -->
                 <div v-if="library.books && library.books.length > 1" class="flex-shrink-0"  style="width: 32%">
-                    <img :src="library.books[1].cover_image || defaultCover"
+                    <img :src="library.books[1].cover_image || bookCoverPlaceholder"
                          :alt="library.books[1].title"
                          loading="lazy"
                          decoding="async"
@@ -133,7 +133,9 @@ export default {
     },
     data() {
         return {
-            defaultCover: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=300&fit=crop&crop=center'
+            bookCoverPlaceholder: (window.imagePlaceholders && window.imagePlaceholders.bookCover)
+                ? window.imagePlaceholders.bookCover
+                : '/images/placeholders/book-cover.svg'
         }
     },
     methods: {
