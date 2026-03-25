@@ -56,17 +56,7 @@ class ImagePlaceholders extends Page
                                     return;
                                 }
 
-                                // Filament может вернуть строку или массив (uuid => path)
-                                $path = null;
-
-                                if (is_string($state)) {
-                                    $path = $state;
-                                } elseif (is_array($state)) {
-                                    $first = reset($state);
-                                    if (is_string($first)) {
-                                        $path = $first;
-                                    }
-                                }
+                                $path = $this->extractUploadedPath($state);
 
                                 if (is_string($path) && $path !== '') {
                                     $set('book_cover', $path);
@@ -99,16 +89,7 @@ class ImagePlaceholders extends Page
                                     return;
                                 }
 
-                                $path = null;
-
-                                if (is_string($state)) {
-                                    $path = $state;
-                                } elseif (is_array($state)) {
-                                    $first = reset($state);
-                                    if (is_string($first)) {
-                                        $path = $first;
-                                    }
-                                }
+                                $path = $this->extractUploadedPath($state);
 
                                 if (is_string($path) && $path !== '') {
                                     $set('author_photo', $path);
@@ -152,12 +133,53 @@ class ImagePlaceholders extends Page
         return '/images/placeholders/' . $filename;
     }
 
+    private function extractUploadedPath(mixed $state): ?string
+    {
+        if (is_string($state)) {
+            return $state !== '' ? $state : null;
+        }
+
+        if (! is_array($state) || $state === []) {
+            return null;
+        }
+
+        // Common: ['uuid' => '/images/placeholders/..jpg']
+        $first = reset($state);
+        if (is_string($first) && $first !== '') {
+            return $first;
+        }
+
+        // Sometimes: ['uuid' => ['url' => '...']] or ['uuid' => ['path' => '...']]
+        if (is_array($first)) {
+            foreach (['url', 'path'] as $k) {
+                if (isset($first[$k]) && is_string($first[$k]) && $first[$k] !== '') {
+                    return $first[$k];
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function save(): void
     {
         $state = $this->form->getState();
 
-        ImagePlaceholderService::set(ImagePlaceholderService::KEY_BOOK_COVER, $state['book_cover'] ?? null);
-        ImagePlaceholderService::set(ImagePlaceholderService::KEY_AUTHOR_PHOTO, $state['author_photo'] ?? null);
+        // Sometimes TextInput doesn't get updated from FileUpload state.
+        // If a file was uploaded, derive the path from upload component state.
+        $bookCover = $state['book_cover'] ?? null;
+        $authorPhoto = $state['author_photo'] ?? null;
+
+        if (blank($bookCover) && isset($this->data['book_cover_upload'])) {
+            $bookCover = $this->extractUploadedPath($this->data['book_cover_upload']);
+        }
+
+        if (blank($authorPhoto) && isset($this->data['author_photo_upload'])) {
+            $authorPhoto = $this->extractUploadedPath($this->data['author_photo_upload']);
+        }
+
+        ImagePlaceholderService::set(ImagePlaceholderService::KEY_BOOK_COVER, $bookCover);
+        ImagePlaceholderService::set(ImagePlaceholderService::KEY_AUTHOR_PHOTO, $authorPhoto);
 
         Notification::make()
             ->title('Сохранено')
