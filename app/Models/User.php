@@ -481,6 +481,11 @@ class User extends Authenticatable
                     ->orderBy('favorite_reviews.created_at', 'desc');
     }
 
+    public function readingPlans(): HasMany
+    {
+        return $this->hasMany(ReadingPlan::class)->orderByDesc('created_at');
+    }
+
     /**
      * Send the password reset notification.
      *

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\SiteSetting;
 use App\Services\GutenbergService;
 use App\Services\TranslationService;
 use Illuminate\Console\Command;
@@ -18,6 +19,9 @@ class ImportGutenbergToDb extends Command
                             {--target=100 : Сколько книг попытаться импортировать}
                             {--page_size=20 : Размер страницы (page_size) при поиске}
                             {--max-pages=0 : Максимум страниц (0 = без лимита)}
+                            {--resume=1 : Продолжать с последней страницы для этого q/page_size}
+                            {--reset-resume=0 : Сбросить сохраненный state перед запуском}
+                            {--force-recheck=0 : Игнорировать флаг exhausted и проверить снова}
                             {--translate=1 : Переводить EN->UK (1/0)}
                             {--enrich-authors=1 : Дотягивать детали/фото автора, даже если автор уже есть в БД}
                             {--categories-limit=8 : Максимум категорий на книгу}
@@ -45,6 +49,9 @@ class ImportGutenbergToDb extends Command
         $target = max(1, (int) $this->option('target'));
         $pageSize = max(1, min(100, (int) $this->option('page_size')));
         $maxPages = max(0, (int) $this->option('max-pages')); // 0 = без лимита
+        $resume = filter_var($this->option('resume'), FILTER_VALIDATE_BOOL);
+        $resetResume = filter_var($this->option('reset-resume'), FILTER_VALIDATE_BOOL);
+        $forceRecheck = filter_var($this->option('force-recheck'), FILTER_VALIDATE_BOOL);
         $doTranslate = filter_var($this->option('translate'), FILTER_VALIDATE_BOOL);
         $enrichAuthors = filter_var($this->option('enrich-authors'), FILTER_VALIDATE_BOOL);
         $categoriesLimit = max(0, (int) $this->option('categories-limit'));
@@ -53,6 +60,7 @@ class ImportGutenbergToDb extends Command
         $this->info("Импорт Gutenberg → БД");
         $this->line("q={$query}, target={$target}, page_size={$pageSize}, max_pages={$maxPages}");
         $this->line("translate=" . ($doTranslate ? 'yes' : 'no') . ", authors_limit={$authorsLimit}, categories_limit={$categoriesLimit}");
+        $this->line("resume=" . ($resume ? 'yes' : 'no') . ", reset_resume=" . ($resetResume ? 'yes' : 'no'));
 
         $this->notifyTelegram(
             "🚀 Gutenberg import started\nq={$query}\ntarget={$target}\npage_size={$pageSize}\nmax_pages=" . ($maxPages === 0 ? 'unlimited' : $maxPages)
@@ -65,7 +73,22 @@ class ImportGutenbergToDb extends Command
         /** @var array<int, array<string, mixed>> $authorCache */
         $authorCache = [];
 
-        $page = 1;
+        $stateKey = $this->stateKey($query, $pageSize);
+        if ($resetResume) {
+            SiteSetting::query()->where('key', $stateKey)->delete();
+        }
+
+        $state = $this->getState($stateKey);
+        if ($resume && ($state['exhausted'] ?? false) && ! $forceRecheck) {
+            $msg = "Для q=\"{$query}\" выдача уже исчерпана (last_page=" . ((int) ($state['last_page'] ?? 0)) . "). " .
+                "Используй --force-recheck=1 или другой --q.";
+            $this->warn($msg);
+            $this->notifyTelegram("ℹ️ Gutenberg exhausted\nq={$query}\nlast_page=" . ((int) ($state['last_page'] ?? 0)));
+            return self::SUCCESS;
+        }
+
+        $page = $resume ? max(1, (int) ($state['next_page'] ?? 1)) : 1;
+
         while (true) {
             if ($imported >= $target) {
                 break;
@@ -91,6 +114,14 @@ class ImportGutenbergToDb extends Command
             $items = $result['items'];
             if ($items->isEmpty()) {
                 $this->warn("Пустая выдача на page={$page}, остановка.");
+                $this->saveState($stateKey, [
+                    'q' => $query,
+                    'page_size' => $pageSize,
+                    'last_page' => $page - 1,
+                    'next_page' => 1,
+                    'exhausted' => true,
+                    'updated_at' => now()->toDateTimeString(),
+                ]);
                 break;
             }
 
@@ -236,6 +267,16 @@ class ImportGutenbergToDb extends Command
                 );
             }
 
+            // Progress state: при следующем запуске стартуем со следующей страницы
+            $this->saveState($stateKey, [
+                'q' => $query,
+                'page_size' => $pageSize,
+                'last_page' => $page,
+                'next_page' => $page + 1,
+                'exhausted' => false,
+                'updated_at' => now()->toDateTimeString(),
+            ]);
+
             $page++;
         }
 
@@ -245,6 +286,35 @@ class ImportGutenbergToDb extends Command
         );
 
         return self::SUCCESS;
+    }
+
+    protected function stateKey(string $query, int $pageSize): string
+    {
+        return 'import.gutenberg.state.' . md5(mb_strtolower(trim($query)) . '|' . $pageSize);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getState(string $key): array
+    {
+        $raw = SiteSetting::query()->where('key', $key)->value('value');
+        if (! is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * @param array<string, mixed> $state
+     */
+    protected function saveState(string $key, array $state): void
+    {
+        SiteSetting::query()->updateOrCreate(
+            ['key' => $key],
+            ['value' => json_encode($state, JSON_UNESCAPED_UNICODE)],
+        );
     }
 
     protected function notifyTelegram(string $text): void

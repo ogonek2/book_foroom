@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BookReadingStatus extends Model
 {
@@ -44,6 +45,11 @@ class BookReadingStatus extends Model
     public function book(): BelongsTo
     {
         return $this->belongsTo(Book::class);
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(ReadingSession::class, 'book_reading_status_id')->orderByDesc('read_at');
     }
 
     // Скоупы для фильтрации по статусам

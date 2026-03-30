@@ -24,6 +24,17 @@ Route::middleware('web')->group(function () {
             Route::put('/profile/notifications', [\App\Http\Controllers\AccountController::class, 'updateNotifications'])->name('profile.notifications.update');
             Route::put('/profile/privacy', [\App\Http\Controllers\AccountController::class, 'updatePrivacy'])->name('profile.privacy.update');
             Route::get('/profile/export', [\App\Http\Controllers\AccountController::class, 'exportData'])->name('profile.export');
+            Route::get('/books/search', [\App\Http\Controllers\AccountController::class, 'searchBooks'])->name('books.search');
+            Route::get('/libraries', [\App\Http\Controllers\AccountController::class, 'libraries'])->name('libraries');
+            Route::get('/collections/{collectionId}/books', [\App\Http\Controllers\AccountController::class, 'collectionBooks'])->name('collections.books');
+            Route::post('/collections/{collectionId}/books', [\App\Http\Controllers\AccountController::class, 'addCollectionBook'])->name('collections.books.add');
+            Route::delete('/collections/{collectionId}/books/{bookId}', [\App\Http\Controllers\AccountController::class, 'removeCollectionBook'])->name('collections.books.remove');
+            Route::delete('/collections/{collectionId}', [\App\Http\Controllers\AccountController::class, 'destroyCollection'])->name('collections.destroy');
+            Route::put('/reading-status/{statusId}', [\App\Http\Controllers\AccountController::class, 'readingStatusUpdate'])->name('reading-status.update');
+            Route::get('/reading-plans', [\App\Http\Controllers\AccountController::class, 'readingPlans'])->name('reading-plans.index');
+            Route::post('/reading-plans', [\App\Http\Controllers\AccountController::class, 'createReadingPlan'])->name('reading-plans.create');
+            Route::post('/reading-plans/{planId}/items', [\App\Http\Controllers\AccountController::class, 'createReadingPlanItem'])->name('reading-plans.items.create');
+            Route::put('/reading-plans/{planId}/items/{itemId}', [\App\Http\Controllers\AccountController::class, 'updateReadingPlanItem'])->name('reading-plans.items.update');
             Route::post('/profile/header-image', [\App\Http\Controllers\AccountController::class, 'updateHeaderImage'])->name('profile.header-image.update');
             Route::post('/profile/avatar', [\App\Http\Controllers\AccountController::class, 'updateAvatar'])->name('profile.avatar.update');
             Route::delete('/profile/avatar', [\App\Http\Controllers\AccountController::class, 'destroyAvatar'])->name('profile.avatar.destroy');

@@ -3,10 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\CDNUploader;
+use App\Models\Book;
+use App\Models\BookReadingStatus;
+use App\Models\Library;
+use App\Models\ReadingPlan;
+use App\Models\ReadingPlanItem;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
@@ -41,10 +47,20 @@ class AccountController extends Controller
         $readingCount = $user->readingStatuses()->where('status', 'reading')->count();
         $plannedCount = $user->readingStatuses()->where('status', 'want_to_read')->count();
         $droppedCount = $user->readingStatuses()->where('status', 'abandoned')->count();
+        $totalReadingStatuses = $user->readingStatuses()->count();
+        $ratedCount = $user->readingStatuses()->whereNotNull('rating')->count();
+        $averageRating = $user->readingStatuses()->whereNotNull('rating')->avg('rating');
+
+        $plannerItemsQuery = ReadingPlanItem::query()
+            ->whereHas('plan', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        $plannerTotal = (clone $plannerItemsQuery)->count();
+        $plannerDone = (clone $plannerItemsQuery)->where('is_done', true)->count();
 
         $recentReadBooks = $user->readingStatuses()
             ->whereIn('status', ['read', 'reading', 'want_to_read'])
-            ->with('book')
+            ->with(['book', 'sessions'])
             ->orderByDesc('updated_at')
             ->limit(6)
             ->get()
@@ -52,7 +68,17 @@ class AccountController extends Controller
                 return [
                     'id' => $status->id,
                     'status' => $status->status,
+                    'times_read' => (int) ($status->times_read ?? 1),
+                    'reading_language' => $status->reading_language,
+                    'rating' => $status->rating,
                     'updated_at_human' => optional($status->updated_at)->diffForHumans(),
+                    'sessions' => $status->sessions->map(function ($session) {
+                        return [
+                            'id' => $session->id,
+                            'read_at' => optional($session->read_at)->toDateString(),
+                            'language' => $session->language,
+                        ];
+                    })->values(),
                     'book' => $status->book ? [
                         'id' => $status->book->id,
                         'slug' => $status->book->slug,
@@ -62,6 +88,39 @@ class AccountController extends Controller
                 ];
             })
             ->values();
+
+        $readingPlans = collect();
+        if ($isOwner) {
+            $readingPlans = $user->readingPlans()
+                ->with(['items.book'])
+                ->limit(10)
+                ->get()
+                ->map(function ($plan) {
+                    $total = $plan->items->count();
+                    $done = $plan->items->where('is_done', true)->count();
+                    return [
+                        'id' => $plan->id,
+                        'title' => $plan->title,
+                        'goal' => $plan->goal,
+                        'target_date' => optional($plan->target_date)->toDateString(),
+                        'total_items' => $total,
+                        'done_items' => $done,
+                        'progress' => $total > 0 ? (int) round(($done / $total) * 100) : 0,
+                        'items' => $plan->items->map(function ($item) {
+                            return [
+                                'id' => $item->id,
+                                'is_done' => (bool) $item->is_done,
+                                'book' => $item->book ? [
+                                    'id' => $item->book->id,
+                                    'slug' => $item->book->slug,
+                                    'title' => $item->book->title,
+                                    'cover' => $item->book->cover_image_display ?? $item->book->cover_image ?? null,
+                                ] : null,
+                            ];
+                        })->values(),
+                    ];
+                })->values();
+        }
 
         $recentReviews = $user->reviews()
             ->whereNull('parent_id')
@@ -76,6 +135,7 @@ class AccountController extends Controller
                     'book' => $review->book ? [
                         'title' => $review->book->title,
                         'slug' => $review->book->slug,
+                        'cover' => $review->book->cover_image_display ?? $review->book->cover_image ?? null,
                     ] : null,
                     'rating' => $review->rating ?? null,
                     'content' => mb_substr((string) $review->content, 0, 160),
@@ -94,6 +154,7 @@ class AccountController extends Controller
                 return [
                     'id' => $discussion->id,
                     'title' => $discussion->title,
+                    'slug' => $discussion->slug,
                     'status' => $discussion->status,
                     'replies_count' => $discussion->replies_count,
                     'likes_count' => $discussion->likes_count,
@@ -115,6 +176,7 @@ class AccountController extends Controller
                     'book' => $quote->book ? [
                         'title' => $quote->book->title,
                         'slug' => $quote->book->slug,
+                        'cover' => $quote->book->cover_image_display ?? $quote->book->cover_image ?? null,
                     ] : null,
                     'created_at_human' => optional($quote->created_at)->diffForHumans(),
                 ];
@@ -130,12 +192,23 @@ class AccountController extends Controller
             ->limit(6)
             ->get()
             ->map(function ($library) {
+                $covers = $library->books()
+                    ->limit(3)
+                    ->get()
+                    ->map(function ($book) {
+                        return $book->cover_image_display ?? $book->cover_image ?? null;
+                    })
+                    ->filter()
+                    ->values();
+
                 return [
                     'id' => $library->id,
+                    'slug' => $library->slug,
                     'name' => $library->name,
                     'description' => $library->description,
                     'books_count' => $library->books_count,
                     'is_private' => (bool) $library->is_private,
+                    'preview_covers' => $covers,
                     'created_at_human' => optional($library->created_at)->diffForHumans(),
                 ];
             })
@@ -158,6 +231,7 @@ class AccountController extends Controller
                         'id' => $quote->id,
                         'book_slug' => optional($quote->book)->slug,
                         'book_title' => optional($quote->book)->title,
+                        'book_cover' => optional($quote->book)->cover_image_display ?? optional($quote->book)->cover_image,
                         'content' => mb_substr((string) $quote->content, 0, 220),
                         'created_at_human' => optional($quote->created_at)->diffForHumans(),
                     ];
@@ -174,6 +248,7 @@ class AccountController extends Controller
                         'id' => $review->id,
                         'book_slug' => optional($review->book)->slug,
                         'book_title' => optional($review->book)->title,
+                        'book_cover' => optional($review->book)->cover_image_display ?? optional($review->book)->cover_image,
                         'content' => mb_substr(strip_tags((string) $review->content), 0, 220),
                         'rating' => $review->rating,
                         'created_at_human' => optional($review->created_at)->diffForHumans(),
@@ -263,6 +338,9 @@ class AccountController extends Controller
                     'reading_count' => $readingCount,
                     'planned_count' => $plannedCount,
                     'dropped_count' => $droppedCount,
+                    'total_books_count' => $totalReadingStatuses,
+                    'rated_count' => $ratedCount,
+                    'average_rating' => $averageRating ? round((float) $averageRating, 1) : null,
                     'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
                     'discussions_count' => $user->discussions()->whereIn('status', ['active', 'blocked'])->count(),
                     'quotes_count' => $user->quotes()->where('is_public', true)->count(),
@@ -271,6 +349,8 @@ class AccountController extends Controller
                     })->count(),
                     'favorite_quotes_count' => $isOwner ? $user->favoriteQuotes()->count() : 0,
                     'favorite_reviews_count' => $isOwner ? $user->favoriteReviews()->count() : 0,
+                    'planner_total_items' => $isOwner ? $plannerTotal : 0,
+                    'planner_done_items' => $isOwner ? $plannerDone : 0,
                 ],
                 'recent_read_books' => $recentReadBooks,
                 'recent_reviews' => $recentReviews,
@@ -282,6 +362,7 @@ class AccountController extends Controller
                 'draft_reviews' => $draftReviews,
                 'draft_quotes' => $draftQuotes,
                 'draft_discussions' => $draftDiscussions,
+                'reading_plans' => $readingPlans,
             ],
             'isOwner' => (bool) $isOwner,
         ]);
@@ -571,6 +652,285 @@ class AccountController extends Controller
             'message' => 'Аватар видалено.',
             'avatar' => $user->avatar_display,
         ]);
+    }
+
+    public function collectionBooks(int $collectionId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $library = Library::where('id', $collectionId)->where('user_id', $user->id)->firstOrFail();
+        $books = $library->books()->limit(100)->get()->map(function ($book) {
+            return [
+                'id' => $book->id,
+                'slug' => $book->slug,
+                'title' => $book->title,
+                'cover' => $book->cover_image_display ?? $book->cover_image ?? null,
+            ];
+        })->values();
+
+        return response()->json(['books' => $books]);
+    }
+
+    public function addCollectionBook(Request $request, int $collectionId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $library = Library::where('id', $collectionId)->where('user_id', $user->id)->firstOrFail();
+        $validated = $request->validate([
+            'book_slug' => ['required', 'string', 'exists:books,slug'],
+        ]);
+
+        $book = Book::where('slug', $validated['book_slug'])->firstOrFail();
+        if (!$library->books()->where('book_id', $book->id)->exists()) {
+            $library->books()->attach($book->id);
+        }
+
+        return response()->json(['message' => 'Книгу додано до колекції.']);
+    }
+
+    public function removeCollectionBook(int $collectionId, int $bookId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $library = Library::where('id', $collectionId)->where('user_id', $user->id)->firstOrFail();
+        $library->books()->detach($bookId);
+
+        return response()->json(['message' => 'Книгу видалено з колекції.']);
+    }
+
+    public function destroyCollection(int $collectionId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $library = Library::where('id', $collectionId)->where('user_id', $user->id)->firstOrFail();
+        $library->delete();
+
+        return response()->json(['message' => 'Колекцію видалено.']);
+    }
+
+    public function searchBooks(Request $request)
+    {
+        $q = trim((string) $request->get('q', ''));
+        if ($q === '') {
+            return response()->json(['books' => []]);
+        }
+
+        $books = Book::query()
+            ->where('title', 'like', '%' . $q . '%')
+            ->orderBy('title')
+            ->limit(12)
+            ->get()
+            ->map(function ($book) {
+                return [
+                    'id' => $book->id,
+                    'slug' => $book->slug,
+                    'title' => $book->title,
+                    'cover' => $book->cover_image_display ?? $book->cover_image ?? null,
+                ];
+            })->values();
+
+        return response()->json(['books' => $books]);
+    }
+
+    public function libraries()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $libraries = $user->libraries()
+            ->orderBy('name')
+            ->get(['id', 'name', 'is_private']);
+
+        return response()->json([
+            'libraries' => $libraries->map(function ($library) {
+                return [
+                    'id' => $library->id,
+                    'name' => $library->name,
+                    'is_private' => (bool) $library->is_private,
+                ];
+            })->values(),
+        ]);
+    }
+
+    public function readingStatusUpdate(Request $request, int $statusId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $status = BookReadingStatus::where('id', $statusId)->where('user_id', $user->id)->firstOrFail();
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['read', 'reading', 'want_to_read', 'abandoned'])],
+            'times_read' => ['nullable', 'integer', 'min:1', 'max:999'],
+            'reading_language' => ['nullable', 'string', 'max:10'],
+            'rating' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'sessions' => ['nullable', 'array'],
+            'sessions.*.read_at' => ['required', 'date'],
+            'sessions.*.language' => ['nullable', 'string', 'max:10'],
+            'library_ids' => ['nullable', 'array'],
+            'library_ids.*' => ['integer'],
+        ]);
+
+        $status->update([
+            'status' => $validated['status'],
+            'times_read' => $validated['times_read'] ?? $status->times_read ?? 1,
+            'reading_language' => $validated['reading_language'] ?? null,
+            'rating' => $validated['rating'] ?? $status->rating,
+        ]);
+
+        if (array_key_exists('sessions', $validated)) {
+            $status->sessions()->delete();
+            foreach (array_slice($validated['sessions'], 0, 200) as $session) {
+                $status->sessions()->create([
+                    'read_at' => $session['read_at'],
+                    'language' => $session['language'] ?? null,
+                ]);
+            }
+
+            $latest = $status->sessions()->orderByDesc('read_at')->first();
+            if ($latest && $status->status === 'read') {
+                $status->finished_at = Carbon::parse($latest->read_at);
+                if (!$status->started_at) {
+                    $status->started_at = Carbon::parse($latest->read_at);
+                }
+                $status->save();
+            }
+        }
+
+        if (array_key_exists('library_ids', $validated)) {
+            $allowedIds = $user->libraries()->whereIn('id', $validated['library_ids'])->pluck('id')->all();
+            $bookId = $status->book_id;
+
+            $userLibraries = $user->libraries()->get();
+            foreach ($userLibraries as $library) {
+                $exists = $library->books()->where('book_id', $bookId)->exists();
+                $shouldBeAttached = in_array($library->id, $allowedIds, true);
+                if ($shouldBeAttached && !$exists) {
+                    $library->books()->attach($bookId);
+                }
+                if (!$shouldBeAttached && $exists) {
+                    $library->books()->detach($bookId);
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => 'Статус книги оновлено.',
+            'status' => $status->fresh(['sessions']),
+        ]);
+    }
+
+    public function readingPlans()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $plans = $user->readingPlans()->with('items.book')->get();
+        return response()->json([
+            'plans' => $plans->map(function ($plan) {
+                return [
+                    'id' => $plan->id,
+                    'title' => $plan->title,
+                    'goal' => $plan->goal,
+                    'target_date' => optional($plan->target_date)->toDateString(),
+                    'items' => $plan->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'is_done' => (bool) $item->is_done,
+                            'book' => $item->book ? [
+                                'id' => $item->book->id,
+                                'slug' => $item->book->slug,
+                                'title' => $item->book->title,
+                                'cover' => $item->book->cover_image_display ?? $item->book->cover_image ?? null,
+                            ] : null,
+                        ];
+                    })->values(),
+                ];
+            })->values(),
+        ]);
+    }
+
+    public function createReadingPlan(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'goal' => ['nullable', 'string', 'max:1000'],
+            'target_date' => ['nullable', 'date'],
+            'book_ids' => ['nullable', 'array'],
+            'book_ids.*' => ['integer', 'exists:books,id'],
+        ]);
+
+        $plan = ReadingPlan::create([
+            'user_id' => $user->id,
+            'title' => $validated['title'],
+            'goal' => $validated['goal'] ?? null,
+            'target_date' => $validated['target_date'] ?? null,
+        ]);
+
+        foreach (($validated['book_ids'] ?? []) as $bookId) {
+            $plan->items()->firstOrCreate(['book_id' => $bookId]);
+        }
+
+        return response()->json(['message' => 'План читання створено.', 'plan_id' => $plan->id]);
+    }
+
+    public function createReadingPlanItem(Request $request, int $planId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $plan = ReadingPlan::where('id', $planId)->where('user_id', $user->id)->firstOrFail();
+        $validated = $request->validate([
+            'book_id' => ['required', 'integer', 'exists:books,id'],
+        ]);
+
+        $item = $plan->items()->firstOrCreate(['book_id' => $validated['book_id']]);
+        return response()->json(['message' => 'Книгу додано в план.', 'item_id' => $item->id]);
+    }
+
+    public function updateReadingPlanItem(Request $request, int $planId, int $itemId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $plan = ReadingPlan::where('id', $planId)->where('user_id', $user->id)->firstOrFail();
+        $item = $plan->items()->where('id', $itemId)->firstOrFail();
+        $validated = $request->validate([
+            'is_done' => ['required', 'boolean'],
+        ]);
+
+        $item->update([
+            'is_done' => (bool) $validated['is_done'],
+            'completed_at' => $validated['is_done'] ? now() : null,
+        ]);
+
+        return response()->json(['message' => 'Пункт плану оновлено.']);
     }
 }
 
