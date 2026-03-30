@@ -58,6 +58,66 @@ class AccountController extends Controller
         $plannerTotal = (clone $plannerItemsQuery)->count();
         $plannerDone = (clone $plannerItemsQuery)->where('is_done', true)->count();
 
+        // Activity for last 14 days (combined events)
+        $activityStart = now()->startOfDay()->subDays(13);
+        $activityEnd = now()->endOfDay();
+        $activityMap = [];
+        for ($i = 0; $i < 14; $i++) {
+            $d = $activityStart->copy()->addDays($i);
+            $activityMap[$d->toDateString()] = 0;
+        }
+
+        $mergeActivity = function ($rows) use (&$activityMap) {
+            foreach ($rows as $row) {
+                $date = is_array($row) ? ($row['d'] ?? null) : ($row->d ?? null);
+                $count = (int) (is_array($row) ? ($row['c'] ?? 0) : ($row->c ?? 0));
+                if ($date && array_key_exists($date, $activityMap)) {
+                    $activityMap[$date] += $count;
+                }
+            }
+        };
+
+        $readingRows = $user->readingStatuses()
+            ->selectRaw('DATE(updated_at) as d, COUNT(*) as c')
+            ->whereBetween('updated_at', [$activityStart, $activityEnd])
+            ->groupBy('d')
+            ->get();
+        $mergeActivity($readingRows);
+
+        $reviewRows = $user->reviews()
+            ->whereNull('parent_id')
+            ->where('is_draft', false)
+            ->selectRaw('DATE(created_at) as d, COUNT(*) as c')
+            ->whereBetween('created_at', [$activityStart, $activityEnd])
+            ->groupBy('d')
+            ->get();
+        $mergeActivity($reviewRows);
+
+        $discussionRows = $user->discussions()
+            ->where('is_draft', false)
+            ->selectRaw('DATE(created_at) as d, COUNT(*) as c')
+            ->whereBetween('created_at', [$activityStart, $activityEnd])
+            ->groupBy('d')
+            ->get();
+        $mergeActivity($discussionRows);
+
+        $quoteRows = $user->quotes()
+            ->where('is_draft', false)
+            ->selectRaw('DATE(created_at) as d, COUNT(*) as c')
+            ->whereBetween('created_at', [$activityStart, $activityEnd])
+            ->groupBy('d')
+            ->get();
+        $mergeActivity($quoteRows);
+
+        $activitySeries = collect($activityMap)->map(function ($count, $date) {
+            return [
+                'date' => $date,
+                'label' => Carbon::parse($date)->format('d.m'),
+                'value' => (int) $count,
+            ];
+        })->values();
+        $activityMax = max(1, (int) $activitySeries->max('value'));
+
         $recentReadBooks = $user->readingStatuses()
             ->whereIn('status', ['read', 'reading', 'want_to_read'])
             ->with(['book', 'sessions'])
@@ -351,7 +411,9 @@ class AccountController extends Controller
                     'favorite_reviews_count' => $isOwner ? $user->favoriteReviews()->count() : 0,
                     'planner_total_items' => $isOwner ? $plannerTotal : 0,
                     'planner_done_items' => $isOwner ? $plannerDone : 0,
+                    'activity_max' => $activityMax,
                 ],
+                'activity_series' => $activitySeries,
                 'recent_read_books' => $recentReadBooks,
                 'recent_reviews' => $recentReviews,
                 'recent_discussions' => $recentDiscussions,

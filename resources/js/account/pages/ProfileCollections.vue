@@ -41,15 +41,15 @@
       </div>
     </div>
     <div v-if="actionModal" class="fixed inset-0 z-[130]">
-      <div class="absolute inset-0 bg-black/70" @click="actionModal = null" />
+      <div class="acc-modal-overlay" @click="actionModal = null" />
       <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#0a0b14] p-5">
+        <div class="acc-modal max-w-2xl">
           <div class="text-base font-extrabold">{{ actionModal.title }}</div>
-          <div class="mt-2 text-sm text-white/70">Додавайте або видаляйте книги з колекції.</div>
+          <div class="mt-2 text-sm text-slate-600 dark:text-white/70">Додавайте або видаляйте книги з колекції.</div>
 
-          <div class="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
+          <div class="mt-4 acc-modal-subpanel">
             <div class="flex gap-2">
-              <input v-model="bookQuery" type="text" class="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none" placeholder="Пошук книги за назвою...">
+              <input v-model="bookQuery" type="text" class="acc-modal-input" placeholder="Пошук книги за назвою...">
               <button class="acc-btn" @click="searchBooks">Пошук</button>
             </div>
             <div v-if="searchResults.length" class="mt-3 max-h-40 overflow-auto space-y-2">
@@ -65,7 +65,7 @@
           </div>
 
           <div class="mt-4">
-            <div class="text-xs font-bold text-white/70 mb-2">Книги у колекції</div>
+            <div class="mb-2 text-xs font-bold text-slate-700 dark:text-white/70">Книги у колекції</div>
             <div v-if="collectionBooks.length" class="max-h-56 overflow-auto space-y-2">
               <div v-for="book in collectionBooks" :key="`in-col-${book.id}`" class="flex items-center justify-between rounded-lg border border-white/10 px-2 py-1">
                 <div class="flex items-center gap-2 min-w-0">
@@ -76,7 +76,7 @@
                 <button class="acc-btn !px-2 !py-1 text-xs !border-red-400/40 !text-red-200" @click="removeBook(book)">Видалити</button>
               </div>
             </div>
-            <div v-else class="text-sm text-white/50">У колекції ще немає книг.</div>
+            <div v-else class="text-sm text-slate-500 dark:text-white/50">У колекції ще немає книг.</div>
           </div>
 
           <div class="mt-4 flex justify-end gap-2">

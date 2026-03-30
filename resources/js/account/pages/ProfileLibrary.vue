@@ -37,50 +37,50 @@
     </div>
 
     <div v-if="actionModal" class="fixed inset-0 z-[130]">
-      <div class="absolute inset-0 bg-black/70" @click="actionModal = null" />
+      <div class="acc-modal-overlay" @click="actionModal = null" />
       <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#0a0b14] p-5">
+        <div class="acc-modal max-w-2xl">
           <div class="text-base font-extrabold">{{ actionModal.title }}</div>
 
           <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label class="text-xs text-white/70">
+            <label class="text-xs text-slate-600 dark:text-white/70">
               Статус
-              <select v-model="editForm.status" class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none">
+              <select v-model="editForm.status" class="mt-1 acc-modal-input">
                 <option value="want_to_read">Заплановано</option>
                 <option value="reading">Читаю</option>
                 <option value="read">Прочитано</option>
                 <option value="abandoned">Закинуто</option>
               </select>
             </label>
-            <label class="text-xs text-white/70">
+            <label class="text-xs text-slate-600 dark:text-white/70">
               Кількість прочитань
-              <input v-model.number="editForm.times_read" min="1" type="number" class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none">
+              <input v-model.number="editForm.times_read" min="1" type="number" class="mt-1 acc-modal-input">
             </label>
           </div>
 
           <div class="mt-3">
-            <label class="text-xs text-white/70">
+            <label class="text-xs text-slate-600 dark:text-white/70">
               Мова читання (основна)
-              <input v-model.trim="editForm.reading_language" type="text" maxlength="10" class="mt-1 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none" placeholder="uk / en / ...">
+              <input v-model.trim="editForm.reading_language" type="text" maxlength="10" class="mt-1 acc-modal-input" placeholder="uk / en / ...">
             </label>
           </div>
 
-          <div class="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
-            <div class="text-xs font-bold text-white/75">Історія прочитань (дата + мова)</div>
+          <div class="mt-4 acc-modal-subpanel">
+            <div class="text-xs font-bold text-slate-700 dark:text-white/75">Історія прочитань (дата + мова)</div>
             <div class="mt-2 space-y-2">
               <div v-for="(session, idx) in editForm.sessions" :key="`session-${idx}`" class="flex items-center gap-2">
-                <input v-model="session.read_at" type="date" class="w-40 rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-xs text-white outline-none">
-                <input v-model.trim="session.language" type="text" maxlength="10" placeholder="мова" class="w-24 rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-xs text-white outline-none">
+                <input v-model="session.read_at" type="date" class="w-40 acc-modal-input !px-2 !py-1 !text-xs">
+                <input v-model.trim="session.language" type="text" maxlength="10" placeholder="мова" class="w-24 acc-modal-input !px-2 !py-1 !text-xs">
                 <button type="button" class="acc-btn !px-2 !py-1 text-xs !border-red-400/40 !text-red-200" @click="removeSession(idx)">Видалити</button>
               </div>
             </div>
             <button type="button" class="mt-2 acc-btn !px-2 !py-1 text-xs" @click="addSession">+ Додати прочитання</button>
           </div>
 
-          <div class="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
-            <div class="text-xs font-bold text-white/75">Колекції</div>
+          <div class="mt-4 acc-modal-subpanel">
+            <div class="text-xs font-bold text-slate-700 dark:text-white/75">Колекції</div>
             <div class="mt-2 space-y-1">
-              <label v-for="lib in userLibraries" :key="`lib-${lib.id}`" class="flex items-center gap-2 text-xs text-white/80">
+              <label v-for="lib in userLibraries" :key="`lib-${lib.id}`" class="flex items-center gap-2 text-xs text-slate-700 dark:text-white/80">
                 <input v-model="editForm.library_ids" :value="lib.id" type="checkbox">
                 <span>{{ lib.name }}</span>
               </label>

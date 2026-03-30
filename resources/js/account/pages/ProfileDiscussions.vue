@@ -34,11 +34,11 @@
       </div>
     </div>
     <div v-if="actionModal" class="fixed inset-0 z-[130]">
-      <div class="absolute inset-0 bg-black/70" @click="actionModal = null" />
+      <div class="acc-modal-overlay" @click="actionModal = null" />
       <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="w-full max-w-md rounded-2xl border border-white/10 bg-[#0a0b14] p-5">
+        <div class="acc-modal max-w-md">
           <div class="text-base font-extrabold">{{ actionModal.title }}</div>
-          <div class="mt-2 text-sm text-white/70">{{ actionModal.subtitle }}</div>
+          <div class="mt-2 text-sm text-slate-600 dark:text-white/70">{{ actionModal.subtitle }}</div>
           <div class="mt-4 flex justify-end gap-2">
             <button class="acc-btn" @click="actionModal = null">Закрити</button>
             <a v-if="actionModal.editUrl" :href="actionModal.editUrl" class="acc-btn-primary">Редагувати</a>

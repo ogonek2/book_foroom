@@ -3,7 +3,7 @@
     <section class="acc-glass rounded-2xl p-4 sm:p-5 border border-white/10">
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <div class="lg:col-span-8 flex items-center gap-4 sm:gap-5">
-          <div class="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden border border-white/15 bg-white/10 shrink-0">
+          <div class="h-50 w-50 aspect-[1/1] rounded-2xl overflow-hidden border border-white/15 bg-white/10 shrink-0">
             <img
               :src="avatarSrc"
               class="h-full w-full object-cover"
@@ -24,21 +24,35 @@
         <div class="lg:col-span-4">
           <div class="acc-glass rounded-2xl p-3 border border-white/10">
             <div class="flex gap-2 mb-3 text-xs">
-              <button class="acc-btn !px-3 !py-1">Аніме</button>
-              <button class="acc-btn !px-3 !py-1 opacity-70">Манга</button>
-              <button class="acc-btn !px-3 !py-1 opacity-70">Ранобе</button>
+              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'books' }" @click="overviewStatsTab = 'books'">Книги</button>
+              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'reviews' }" @click="overviewStatsTab = 'reviews'">Рецензії</button>
+              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'discussions' }" @click="overviewStatsTab = 'discussions'">Обговорення</button>
+              <!-- <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'quotes' }" @click="overviewStatsTab = 'quotes'">Цитати</button> -->
             </div>
             <div class="grid grid-cols-[86px,1fr] items-center gap-3">
-              <div class="relative h-[86px] w-[86px] rounded-full border-4 border-white/20">
+              <div class="relative h-[86px] w-[86px] rounded-full">
+                <svg class="h-[86px] w-[86px] -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+                  <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" class="text-white/15" stroke-width="8" />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="44"
+                    fill="none"
+                    :stroke="overviewRingColor"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    :stroke-dasharray="overviewRingDasharray"
+                    stroke-dashoffset="0"
+                  />
+                </svg>
                 <div class="absolute inset-0 flex items-center justify-center">
-                  <div class="text-2xl font-extrabold">{{ stats.read_count || 0 }}</div>
+                  <div class="text-2xl font-extrabold" :style="{ color: overviewRingColor }">{{ overviewMainValue }}</div>
                 </div>
               </div>
               <ul class="space-y-1 text-xs text-white/70">
-                <li class="flex justify-between"><span>Дивлюсь</span><span>{{ stats.reading_count || 0 }}</span></li>
-                <li class="flex justify-between"><span>Заплановано</span><span>{{ stats.planned_count || 0 }}</span></li>
-                <li class="flex justify-between"><span>Закинуто</span><span>{{ stats.dropped_count || 0 }}</span></li>
-                <li class="flex justify-between"><span>Відкладено</span><span>0</span></li>
+                <li v-for="row in overviewRows" :key="row.key" class="flex justify-between">
+                  <span>{{ row.label }}</span><span>{{ row.value }}</span>
+                </li>
               </ul>
             </div>
           </div>
@@ -53,7 +67,30 @@
           <div class="acc-glass rounded-2xl p-4 border border-white/10">
             <div class="text-xs text-white/60 mb-3">Активність</div>
             <div class="h-14 rounded-xl bg-white/5 border border-white/10 flex items-end px-3 pb-2 gap-2">
-              <span v-for="i in 14" :key="`bar-${i}`" class="w-1 rounded-full bg-white/20" :style="{ height: `${8 + (i % 3) * 6}px` }" />
+              <span
+                v-for="(bar, idx) in activityBars"
+                :key="`bar-${idx}`"
+                class="w-1 rounded-full bg-gradient-to-t from-indigo-400 to-purple-500"
+                :style="{ height: `${bar.height}px` }"
+                :title="`${bar.label}: ${bar.value}`"
+              />
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-[11px] text-white/70">
+              <div class="rounded-lg border border-white/10 bg-white/5 px-2 py-1">
+                За 14 днів: <span class="font-bold text-white/90">{{ activitySummary.total }}</span>
+              </div>
+              <div class="rounded-lg border border-white/10 bg-white/5 px-2 py-1">
+                Сьогодні: <span class="font-bold text-white/90">{{ activitySummary.today }}</span>
+              </div>
+              <div class="rounded-lg border border-white/10 bg-white/5 px-2 py-1">
+                Середнє/день: <span class="font-bold text-white/90">{{ activitySummary.avg }}</span>
+              </div>
+              <div class="rounded-lg border border-white/10 bg-white/5 px-2 py-1">
+                Пік: <span class="font-bold text-white/90">{{ activitySummary.peakLabel }}</span>
+              </div>
+            </div>
+            <div class="mt-2 text-[11px] text-white/55">
+              Враховуються дії: оновлення статусів книг, рецензії, обговорення, цитати.
             </div>
           </div>
           <div class="acc-glass rounded-2xl p-4 border border-white/10">
@@ -187,17 +224,17 @@
     </section>
 
     <div v-if="showPlannerModal" class="fixed inset-0 z-[140]">
-      <div class="absolute inset-0 bg-black/70" @click="showPlannerModal = false" />
+      <div class="acc-modal-overlay" @click="showPlannerModal = false" />
       <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#0a0b14] p-5">
+        <div class="acc-modal max-w-2xl">
           <div class="text-base font-extrabold">Новий план читання</div>
           <div class="mt-3 space-y-3">
-            <input v-model.trim="plannerForm.title" type="text" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none" placeholder="Назва плану">
-            <textarea v-model.trim="plannerForm.goal" rows="3" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none" placeholder="Мета"></textarea>
-            <input v-model="plannerForm.target_date" type="date" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none">
-            <div class="rounded-xl border border-white/10 bg-white/5 p-3">
+            <input v-model.trim="plannerForm.title" type="text" class="acc-modal-input" placeholder="Назва плану">
+            <textarea v-model.trim="plannerForm.goal" rows="3" class="acc-modal-input" placeholder="Мета"></textarea>
+            <input v-model="plannerForm.target_date" type="date" class="acc-modal-input">
+            <div class="acc-modal-subpanel">
               <div class="flex gap-2">
-                <input v-model.trim="plannerBookQuery" type="text" class="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none" placeholder="Знайти книги для плану">
+                <input v-model.trim="plannerBookQuery" type="text" class="acc-modal-input" placeholder="Знайти книги для плану">
                 <button class="acc-btn" @click="searchPlannerBooks">Пошук</button>
               </div>
               <div v-if="plannerSearchResults.length" class="mt-2 max-h-48 overflow-auto space-y-1">
@@ -289,10 +326,117 @@ export default {
         cover: item?.book?.cover || '',
       }));
     },
+    activityBars() {
+      const series = this.dashboard?.activity_series || [];
+      const max = Number(this.stats.activity_max || 1);
+      if (!series.length) {
+        return Array.from({ length: 14 }).map(() => ({ value: 0, label: '', height: 8 }));
+      }
+      return series.map((point) => {
+        const value = Number(point.value || 0);
+        const height = Math.max(8, Math.round((value / max) * 40));
+        return {
+          value,
+          label: point.label || '',
+          height,
+        };
+      });
+    },
+    activitySummary() {
+      const series = this.dashboard?.activity_series || [];
+      if (!series.length) {
+        return { total: 0, today: 0, avg: 0, peakLabel: '—' };
+      }
+      const values = series.map((p) => Number(p.value || 0));
+      const total = values.reduce((acc, v) => acc + v, 0);
+      const today = values[values.length - 1] || 0;
+      const avg = (total / values.length).toFixed(1);
+      let peakIndex = 0;
+      for (let i = 1; i < values.length; i += 1) {
+        if (values[i] > values[peakIndex]) peakIndex = i;
+      }
+      const peakValue = values[peakIndex] || 0;
+      const peakLabel = peakValue > 0 ? `${series[peakIndex].label}: ${peakValue}` : '—';
+      return { total, today, avg, peakLabel };
+    },
+    overviewMainValue() {
+      if (this.overviewStatsTab === 'reviews') return Number(this.stats.reviews_count || 0);
+      if (this.overviewStatsTab === 'discussions') return Number(this.stats.discussions_count || 0);
+      if (this.overviewStatsTab === 'quotes') return Number(this.stats.quotes_count || 0);
+      return Number(this.stats.read_count || 0);
+    },
+    overviewRows() {
+      if (this.overviewStatsTab === 'reviews') {
+        return [
+          { key: 'reviews-total', label: 'Усього', value: Number(this.stats.reviews_count || 0) },
+          { key: 'reviews-fav', label: 'Збережені', value: Number(this.stats.favorite_reviews_count || 0) },
+          { key: 'reviews-rated', label: 'Оцінено книг', value: Number(this.stats.rated_count || 0) },
+          { key: 'reviews-avg', label: 'Сер. оцінка', value: this.stats.average_rating ?? '—' },
+        ];
+      }
+      if (this.overviewStatsTab === 'discussions') {
+        return [
+          { key: 'disc-total', label: 'Усього', value: Number(this.stats.discussions_count || 0) },
+          { key: 'disc-drafts', label: 'Чернетки', value: Number((this.dashboard?.draft_discussions || []).length) },
+          { key: 'disc-activity', label: 'Активність 14д', value: Number(this.activitySummary.total || 0) },
+          { key: 'disc-today', label: 'Сьогодні', value: Number(this.activitySummary.today || 0) },
+        ];
+      }
+      if (this.overviewStatsTab === 'quotes') {
+        return [
+          { key: 'quote-total', label: 'Усього', value: Number(this.stats.quotes_count || 0) },
+          { key: 'quote-fav', label: 'Збережені', value: Number(this.stats.favorite_quotes_count || 0) },
+          { key: 'quote-drafts', label: 'Чернетки', value: Number((this.dashboard?.draft_quotes || []).length) },
+          { key: 'quote-today', label: 'Сьогодні', value: Number(this.activitySummary.today || 0) },
+        ];
+      }
+      return [
+        { key: 'book-reading', label: 'Читаю', value: Number(this.stats.reading_count || 0) },
+        { key: 'book-planned', label: 'Заплановано', value: Number(this.stats.planned_count || 0) },
+        { key: 'book-dropped', label: 'Закинуто', value: Number(this.stats.dropped_count || 0) },
+        { key: 'book-total', label: 'Усього книг', value: Number(this.stats.total_books_count || 0) },
+      ];
+    },
+    overviewRingColor() {
+      if (this.overviewStatsTab === 'reviews') return '#f59e0b';
+      if (this.overviewStatsTab === 'discussions') return '#06b6d4';
+      if (this.overviewStatsTab === 'quotes') return '#10b981';
+      return '#8b5cf6';
+    },
+    overviewRingPercent() {
+      if (this.overviewStatsTab === 'reviews') {
+        const total = Number(this.stats.reviews_count || 0);
+        const fav = Number(this.stats.favorite_reviews_count || 0);
+        if (!total) return 0;
+        return Math.min(100, Math.round((fav / total) * 100));
+      }
+      if (this.overviewStatsTab === 'discussions') {
+        const total = Number(this.stats.discussions_count || 0);
+        const today = Number(this.activitySummary.today || 0);
+        if (!total) return 0;
+        return Math.min(100, Math.round((today / total) * 100));
+      }
+      if (this.overviewStatsTab === 'quotes') {
+        const total = Number(this.stats.quotes_count || 0);
+        const fav = Number(this.stats.favorite_quotes_count || 0);
+        if (!total) return 0;
+        return Math.min(100, Math.round((fav / total) * 100));
+      }
+      const totalBooks = Number(this.stats.total_books_count || 0);
+      const read = Number(this.stats.read_count || 0);
+      if (!totalBooks) return 0;
+      return Math.min(100, Math.round((read / totalBooks) * 100));
+    },
+    overviewRingDasharray() {
+      const circumference = 2 * Math.PI * 44;
+      const progress = (this.overviewRingPercent / 100) * circumference;
+      return `${progress} ${circumference}`;
+    },
   },
   data() {
     return {
       showPlannerModal: false,
+      overviewStatsTab: 'books',
       activeFavoritesTab: 'books',
       plannerBookQuery: '',
       plannerSearchResults: [],
