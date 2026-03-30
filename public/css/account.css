@@ -2260,6 +2260,9 @@ select {
 .max-h-60 {
   max-height: 15rem;
 }
+.max-h-64 {
+  max-height: 16rem;
+}
 .max-h-96 {
   max-height: 24rem;
 }
@@ -3135,6 +3138,9 @@ select {
 }
 .bg-black\/0 {
   background-color: rgb(0 0 0 / 0);
+}
+.bg-black\/30 {
+  background-color: rgb(0 0 0 / 0.3);
 }
 .bg-black\/40 {
   background-color: rgb(0 0 0 / 0.4);
@@ -4241,6 +4247,10 @@ select {
   --tw-text-opacity: 1;
   color: rgb(224 231 255 / var(--tw-text-opacity, 1));
 }
+.text-indigo-300 {
+  --tw-text-opacity: 1;
+  color: rgb(165 180 252 / var(--tw-text-opacity, 1));
+}
 .text-indigo-500 {
   --tw-text-opacity: 1;
   color: rgb(99 102 241 / var(--tw-text-opacity, 1));
@@ -4405,6 +4415,9 @@ select {
 .text-white\/70 {
   color: rgb(255 255 255 / 0.7);
 }
+.text-white\/80 {
+  color: rgb(255 255 255 / 0.8);
+}
 .text-white\/85 {
   color: rgb(255 255 255 / 0.85);
 }
@@ -4500,9 +4513,6 @@ select {
 }
 .opacity-75 {
   opacity: 0.75;
-}
-.opacity-80 {
-  opacity: 0.8;
 }
 .opacity-90 {
   opacity: 0.9;
@@ -5159,6 +5169,10 @@ select {
 .hover\:text-green-800:hover {
   --tw-text-opacity: 1;
   color: rgb(22 101 52 / var(--tw-text-opacity, 1));
+}
+.hover\:text-indigo-200:hover {
+  --tw-text-opacity: 1;
+  color: rgb(199 210 254 / var(--tw-text-opacity, 1));
 }
 .hover\:text-indigo-500:hover {
   --tw-text-opacity: 1;

@@ -20,6 +20,10 @@ Route::middleware('web')->group(function () {
         Route::middleware('auth')->group(function () {
             Route::put('/profile', [\App\Http\Controllers\AccountController::class, 'update'])->name('profile.update');
             Route::put('/profile/design', [\App\Http\Controllers\AccountController::class, 'updateDesign'])->name('profile.design.update');
+            Route::put('/profile/password', [\App\Http\Controllers\AccountController::class, 'updatePassword'])->name('profile.password.update');
+            Route::put('/profile/notifications', [\App\Http\Controllers\AccountController::class, 'updateNotifications'])->name('profile.notifications.update');
+            Route::put('/profile/privacy', [\App\Http\Controllers\AccountController::class, 'updatePrivacy'])->name('profile.privacy.update');
+            Route::get('/profile/export', [\App\Http\Controllers\AccountController::class, 'exportData'])->name('profile.export');
             Route::post('/profile/header-image', [\App\Http\Controllers\AccountController::class, 'updateHeaderImage'])->name('profile.header-image.update');
             Route::post('/profile/avatar', [\App\Http\Controllers\AccountController::class, 'updateAvatar'])->name('profile.avatar.update');
             Route::delete('/profile/avatar', [\App\Http\Controllers\AccountController::class, 'destroyAvatar'])->name('profile.avatar.destroy');

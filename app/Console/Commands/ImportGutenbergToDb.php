@@ -17,7 +17,7 @@ class ImportGutenbergToDb extends Command
                             {--q=shakespeare : Поисковый запрос для Gutenberg}
                             {--target=100 : Сколько книг попытаться импортировать}
                             {--page_size=20 : Размер страницы (page_size) при поиске}
-                            {--max-pages=20 : Максимум страниц (page) за один запуск}
+                            {--max-pages=0 : Максимум страниц (0 = без лимита)}
                             {--translate=1 : Переводить EN->UK (1/0)}
                             {--enrich-authors=1 : Дотягивать детали/фото автора, даже если автор уже есть в БД}
                             {--categories-limit=8 : Максимум категорий на книгу}
@@ -44,7 +44,7 @@ class ImportGutenbergToDb extends Command
         $query = (string) $this->option('q');
         $target = max(1, (int) $this->option('target'));
         $pageSize = max(1, min(100, (int) $this->option('page_size')));
-        $maxPages = max(1, (int) $this->option('max-pages'));
+        $maxPages = max(0, (int) $this->option('max-pages')); // 0 = без лимита
         $doTranslate = filter_var($this->option('translate'), FILTER_VALIDATE_BOOL);
         $enrichAuthors = filter_var($this->option('enrich-authors'), FILTER_VALIDATE_BOOL);
         $categoriesLimit = max(0, (int) $this->option('categories-limit'));
@@ -54,6 +54,10 @@ class ImportGutenbergToDb extends Command
         $this->line("q={$query}, target={$target}, page_size={$pageSize}, max_pages={$maxPages}");
         $this->line("translate=" . ($doTranslate ? 'yes' : 'no') . ", authors_limit={$authorsLimit}, categories_limit={$categoriesLimit}");
 
+        $this->notifyTelegram(
+            "🚀 Gutenberg import started\nq={$query}\ntarget={$target}\npage_size={$pageSize}\nmax_pages=" . ($maxPages === 0 ? 'unlimited' : $maxPages)
+        );
+
         $imported = 0;
         $skippedExisting = 0;
         $seenBookIds = [];
@@ -61,8 +65,12 @@ class ImportGutenbergToDb extends Command
         /** @var array<int, array<string, mixed>> $authorCache */
         $authorCache = [];
 
-        for ($page = 1; $page <= $maxPages; $page++) {
+        $page = 1;
+        while (true) {
             if ($imported >= $target) {
+                break;
+            }
+            if ($maxPages > 0 && $page > $maxPages) {
                 break;
             }
 
@@ -222,11 +230,40 @@ class ImportGutenbergToDb extends Command
             }
 
             $this->line("page={$page}: imported={$imported}, skipped_existing={$skippedExisting}");
+            if ($page % 5 === 0 || $imported >= $target) {
+                $this->notifyTelegram(
+                    "📚 Gutenberg progress\nq={$query}\npage={$page}\nimported={$imported}\nskipped={$skippedExisting}\ntarget={$target}"
+                );
+            }
+
+            $page++;
         }
 
         $this->info("Готово. Импортировано: {$imported}. Пропущено (уже есть): {$skippedExisting}.");
+        $this->notifyTelegram(
+            "✅ Gutenberg import finished\nq={$query}\nimported={$imported}\nskipped={$skippedExisting}\nlast_page=" . ($page - 1)
+        );
 
         return self::SUCCESS;
+    }
+
+    protected function notifyTelegram(string $text): void
+    {
+        $token = env('TELEGRAM_BOT_TOKEN');
+        $chatId = env('TELEGRAM_CHAT_ID');
+
+        if (! is_string($token) || trim($token) === '' || ! is_string($chatId) || trim($chatId) === '') {
+            return;
+        }
+
+        try {
+            Http::timeout(8)->asForm()->post("https://api.telegram.org/bot{$token}/sendMessage", [
+                'chat_id' => $chatId,
+                'text' => $text,
+            ]);
+        } catch (\Throwable) {
+            // Not fatal for import flow.
+        }
     }
 
     /**

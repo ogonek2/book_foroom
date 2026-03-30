@@ -27,8 +27,14 @@
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/discussions`">Обговорення</router-link>
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/quotes`">Цитати</router-link>
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/collections`">Колекції</router-link>
+            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/favorites`">Збережене</router-link>
+            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/drafts`">Чернетки</router-link>
             <router-link v-if="isOwner" class="acc-btn-primary !px-3 !py-1.5" to="/settings/profile">Редагувати</router-link>
             <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/design">Оформлення</router-link>
+            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/security">Безпека</router-link>
+            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/notifications">Сповіщення</router-link>
+            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/privacy">Приватність</router-link>
+            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/account">Акаунт</router-link>
           </div>
 
           <div v-if="loading" class="acc-glass rounded-2xl p-6 border border-white/10 text-sm text-white/70">
