@@ -6,6 +6,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CDNUploader
 {
@@ -20,10 +21,10 @@ class CDNUploader
     public static function uploadToBunnyCDN($file, $folder = 'avatars')
     {
         try {
-            // Проверяем наличие необходимых переменных окружения
-            $storageName = env('BUNNY_STORAGE_NAME');
-            $storagePassword = env('BUNNY_STORAGE_PASSWORD');
-            $cdnUrl = env('BUNNY_CDN_URL');
+            // Use config() so values stay available with config:cache in production.
+            $storageName = config('bunnycdn.storage.name');
+            $storagePassword = config('bunnycdn.storage.password');
+            $cdnUrl = config('bunnycdn.cdn.url');
             
             if (!$storageName || !$storagePassword || !$cdnUrl) {
                 \Log::error('Отсутствуют настройки BunnyCDN в .env файле', [
@@ -111,22 +112,16 @@ class CDNUploader
         try {
             $extension = $file->getClientOriginalExtension();
             $fileName = Str::random(20) . '.' . $extension;
-            $destinationPath = "storage/app/public/$folder";
-            
-            // Создаем директорию если её нет
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0755, true);
+
+            // Persist via public disk so Laravel serves file from /storage/... reliably.
+            $stored = Storage::disk('public')->putFileAs($folder, $file, $fileName);
+            if (!$stored) {
+                return null;
             }
-            
-            $fullPath = $destinationPath . '/' . $fileName;
-            
-            if (move_uploaded_file($file->getRealPath(), $fullPath)) {
-                $publicUrl = asset("storage/$folder/$fileName");
-                \Log::info('Файл успешно загружен локально', ['publicUrl' => $publicUrl]);
-                return $publicUrl;
-            }
-            
-            return null;
+
+            $publicUrl = asset("storage/$stored");
+            \Log::info('Файл успешно загружен локально', ['publicUrl' => $publicUrl]);
+            return $publicUrl;
             
         } catch (\Exception $e) {
             \Log::error('Ошибка локальной загрузки: ' . $e->getMessage());
