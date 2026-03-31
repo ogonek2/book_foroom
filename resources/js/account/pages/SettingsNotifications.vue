@@ -1,5 +1,5 @@
 <template>
-  <div class="acc-glass rounded-2xl p-5 border border-white/10 max-w-2xl">
+  <div class="acc-glass rounded-2xl p-5 border border-white/10 w-full">
     <div class="text-lg font-extrabold tracking-tight">Налаштування · Сповіщення</div>
     <div class="mt-4 space-y-3">
       <label class="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">

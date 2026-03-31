@@ -69,9 +69,7 @@
             Кабінет
           </div>
           <div class="space-y-1">
-            <AccNavItem to="/settings/profile" icon="settings" :disabled="!viewer">Профіль</AccNavItem>
-            <AccNavItem to="/settings/design" icon="palette" :disabled="!viewer">Оформлення</AccNavItem>
-            <AccNavItem to="/settings/security" icon="lock" :disabled="!viewer">Безпека</AccNavItem>
+            <AccNavItem to="/settings" icon="settings" :disabled="!viewer">Налаштування</AccNavItem>
           </div>
 
           <div v-if="!viewer" class="mt-5 px-2">

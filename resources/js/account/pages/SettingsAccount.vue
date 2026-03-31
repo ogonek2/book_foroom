@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-4">
-    <section class="acc-glass rounded-2xl p-5 border border-white/10 max-w-2xl">
+    <section class="acc-glass rounded-2xl p-5 border border-white/10 w-full">
       <div class="text-lg font-extrabold tracking-tight">Налаштування · Акаунт</div>
       <div class="mt-3 text-sm text-white/70">
         Експорт ваших даних у JSON.

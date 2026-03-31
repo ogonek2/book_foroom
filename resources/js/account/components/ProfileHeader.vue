@@ -58,7 +58,7 @@
 
             <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div class="acc-glass rounded-xl p-3">
-                <div class="text-[11px] text-white/55 font-semibold">Дивлюсь</div>
+                <div class="text-[11px] text-white/55 font-semibold">Читаю</div>
                 <div class="mt-1 font-extrabold">0</div>
               </div>
               <div class="acc-glass rounded-xl p-3">

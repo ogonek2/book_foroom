@@ -3,17 +3,28 @@
     <section class="acc-glass rounded-2xl p-4 sm:p-5 border border-white/10">
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <div class="lg:col-span-8 flex items-center gap-4 sm:gap-5">
-          <div class="h-50 w-50 aspect-[1/1] rounded-2xl overflow-hidden border border-white/15 bg-white/10 shrink-0">
-            <img
-              :src="avatarSrc"
-              class="h-full w-full object-cover"
-              alt="avatar"
-            />
+          <div class="h-50 w-50 aspect-[1/1] rounded-full p-[3px] shrink-0 acc-avatar-ring"
+            :style="{ backgroundImage: avatarRingGradient }">
+            <div class="h-full w-full rounded-full overflow-hidden border border-white/15 bg-white/10">
+              <img :src="avatarSrc" class="h-full w-full object-cover" alt="avatar" />
+            </div>
           </div>
           <div class="min-w-0">
-            <div v-if="profile && profile.name" class="text-xl sm:text-2xl font-extrabold truncate">{{ profile.name }}</div>
+            <div v-if="profile && profile.name" class="text-xl sm:text-2xl font-extrabold truncate">{{ profile.name }}
+            </div>
             <div v-else class="text-xl sm:text-2xl font-extrabold truncate">Користувач</div>
             <div class="text-sm text-white/60">@{{ profile && profile.username ? profile.username : 'guest' }}</div>
+            <div v-if="profile && profile.header && profile.header.title"
+              class="mt-1 text-xs font-bold acc-accent-text truncate">
+              {{ profile.header.title }}
+            </div>
+            <div v-if="profile && profile.header && profile.header.subtitle"
+              class="mt-0.5 text-xs text-white/60 truncate">
+              {{ profile.header.subtitle }}
+            </div>
+            <div v-if="profile && profile.bio" class="mt-2 text-xs text-white/70 line-clamp-2">
+              {{ profile.bio }}
+            </div>
             <div class="mt-1 flex items-center gap-5 text-xs text-white/65">
               <span>{{ stats.reviews_count || 0 }} рецензій</span>
               <span>{{ stats.discussions_count || 0 }} обговорень</span>
@@ -24,29 +35,25 @@
         <div class="lg:col-span-4">
           <div class="acc-glass rounded-2xl p-3 border border-white/10">
             <div class="flex gap-2 mb-3 text-xs">
-              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'books' }" @click="overviewStatsTab = 'books'">Книги</button>
-              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'reviews' }" @click="overviewStatsTab = 'reviews'">Рецензії</button>
-              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'discussions' }" @click="overviewStatsTab = 'discussions'">Обговорення</button>
+              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'books' }"
+                @click="overviewStatsTab = 'books'">Книги</button>
+              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'reviews' }"
+                @click="overviewStatsTab = 'reviews'">Рецензії</button>
+              <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'discussions' }"
+                @click="overviewStatsTab = 'discussions'">Обговорення</button>
               <!-- <button class="acc-btn !px-3 !py-1" :class="{ 'opacity-70': overviewStatsTab !== 'quotes' }" @click="overviewStatsTab = 'quotes'">Цитати</button> -->
             </div>
             <div class="grid grid-cols-[86px,1fr] items-center gap-3">
               <div class="relative h-[86px] w-[86px] rounded-full">
                 <svg class="h-[86px] w-[86px] -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
-                  <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" class="text-white/15" stroke-width="8" />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="44"
-                    fill="none"
-                    :stroke="overviewRingColor"
-                    stroke-width="8"
-                    stroke-linecap="round"
-                    :stroke-dasharray="overviewRingDasharray"
-                    stroke-dashoffset="0"
-                  />
+                  <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" class="text-white/15"
+                    stroke-width="8" />
+                  <circle cx="50" cy="50" r="44" fill="none" :stroke="overviewRingColor" stroke-width="8"
+                    stroke-linecap="round" :stroke-dasharray="overviewRingDasharray" stroke-dashoffset="0" />
                 </svg>
                 <div class="absolute inset-0 flex items-center justify-center">
-                  <div class="text-2xl font-extrabold" :style="{ color: overviewRingColor }">{{ overviewMainValue }}</div>
+                  <div class="text-2xl font-extrabold" :style="{ color: overviewRingColor }">{{ overviewMainValue }}
+                  </div>
                 </div>
               </div>
               <ul class="space-y-1 text-xs text-white/70">
@@ -67,13 +74,9 @@
           <div class="acc-glass rounded-2xl p-4 border border-white/10">
             <div class="text-xs text-white/60 mb-3">Активність</div>
             <div class="h-14 rounded-xl bg-white/5 border border-white/10 flex items-end px-3 pb-2 gap-2">
-              <span
-                v-for="(bar, idx) in activityBars"
-                :key="`bar-${idx}`"
+              <span v-for="(bar, idx) in activityBars" :key="`bar-${idx}`"
                 class="w-1 rounded-full bg-gradient-to-t from-indigo-400 to-purple-500"
-                :style="{ height: `${bar.height}px` }"
-                :title="`${bar.label}: ${bar.value}`"
-              />
+                :style="{ height: `${bar.height}px` }" :title="`${bar.label}: ${bar.value}`" />
             </div>
             <div class="mt-3 grid grid-cols-2 gap-2 text-[11px] text-white/70">
               <div class="rounded-lg border border-white/10 bg-white/5 px-2 py-1">
@@ -97,9 +100,11 @@
             <div class="text-xs text-white/60 mb-3">Прогрес читання</div>
             <div class="text-2xl font-extrabold">{{ stats.read_count || 0 }} книг</div>
             <div class="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-purple-400 to-indigo-500" :style="{ width: `${progressWidth}%` }" />
+              <div class="h-full bg-gradient-to-r from-purple-400 to-indigo-500"
+                :style="{ width: `${progressWidth}%` }" />
             </div>
-            <div class="mt-1 text-xs text-white/55 text-right">план: {{ stats.planned_count || 0 }} | цілі: {{ stats.planner_done_items || 0 }}/{{ stats.planner_total_items || 0 }}</div>
+            <div class="mt-1 text-xs text-white/55 text-right">план: {{ stats.planned_count || 0 }} | цілі: {{
+              stats.planner_done_items || 0 }}/{{ stats.planner_total_items || 0 }}</div>
           </div>
         </div>
 
@@ -129,16 +134,22 @@
           <div class="flex items-center justify-between mb-3">
             <div class="text-base font-extrabold">Улюблені</div>
             <div class="flex gap-1 text-xs">
-              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'books' }" @click="activeFavoritesTab = 'books'">Книги</button>
-              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'reviews' }" @click="activeFavoritesTab = 'reviews'">Рецензії</button>
-              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'discussions' }" @click="activeFavoritesTab = 'discussions'">Обговорення</button>
-              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'quotes' }" @click="activeFavoritesTab = 'quotes'">Цитати</button>
+              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'books' }"
+                @click="activeFavoritesTab = 'books'">Книги</button>
+              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'reviews' }"
+                @click="activeFavoritesTab = 'reviews'">Рецензії</button>
+              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'discussions' }"
+                @click="activeFavoritesTab = 'discussions'">Обговорення</button>
+              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'quotes' }"
+                @click="activeFavoritesTab = 'quotes'">Цитати</button>
             </div>
           </div>
           <div class="acc-glass rounded-2xl p-5 border border-white/10">
             <div v-if="favoriteItems.length" class="space-y-3">
-              <div v-for="item in favoriteItems.slice(0, 3)" :key="`${activeFavoritesTab}-${item.id}`" class="flex items-center gap-3">
-                <img v-if="item.cover" :src="item.cover" class="h-11 w-8 rounded object-cover border border-white/10" alt="" />
+              <div v-for="item in favoriteItems.slice(0, 3)" :key="`${activeFavoritesTab}-${item.id}`"
+                class="flex items-center gap-3">
+                <img v-if="item.cover" :src="item.cover" class="h-11 w-8 rounded object-cover border border-white/10"
+                  alt="" />
                 <div v-else class="h-11 w-8 rounded bg-white/10 border border-white/10" />
                 <div class="min-w-0">
                   <div class="text-sm font-semibold truncate">{{ item.title }}</div>
@@ -159,28 +170,66 @@
           <div class="text-base font-extrabold mb-3">Історія</div>
           <div class="acc-glass rounded-2xl p-5 border border-white/10">
             <div class="space-y-2 text-sm">
-              <div class="flex justify-between"><span class="text-white/70">Рецензії</span><span class="font-bold">{{ stats.reviews_count || 0 }}</span></div>
-              <div class="flex justify-between"><span class="text-white/70">Обговорення</span><span class="font-bold">{{ stats.discussions_count || 0 }}</span></div>
-              <div class="flex justify-between"><span class="text-white/70">Цитати</span><span class="font-bold">{{ stats.quotes_count || 0 }}</span></div>
-              <div class="flex justify-between"><span class="text-white/70">Колекції</span><span class="font-bold">{{ stats.collections_count || 0 }}</span></div>
+              <div class="flex justify-between"><span class="text-white/70">Рецензії</span><span class="font-bold">{{
+                stats.reviews_count || 0 }}</span></div>
+              <div class="flex justify-between"><span class="text-white/70">Обговорення</span><span class="font-bold">{{
+                stats.discussions_count || 0 }}</span></div>
+              <div class="flex justify-between"><span class="text-white/70">Цитати</span><span class="font-bold">{{
+                stats.quotes_count || 0 }}</span></div>
+              <div class="flex justify-between"><span class="text-white/70">Колекції</span><span class="font-bold">{{
+                stats.collections_count || 0 }}</span></div>
             </div>
+          </div>
+        </div>
+        <div>
+          <div class="text-base font-extrabold mb-3">Нагороди</div>
+          <div class="acc-glass rounded-2xl p-5 border border-white/10">
+            <div v-if="awards.length" class="grid grid-cols-2 gap-2">
+              <button v-for="award in awards.slice(0, 8)" :key="`award-${award.id}`" type="button"
+                class="rounded-xl border border-white/10 bg-white/5 p-2 text-left transition hover:bg-white/10"
+                @click="openAwardModal(award)">
+                <div class="flex items-center gap-2">
+                  <div class="flex items-center">
+                    <img v-if="award.image" :src="award.image" :alt="award.name"
+                      class="h-8 w-8 rounded-full object-cover border border-white/10" />
+                    <div v-else
+                      class="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white/95"
+                      :style="{ backgroundColor: award.color || '#8b5cf6' }">
+                      {{ (award.name || '?').slice(0, 1).toUpperCase() }}
+                    </div>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-bold truncate">{{ award.name }}</div>
+                    <div v-if="award.points" class="text-[11px] text-white/60">+{{ award.points }} балів</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+            <template v-else>
+              <div class="text-sm font-bold">Нагород поки немає</div>
+              <div class="text-xs text-white/60 mt-1">Після активності в профілі тут з’являться ваші відзнаки.</div>
+            </template>
           </div>
         </div>
         <div>
           <div class="flex items-center justify-between mb-3">
             <div class="text-base font-extrabold">Колекції</div>
-            <router-link class="acc-btn !px-3 !py-1" :to="`/u/${profile && profile.username ? profile.username : 'guest'}/collections`">→</router-link>
+            <router-link class="acc-btn !px-3 !py-1"
+              :to="`/u/${profile && profile.username ? profile.username : 'guest'}/collections`">→</router-link>
           </div>
           <div class="acc-glass rounded-2xl p-5 border border-white/10">
             <div v-if="collections.length" class="space-y-2">
-              <div v-for="col in collections.slice(0, 3)" :key="col.id" class="flex items-center justify-between text-sm">
+              <div v-for="col in collections.slice(0, 3)" :key="col.id"
+                class="flex items-center justify-between text-sm">
                 <div class="flex items-center gap-2 min-w-0">
                   <div class="grid grid-cols-3 gap-0.5 h-8 w-14 shrink-0">
                     <template v-if="col.preview_covers && col.preview_covers.length">
-                      <img v-for="(cover, idx) in col.preview_covers.slice(0,3)" :key="`cover-${col.id}-${idx}`" :src="cover" class="h-8 w-full rounded-sm object-cover border border-white/10" alt="">
+                      <img v-for="(cover, idx) in col.preview_covers.slice(0, 3)" :key="`cover-${col.id}-${idx}`"
+                        :src="cover" class="h-8 w-full rounded-sm object-cover border border-white/10" alt="">
                     </template>
                     <template v-else>
-                      <div v-for="idx in 3" :key="`empty-${col.id}-${idx}`" class="h-8 rounded-sm bg-white/10 border border-white/10" />
+                      <div v-for="idx in 3" :key="`empty-${col.id}-${idx}`"
+                        class="h-8 rounded-sm bg-white/10 border border-white/10" />
                     </template>
                   </div>
                   <span class="truncate">{{ col.name }}</span>
@@ -201,16 +250,19 @@
           </div>
           <div class="acc-glass rounded-2xl p-5 border border-white/10">
             <div v-if="readingPlans.length" class="space-y-3">
-              <div v-for="plan in readingPlans" :key="`plan-${plan.id}`" class="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div v-for="plan in readingPlans" :key="`plan-${plan.id}`"
+                class="rounded-xl border border-white/10 bg-white/5 p-3">
                 <div class="flex items-center justify-between gap-2">
                   <div class="font-bold text-sm">{{ plan.title }}</div>
                   <div class="text-xs text-white/60">{{ plan.done_items }}/{{ plan.total_items }}</div>
                 </div>
                 <div class="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-500" :style="{ width: `${plan.progress || 0}%` }" />
+                  <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-500"
+                    :style="{ width: `${plan.progress || 0}%` }" />
                 </div>
                 <div class="mt-2 space-y-1">
-                  <label v-for="item in plan.items.slice(0, 4)" :key="`plan-item-${item.id}`" class="flex items-center gap-2 text-xs">
+                  <label v-for="item in plan.items.slice(0, 4)" :key="`plan-item-${item.id}`"
+                    class="flex items-center gap-2 text-xs">
                     <input type="checkbox" :checked="item.is_done" @change="togglePlanItem(plan, item)">
                     <span class="truncate">{{ item.book ? item.book.title : 'Книга' }}</span>
                   </label>
@@ -234,12 +286,15 @@
             <input v-model="plannerForm.target_date" type="date" class="acc-modal-input">
             <div class="acc-modal-subpanel">
               <div class="flex gap-2">
-                <input v-model.trim="plannerBookQuery" type="text" class="acc-modal-input" placeholder="Знайти книги для плану">
+                <input v-model.trim="plannerBookQuery" type="text" class="acc-modal-input"
+                  placeholder="Знайти книги для плану">
                 <button class="acc-btn" @click="searchPlannerBooks">Пошук</button>
               </div>
               <div v-if="plannerSearchResults.length" class="mt-2 max-h-48 overflow-auto space-y-1">
-                <label v-for="book in plannerSearchResults" :key="`plan-search-${book.id}`" class="flex items-center gap-2 text-xs">
-                  <input type="checkbox" :checked="plannerForm.book_ids.includes(book.id)" @change="togglePlannerBook(book.id)">
+                <label v-for="book in plannerSearchResults" :key="`plan-search-${book.id}`"
+                  class="flex items-center gap-2 text-xs">
+                  <input type="checkbox" :checked="plannerForm.book_ids.includes(book.id)"
+                    @change="togglePlannerBook(book.id)">
                   <span class="truncate">{{ book.title }}</span>
                 </label>
               </div>
@@ -247,7 +302,42 @@
           </div>
           <div class="mt-4 flex justify-end gap-2">
             <button class="acc-btn" @click="showPlannerModal = false">Скасувати</button>
-            <button class="acc-btn-primary" :disabled="plannerSaving" @click="savePlanner">{{ plannerSaving ? 'Створення...' : 'Створити план' }}</button>
+            <button class="acc-btn-primary" :disabled="plannerSaving" @click="savePlanner">{{ plannerSaving ?
+              'Створення...'
+              : 'Створити план' }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="awardModal" class="fixed inset-0 z-[145]">
+      <div class="acc-modal-overlay" @click="awardModal = null" />
+      <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="acc-modal max-w-md">
+          <div class="flex items-center gap-3">
+            <img v-if="awardModal.image" :src="awardModal.image" :alt="awardModal.name"
+              class="h-12 w-12 rounded-full object-cover border border-white/10" />
+            <div v-else class="h-12 w-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
+              :style="{ backgroundColor: awardModal.color || '#8b5cf6' }">
+              {{ (awardModal.name || '?').slice(0, 1).toUpperCase() }}
+            </div>
+            <div class="min-w-0">
+              <div class="text-base font-extrabold truncate">{{ awardModal.name }}</div>
+              <div v-if="awardModal.points" class="text-xs text-white/60">+{{ awardModal.points }} балів</div>
+            </div>
+          </div>
+
+          <div v-if="awardModal.description" class="mt-3 text-sm text-white/80">
+            {{ awardModal.description }}
+          </div>
+          <div class="mt-3 space-y-1 text-xs text-white/65">
+            <div v-if="awardModal.awarded_at_human">Отримано: {{ awardModal.awarded_at_human }}</div>
+            <div v-if="awardModal.awarded_at">Дата: {{ awardModal.awarded_at }}</div>
+            <div v-if="awardModal.note">Примітка: {{ awardModal.note }}</div>
+          </div>
+
+          <div class="mt-4 flex justify-end">
+            <button class="acc-btn" type="button" @click="awardModal = null">Закрити</button>
           </div>
         </div>
       </div>
@@ -275,6 +365,9 @@ export default {
     collections() {
       return this.dashboard?.collections || [];
     },
+    awards() {
+      return this.dashboard?.awards || [];
+    },
     progressWidth() {
       const done = Number(this.stats.read_count || 0);
       const active = Number(this.stats.reading_count || 0);
@@ -293,6 +386,11 @@ export default {
 
       const nickname = this.profile && this.profile.username ? this.profile.username : 'User';
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=7c3aed&color=fff&size=200`;
+    },
+    avatarRingGradient() {
+      const accent = this.profile?.theme?.accent || '#7c3aed';
+      const secondary = this.profile?.theme?.secondary || '#2563eb';
+      return `linear-gradient(120deg, ${accent}, ${secondary}, ${accent})`;
     },
     favoriteItems() {
       if (this.activeFavoritesTab === 'reviews') {
@@ -441,6 +539,7 @@ export default {
       plannerBookQuery: '',
       plannerSearchResults: [],
       plannerSaving: false,
+      awardModal: null,
       plannerForm: {
         title: '',
         goal: '',
@@ -496,7 +595,31 @@ export default {
         alert('Не вдалося оновити пункт плану.');
       }
     },
+    openAwardModal(award) {
+      this.awardModal = award || null;
+    },
   },
 };
 </script>
 
+<style scoped>
+.acc-avatar-ring {
+  background-size: 200% 200%;
+  animation: acc-avatar-flow 5.5s ease-in-out infinite;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--acc-accent, #7c3aed) 35%, transparent);
+}
+
+@keyframes acc-avatar-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+</style>

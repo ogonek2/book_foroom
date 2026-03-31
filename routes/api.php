@@ -26,11 +26,13 @@ Route::middleware('web')->group(function () {
             Route::get('/profile/export', [\App\Http\Controllers\AccountController::class, 'exportData'])->name('profile.export');
             Route::get('/books/search', [\App\Http\Controllers\AccountController::class, 'searchBooks'])->name('books.search');
             Route::get('/libraries', [\App\Http\Controllers\AccountController::class, 'libraries'])->name('libraries');
+            Route::get('/library-statuses', [\App\Http\Controllers\AccountController::class, 'libraryStatuses'])->name('library-statuses');
             Route::get('/collections/{collectionId}/books', [\App\Http\Controllers\AccountController::class, 'collectionBooks'])->name('collections.books');
             Route::post('/collections/{collectionId}/books', [\App\Http\Controllers\AccountController::class, 'addCollectionBook'])->name('collections.books.add');
             Route::delete('/collections/{collectionId}/books/{bookId}', [\App\Http\Controllers\AccountController::class, 'removeCollectionBook'])->name('collections.books.remove');
             Route::delete('/collections/{collectionId}', [\App\Http\Controllers\AccountController::class, 'destroyCollection'])->name('collections.destroy');
             Route::put('/reading-status/{statusId}', [\App\Http\Controllers\AccountController::class, 'readingStatusUpdate'])->name('reading-status.update');
+            Route::delete('/reading-status/{statusId}', [\App\Http\Controllers\AccountController::class, 'destroyReadingStatus'])->name('reading-status.destroy');
             Route::get('/reading-plans', [\App\Http\Controllers\AccountController::class, 'readingPlans'])->name('reading-plans.index');
             Route::post('/reading-plans', [\App\Http\Controllers\AccountController::class, 'createReadingPlan'])->name('reading-plans.create');
             Route::post('/reading-plans/{planId}/items', [\App\Http\Controllers\AccountController::class, 'createReadingPlanItem'])->name('reading-plans.items.create');

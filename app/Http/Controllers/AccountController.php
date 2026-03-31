@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
@@ -22,7 +23,7 @@ class AccountController extends Controller
     {
         // When the SPA catch-all route passes something like "u/username/overview"
         // we must not treat it as a username.
-        if ($username && str_contains($username, '/')) {
+        if ($username && (str_contains($username, '/') || in_array($username, ['settings'], true))) {
             $username = null;
         }
 
@@ -33,7 +34,12 @@ class AccountController extends Controller
 
     public function profile(string $username)
     {
-        $user = User::where('username', $username)->firstOrFail();
+        $user = User::where('username', $username)->first();
+        if (!$user) {
+            return response()->json([
+                'message' => 'Користувача не знайдено.',
+            ], 404);
+        }
         $viewer = Auth::user();
         $isOwner = $viewer && $viewer->id === $user->id;
 
@@ -119,19 +125,25 @@ class AccountController extends Controller
         $activityMax = max(1, (int) $activitySeries->max('value'));
 
         $recentReadBooks = $user->readingStatuses()
-            ->whereIn('status', ['read', 'reading', 'want_to_read'])
+            ->whereIn('status', ['read', 'reading', 'want_to_read', 'abandoned'])
             ->with(['book', 'sessions'])
             ->orderByDesc('updated_at')
             ->limit(6)
             ->get()
             ->map(function ($status) {
+                $sessionsCount = $status->sessions->count();
+                $timesRead = $sessionsCount > 0
+                    ? $sessionsCount
+                    : (int) ($status->times_read ?? 1);
+
                 return [
                     'id' => $status->id,
                     'status' => $status->status,
-                    'times_read' => (int) ($status->times_read ?? 1),
+                    'times_read' => max(1, $timesRead),
                     'reading_language' => $status->reading_language,
                     'rating' => $status->rating,
                     'updated_at_human' => optional($status->updated_at)->diffForHumans(),
+                    'updated_at' => optional($status->updated_at)->toISOString(),
                     'sessions' => $status->sessions->map(function ($session) {
                         return [
                             'id' => $session->id,
@@ -200,6 +212,7 @@ class AccountController extends Controller
                     'rating' => $review->rating ?? null,
                     'content' => mb_substr((string) $review->content, 0, 160),
                     'created_at_human' => optional($review->created_at)->diffForHumans(),
+                    'created_at' => optional($review->created_at)->toISOString(),
                 ];
             })
             ->values();
@@ -219,6 +232,7 @@ class AccountController extends Controller
                     'replies_count' => $discussion->replies_count,
                     'likes_count' => $discussion->likes_count,
                     'created_at_human' => optional($discussion->created_at)->diffForHumans(),
+                    'created_at' => optional($discussion->created_at)->toISOString(),
                 ];
             })
             ->values();
@@ -239,6 +253,7 @@ class AccountController extends Controller
                         'cover' => $quote->book->cover_image_display ?? $quote->book->cover_image ?? null,
                     ] : null,
                     'created_at_human' => optional($quote->created_at)->diffForHumans(),
+                    'created_at' => optional($quote->created_at)->toISOString(),
                 ];
             })
             ->values();
@@ -270,6 +285,27 @@ class AccountController extends Controller
                     'is_private' => (bool) $library->is_private,
                     'preview_covers' => $covers,
                     'created_at_human' => optional($library->created_at)->diffForHumans(),
+                ];
+            })
+            ->values();
+
+        $awards = $user->awards()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->limit(12)
+            ->get()
+            ->map(function ($award) {
+                return [
+                    'id' => $award->id,
+                    'name' => $award->name,
+                    'description' => $award->description,
+                    'image' => $award->image,
+                    'color' => $award->color ?: '#8b5cf6',
+                    'points' => (int) ($award->points ?? 0),
+                    'awarded_at' => optional($award->pivot?->awarded_at)->toDateString(),
+                    'awarded_at_human' => optional($award->pivot?->awarded_at)->diffForHumans(),
+                    'note' => $award->pivot?->note,
                 ];
             })
             ->values();
@@ -412,6 +448,8 @@ class AccountController extends Controller
                     'planner_total_items' => $isOwner ? $plannerTotal : 0,
                     'planner_done_items' => $isOwner ? $plannerDone : 0,
                     'activity_max' => $activityMax,
+                    'rating_score' => round((float) $user->getRatingScore(), 1),
+                    'rating_stars' => (int) $user->getStarsCount(),
                 ],
                 'activity_series' => $activitySeries,
                 'recent_read_books' => $recentReadBooks,
@@ -419,6 +457,7 @@ class AccountController extends Controller
                 'recent_discussions' => $recentDiscussions,
                 'recent_quotes' => $recentQuotes,
                 'collections' => $collections,
+                'awards' => $awards,
                 'favorite_quotes' => $favoriteQuotes,
                 'favorite_reviews' => $favoriteReviews,
                 'draft_reviews' => $draftReviews,
@@ -828,6 +867,112 @@ class AccountController extends Controller
         ]);
     }
 
+    public function libraryStatuses(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $q = trim((string) $request->get('q', ''));
+        $status = trim((string) $request->get('status', ''));
+        $language = trim((string) $request->get('language', ''));
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
+
+        $allowedStatuses = ['read', 'reading', 'want_to_read', 'abandoned'];
+
+        $query = $user->readingStatuses()
+            ->with(['book', 'sessions'])
+            ->whereIn('status', $allowedStatuses);
+
+        if ($status !== '' && in_array($status, $allowedStatuses, true)) {
+            $query->where('status', $status);
+        }
+
+        if ($q !== '') {
+            $query->whereHas('book', function ($bookQuery) use ($q) {
+                $bookQuery->where('title', 'like', '%' . $q . '%');
+            });
+        }
+
+        if ($language !== '') {
+            $query->where(function ($langQuery) use ($language) {
+                $langQuery
+                    ->where('reading_language', $language)
+                    ->orWhereHas('sessions', function ($sessionQuery) use ($language) {
+                        $sessionQuery->where('language', $language);
+                    });
+            });
+        }
+
+        if ($dateFrom) {
+            $query->whereDate('updated_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo) {
+            $query->whereDate('updated_at', '<=', $dateTo);
+        }
+
+        $statuses = $query
+            ->orderByDesc('updated_at')
+            ->limit(500)
+            ->get()
+            ->map(function ($statusModel) {
+                $sessionsCount = $statusModel->sessions->count();
+                $timesRead = $sessionsCount > 0
+                    ? $sessionsCount
+                    : (int) ($statusModel->times_read ?? 1);
+
+                return [
+                    'id' => $statusModel->id,
+                    'status' => $statusModel->status,
+                    'times_read' => max(1, $timesRead),
+                    'reading_language' => $statusModel->reading_language,
+                    'rating' => $statusModel->rating,
+                    'updated_at_human' => optional($statusModel->updated_at)->diffForHumans(),
+                    'updated_at' => optional($statusModel->updated_at)->toDateString(),
+                    'sessions' => $statusModel->sessions->map(function ($session) {
+                        return [
+                            'id' => $session->id,
+                            'read_at' => optional($session->read_at)->toDateString(),
+                            'language' => $session->language,
+                        ];
+                    })->values(),
+                    'book' => $statusModel->book ? [
+                        'id' => $statusModel->book->id,
+                        'slug' => $statusModel->book->slug,
+                        'title' => $statusModel->book->title,
+                        'cover' => $statusModel->book->cover_image_display ?? $statusModel->book->cover_image ?? null,
+                    ] : null,
+                ];
+            })
+            ->values();
+
+        $statusLanguages = $user->readingStatuses()
+            ->whereNotNull('reading_language')
+            ->where('reading_language', '!=', '')
+            ->pluck('reading_language');
+        $sessionLanguages = DB::table('reading_sessions')
+            ->join('book_reading_statuses', 'book_reading_statuses.id', '=', 'reading_sessions.book_reading_status_id')
+            ->where('book_reading_statuses.user_id', $user->id)
+            ->whereNotNull('reading_sessions.language')
+            ->where('reading_sessions.language', '!=', '')
+            ->pluck('reading_sessions.language');
+
+        $languages = $statusLanguages
+            ->merge($sessionLanguages)
+            ->map(fn ($code) => strtolower((string) $code))
+            ->filter()
+            ->unique()
+            ->values();
+
+        return response()->json([
+            'books' => $statuses,
+            'languages' => $languages,
+        ]);
+    }
+
     public function readingStatusUpdate(Request $request, int $statusId)
     {
         $user = Auth::user();
@@ -856,12 +1001,18 @@ class AccountController extends Controller
         ]);
 
         if (array_key_exists('sessions', $validated)) {
+            $sessionsPayload = array_slice($validated['sessions'] ?? [], 0, 200);
             $status->sessions()->delete();
-            foreach (array_slice($validated['sessions'], 0, 200) as $session) {
+            foreach ($sessionsPayload as $session) {
                 $status->sessions()->create([
                     'read_at' => $session['read_at'],
                     'language' => $session['language'] ?? null,
                 ]);
+            }
+
+            if (count($sessionsPayload) > 0) {
+                $status->times_read = count($sessionsPayload);
+                $status->save();
             }
 
             $latest = $status->sessions()->orderByDesc('read_at')->first();
@@ -894,6 +1045,27 @@ class AccountController extends Controller
         return response()->json([
             'message' => 'Статус книги оновлено.',
             'status' => $status->fresh(['sessions']),
+        ]);
+    }
+
+    public function destroyReadingStatus(int $statusId)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $status = BookReadingStatus::where('id', $statusId)->where('user_id', $user->id)->firstOrFail();
+
+        // Also remove book from user's collections to fully reset tracking state.
+        $user->libraries()->each(function ($library) use ($status) {
+            $library->books()->detach($status->book_id);
+        });
+
+        $status->delete();
+
+        return response()->json([
+            'message' => 'Статус книги видалено.',
         ]);
     }
 

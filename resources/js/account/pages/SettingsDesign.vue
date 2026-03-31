@@ -6,22 +6,26 @@
         Налаштування шапки профілю, кольорів та стилів відображення.
       </div>
 
-      <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div class="mt-6 grid grid-cols-1 gap-4">
         <div class="acc-glass rounded-2xl p-5 border border-white/10">
           <div class="text-sm font-extrabold">Акцент та рамки</div>
-          <div class="mt-4 grid grid-cols-2 gap-3">
+          <div class="mt-4 grid grid-cols-1 gap-3">
           <button
             v-for="c in colors"
             :key="c"
             type="button"
             class="acc-glass rounded-2xl p-4 border border-white/10 text-left hover:bg-white/10 transition"
             :class="{ 'ring-2 ring-white/50': form.accent_color === c }"
+            :style="form.accent_color === c ? { borderColor: c, boxShadow: `0 0 0 1px ${c}, 0 0 20px ${c}66` } : null"
             @click="form.accent_color = c"
             :disabled="!isOwner || saving"
           >
             <div class="flex items-center justify-between">
               <div class="text-xs text-white/60 font-semibold">Accent</div>
-              <span class="h-4 w-4 rounded-full" :style="{ backgroundColor: c }" />
+              <div class="flex items-center gap-2">
+                <span v-if="form.accent_color === c" class="text-[10px] font-bold text-white/80">Обрано</span>
+                <span class="h-4 w-4 rounded-full" :style="{ backgroundColor: c }" />
+              </div>
             </div>
             <div class="mt-2 font-extrabold">{{ c }}</div>
           </button>
@@ -37,7 +41,7 @@
               placeholder="#2563eb"
             />
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3">
             <div>
               <div class="text-xs text-white/55 font-semibold mb-1">Frame style</div>
               <select v-model="form.frame_style" class="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm text-white/90" :disabled="!isOwner || saving">

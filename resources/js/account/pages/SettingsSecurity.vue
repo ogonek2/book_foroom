@@ -4,7 +4,7 @@
     <div class="mt-1 text-sm text-white/65">Зміна пароля для акаунта.</div>
 
     <div class="mt-6">
-      <div class="acc-glass rounded-2xl p-5 border border-white/10 max-w-2xl">
+      <div class="acc-glass rounded-2xl p-5 border border-white/10 w-full">
         <div class="text-sm font-extrabold">Зміна пароля</div>
         <div class="mt-4 space-y-3">
           <input v-model="form.current_password" type="password" class="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none" placeholder="Поточний пароль">

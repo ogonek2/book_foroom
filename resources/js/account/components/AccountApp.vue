@@ -1,5 +1,9 @@
 <template>
-  <div class="relative min-h-[calc(100vh-6.5rem)] text-slate-900 dark:text-white acc-profile-page">
+  <div
+    class="relative min-h-[calc(100vh-6.5rem)] text-slate-900 dark:text-white acc-profile-page"
+    :class="[themeFrameClass, themeCardClass]"
+    :style="themeCssVars"
+  >
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-screen h-full pointer-events-none z-0">
       <div
         v-if="headerImage"
@@ -29,12 +33,10 @@
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/collections`">Колекції</router-link>
             <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/favorites`">Збережене</router-link>
             <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/drafts`">Чернетки</router-link>
-            <router-link v-if="isOwner" class="acc-btn-primary !px-3 !py-1.5" to="/settings/profile">Редагувати</router-link>
-            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/design">Оформлення</router-link>
-            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/security">Безпека</router-link>
-            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/notifications">Сповіщення</router-link>
-            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/privacy">Приватність</router-link>
-            <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" to="/settings/account">Акаунт</router-link>
+            <router-link v-if="isOwner" class="acc-btn-primary !px-3 !py-1.5" to="/settings">
+              <i class="fas fa-cog" aria-hidden="true"></i>
+              <span>Налаштування</span>
+            </router-link>
           </div>
 
           <div v-if="loading" class="acc-glass rounded-2xl p-6 border border-slate-200/70 dark:border-white/10 text-sm text-slate-600 dark:text-white/70">
@@ -100,6 +102,26 @@ export default {
   computed: {
     headerImage() {
       return this.profile?.header?.image || '';
+    },
+    themeAccent() {
+      return this.theme?.accent || '#7c3aed';
+    },
+    themeSecondary() {
+      return this.theme?.secondary || '#2563eb';
+    },
+    themeFrameClass() {
+      const frame = this.theme?.frame || 'default';
+      return `acc-theme-frame-${frame}`;
+    },
+    themeCardClass() {
+      const card = this.theme?.card || 'glass';
+      return `acc-theme-card-${card}`;
+    },
+    themeCssVars() {
+      return {
+        '--acc-accent': this.themeAccent,
+        '--acc-secondary': this.themeSecondary,
+      };
     },
   },
   watch: {

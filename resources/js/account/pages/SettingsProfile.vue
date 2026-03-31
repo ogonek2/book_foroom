@@ -5,7 +5,7 @@
       Редагування ніку, email, опису та аватарки. Збереження асинхронне.
     </div>
 
-    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+    <div class="mt-6 grid grid-cols-1 gap-4">
       <div class="acc-glass rounded-2xl p-5 border border-white/10">
         <div class="text-sm font-extrabold">Основні дані</div>
         <form class="mt-4 space-y-3" @submit.prevent="saveProfile">

@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer components {
+  .acc-profile-page {
+    --acc-accent: #7c3aed;
+    --acc-secondary: #2563eb;
+  }
+
   .acc-shell {
     /* minimal wrapper: no extra glass/background layers */
     @apply relative min-h-[calc(100vh-6.5rem)] text-slate-900 dark:text-white;
@@ -22,6 +27,21 @@
 
   .acc-btn-primary {
     @apply inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2 text-sm font-bold text-white shadow-glow transition hover:from-indigo-400 hover:to-purple-500;
+  }
+
+  .acc-profile-page .acc-btn-primary {
+    background-image: linear-gradient(to right, var(--acc-secondary), var(--acc-accent));
+  }
+
+  .acc-profile-page .acc-btn-primary:hover {
+    filter: brightness(1.08);
+  }
+
+  .acc-profile-page .acc-btn.router-link-exact-active,
+  .acc-profile-page .acc-btn.router-link-active {
+    border-color: var(--acc-accent);
+    box-shadow: 0 0 0 1px var(--acc-accent) inset;
+    color: var(--acc-accent);
   }
 
   .acc-pill {
@@ -50,6 +70,38 @@
 
   .acc-modal-subpanel {
     @apply rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50/90 dark:bg-white/5 p-3;
+  }
+
+  .acc-theme-frame-neon .acc-glass {
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.34);
+  }
+
+  .acc-theme-frame-neon .acc-pill,
+  .acc-theme-frame-neon .acc-nav-item--active {
+    border-color: var(--acc-accent);
+    box-shadow: 0 0 0 1px var(--acc-accent);
+  }
+
+  .acc-theme-frame-soft .acc-glass {
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 26px rgba(15, 23, 42, 0.16);
+  }
+
+  .acc-theme-frame-soft .acc-pill,
+  .acc-theme-frame-soft .acc-nav-item--active {
+    border-color: var(--acc-secondary);
+  }
+
+  .acc-theme-card-solid .acc-glass {
+    @apply bg-white dark:bg-slate-900/95 backdrop-blur-none;
+  }
+
+  .acc-profile-page .acc-accent-text {
+    color: var(--acc-accent);
+  }
+
+  .acc-profile-page .acc-secondary-text {
+    color: var(--acc-secondary);
   }
 }
 
