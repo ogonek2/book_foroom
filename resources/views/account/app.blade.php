@@ -19,7 +19,7 @@
 @endpush
 
 @section('main')
-    <div class="acc-shell">
+    <div class="acc-shell w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
         <div id="account-app" v-cloak class="min-h-[calc(100vh-6.5rem)]"></div>
     </div>
 

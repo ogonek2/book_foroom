@@ -2,30 +2,30 @@
   <div class="space-y-5">
     <section class="acc-glass rounded-2xl p-4 sm:p-5 border border-white/10">
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <div class="lg:col-span-8 flex items-center gap-4 sm:gap-5">
-          <div class="h-50 w-50 aspect-[1/1] rounded-full p-[3px] shrink-0 acc-avatar-ring"
+        <div class="lg:col-span-8 flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+          <div class="h-36 w-36 sm:h-44 sm:w-44 lg:h-50 lg:w-50 aspect-[1/1] rounded-full p-[3px] shrink-0 acc-avatar-ring"
             :style="{ backgroundImage: avatarRingGradient }">
             <div class="h-full w-full rounded-full overflow-hidden border border-white/15 bg-white/10">
               <img :src="avatarSrc" class="h-full w-full object-cover" alt="avatar" />
             </div>
           </div>
-          <div class="min-w-0">
-            <div v-if="profile && profile.name" class="text-xl sm:text-2xl font-extrabold truncate">{{ profile.name }}
+          <div class="min-w-0 w-full text-center sm:text-left">
+            <div v-if="profile && profile.name" class="text-xl sm:text-2xl font-extrabold break-words sm:truncate">{{ profile.name }}
             </div>
-            <div v-else class="text-xl sm:text-2xl font-extrabold truncate">Користувач</div>
+            <div v-else class="text-xl sm:text-2xl font-extrabold">Користувач</div>
             <div class="text-sm text-white/60">@{{ profile && profile.username ? profile.username : 'guest' }}</div>
             <div v-if="profile && profile.header && profile.header.title"
-              class="mt-1 text-xs font-bold acc-accent-text truncate">
+              class="mt-1 text-xs font-bold acc-accent-text break-words sm:truncate">
               {{ profile.header.title }}
             </div>
             <div v-if="profile && profile.header && profile.header.subtitle"
-              class="mt-0.5 text-xs text-white/60 truncate">
+              class="mt-0.5 text-xs text-white/60 break-words sm:truncate">
               {{ profile.header.subtitle }}
             </div>
             <div v-if="profile && profile.bio" class="mt-2 text-xs text-white/70 line-clamp-2">
               {{ profile.bio }}
             </div>
-            <div class="mt-1 flex items-center gap-5 text-xs text-white/65">
+            <div class="mt-1 flex flex-wrap justify-center sm:justify-start items-center gap-x-5 gap-y-1 text-xs text-white/65">
               <span>{{ stats.reviews_count || 0 }} рецензій</span>
               <span>{{ stats.discussions_count || 0 }} обговорень</span>
             </div>

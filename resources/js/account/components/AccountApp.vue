@@ -4,14 +4,14 @@
     :class="[themeFrameClass, themeCardClass]"
     :style="themeCssVars"
   >
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-screen h-full pointer-events-none z-0">
+    <div class="absolute inset-x-0 top-0 w-full h-full overflow-hidden pointer-events-none z-0">
       <div
         v-if="headerImage"
-        class="absolute top-0 left-1/2 -translate-x-1/2 w-screen h-[420px] sm:h-[500px] lg:h-[560px] overflow-hidden"
+        class="absolute inset-x-0 top-0 w-full h-[420px] sm:h-[500px] lg:h-[560px] overflow-hidden"
       >
         <img :src="headerImage" class="h-full w-full object-cover" alt="profile header background" />
       </div>
-      <div class="absolute inset-0 w-screen bg-gradient-to-b from-slate-100/90 via-slate-100/88 to-slate-100/86 dark:from-dark-bg/80 dark:via-dark-bg/80 dark:to-dark-bg/80 backdrop-blur-md" />
+      <div class="absolute inset-0 w-full bg-gradient-to-b from-slate-100/90 via-slate-100/88 to-slate-100/86 dark:from-dark-bg/80 dark:via-dark-bg/80 dark:to-dark-bg/80 backdrop-blur-md" />
 
       <div
         class="absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-35"
@@ -23,7 +23,7 @@
       />
     </div>
     <div class="relative z-10 pb-10">
-      <div class="mx-auto w-full pt-4">
+      <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
           <div v-if="profile" class="mb-4 flex flex-wrap items-center gap-2">
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/overview`">Загальне</router-link>
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/library`">Бібліотека</router-link>
