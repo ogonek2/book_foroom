@@ -3,315 +3,269 @@
 @section('title', 'Участники сообщества')
 
 @section('main')
-<div class="max-w-7xl mx-auto">
-    <!-- Main Grid Layout -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
-        <!-- Sidebar -->
-        <div class="lg:col-span-1 space-y-2">
-            
-            <!-- Search Box -->
-            <div class="bg-white backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-2xl dark:bg-gray-900">
-                <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-                    Пошук користувачів
-                </h3>
-                <form method="GET" action="{{ route('users.index') }}" class="space-y-4">
-                    <div>
-                        <input type="text" 
-                               name="search" 
-                               value="{{ request('search') }}"
-                               placeholder="Ім'я або юзернейм..."
-                               class="w-full px-4 py-3 bg-light-bg-secondary dark:bg-dark-bg-tertiary border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all duration-200">
-                    </div>
-                    <button type="submit" 
-                            class="w-full bg-brand-500 hover:bg-brand-600 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200">
-                        <i class="fas fa-search mr-2"></i>Шукати
-                    </button>
-                    @if(request('search'))
-                        <a href="{{ route('users.index') }}" 
-                           class="block w-full text-center text-light-text-tertiary dark:text-dark-text-tertiary hover:text-brand-500 transition-colors duration-200">
-                            <i class="fas fa-times mr-1"></i>Очистити пошук
-                        </a>
-                    @endif
-                </form>
+<div id="readers-rating-page" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="mb-5 rounded-2xl border border-light-border/50 dark:border-white/10 bg-white/70 dark:bg-[#0b1225]/70 backdrop-blur-xl p-4 sm:p-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-extrabold text-light-text-primary dark:text-white">Рейтинг читачів</h1>
+                <p class="text-sm text-light-text-secondary dark:text-white/65 mt-1">Асинхронне завантаження з пагінацією та фільтрами.</p>
             </div>
-
-            <!-- Filters -->
-            <div class="bg-white backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-2xl dark:bg-gray-900">
-                <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-                    Фільтри
-                </h3>
-                <form method="GET" action="{{ route('users.index') }}" class="space-y-4">
-                    
-                    <!-- Rating Filter -->
-                    <div>
-                        <label class="block text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                            Рейтинг
-                        </label>
-                        <select name="rating_filter" 
-                                class="w-full px-3 py-2 bg-light-bg-secondary dark:bg-dark-bg-tertiary border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-primary focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="">Всі рейтинги</option>
-                            <option value="9_stars" {{ request('rating_filter') == '9_stars' ? 'selected' : '' }}>9+ зірок</option>
-                            <option value="7_stars" {{ request('rating_filter') == '7_stars' ? 'selected' : '' }}>7+ зірок</option>
-                            <option value="5_stars" {{ request('rating_filter') == '5_stars' ? 'selected' : '' }}>5+ зірок</option>
-                        </select>
-                    </div>
-
-                    <!-- Activity Filter -->
-                    <div>
-                        <label class="block text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                            Активність
-                        </label>
-                        <select name="activity_filter" 
-                                class="w-full px-3 py-2 bg-light-bg-secondary dark:bg-dark-bg-tertiary border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-primary focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="">Вся активність</option>
-                            <option value="most_reviews" {{ request('activity_filter') == 'most_reviews' ? 'selected' : '' }}>Більше рецензій</option>
-                            <option value="most_quotes" {{ request('activity_filter') == 'most_quotes' ? 'selected' : '' }}>Більше цитат</option>
-                            <option value="most_discussions" {{ request('activity_filter') == 'most_discussions' ? 'selected' : '' }}>Більше обговорень</option>
-                            <option value="most_books_read" {{ request('activity_filter') == 'most_books_read' ? 'selected' : '' }}>Більше прочитаних книг</option>
-                        </select>
-                    </div>
-
-                    <!-- Sort -->
-                    <div>
-                        <label class="block text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
-                            Сортування
-                        </label>
-                        <select name="sort" 
-                                class="w-full px-3 py-2 bg-light-bg-secondary dark:bg-dark-bg-tertiary border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-primary focus:outline-none focus:ring-2 focus:ring-brand-500">
-                            <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>За рейтингом</option>
-                            <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>За ім'ям</option>
-                            <option value="username" {{ request('sort') == 'username' ? 'selected' : '' }}>За юзернеймом</option>
-                            <option value="reviews" {{ request('sort') == 'reviews' ? 'selected' : '' }}>За рецензіями</option>
-                            <option value="quotes" {{ request('sort') == 'quotes' ? 'selected' : '' }}>За цитатами</option>
-                        </select>
-                    </div>
-
-                    <!-- Hidden fields to preserve search -->
-                    @if(request('search'))
-                        <input type="hidden" name="search" value="{{ request('search') }}">
-                    @endif
-
-                    <button type="submit" 
-                            class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200">
-                        <i class="fas fa-filter mr-2"></i>Застосувати
-                    </button>
-                </form>
-            </div>
-
-            <!-- Stats Overview -->
-            <div class="bg-white backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-2xl dark:bg-gray-900">
-                <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-                    Статистика
-                </h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-light-text-secondary dark:text-dark-text-secondary">Всього користувачів</span>
-                        <span class="font-semibold text-light-text-primary dark:text-dark-text-primary">{{ $stats['total_users'] }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-light-text-secondary dark:text-dark-text-secondary">Активних</span>
-                        <span class="font-semibold text-brand-500">{{ $stats['active_users'] }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-light-text-secondary dark:text-dark-text-secondary">Знайдено</span>
-                        <span class="font-semibold text-accent-500">{{ $users->total() }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Top Reviewers -->
-            <div class="bg-white backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-2xl dark:bg-gray-900">
-                <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-                    Топ рецензенти
-                </h3>
-                <div class="space-y-3">
-                    @forelse($stats['top_reviewers'] as $index => $reviewer)
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-brand-500 to-accent-500 flex items-center justify-center text-white text-sm font-bold">
-                                {{ $index + 1 }}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <a href="{{ route('users.public.profile', $reviewer->username) }}" 
-                                   class="text-sm font-medium text-light-text-primary dark:text-dark-text-primary hover:text-brand-500 transition-colors duration-200 truncate block">
-                                    {{ $reviewer->name }}
-                                </a>
-                                <p class="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                                    {{ $reviewer->main_reviews_count }} рецензій
-                                </p>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Немає даних</p>
-                    @endforelse
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="bg-white backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-2xl dark:bg-gray-900">
-                <h3 class="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-                    Остання активність
-                </h3>
-                <div class="space-y-3">
-                    @foreach($stats['recent_activity']['reviews']->take(2) as $review)
-                        <div class="flex items-start space-x-3">
-                            <img src="{{ optional($review->user)->avatar_display ?? 'https://ui-avatars.com/api/?name=User' }}" 
-                                 alt="{{ optional($review->user)->name ?? 'Користувач' }}" 
-                                 class="w-10 h-10 rounded-full object-cover border border-light-border dark:border-dark-border">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm text-light-text-primary dark:text-dark-text-primary">
-                                    @if($review->user)
-                                        <a href="{{ route('users.public.profile', $review->user->username) }}" 
-                                           class="font-medium hover:text-brand-500 transition-colors duration-200">
-                                            {{ $review->user->name }}
-                                        </a>
-                                    @else
-                                        <span class="font-medium">Видалений користувач</span>
-                                    @endif
-                                     написав рецензію
-                                </p>
-                                <p class="text-xs text-light-text-tertiary dark:text-dark-text-tertiary truncate">
-                                    {{ $review->book->title }}
-                                </p>
-                            </div>
-                        </div>
-                    @endforeach
-                    
-                    @foreach($stats['recent_activity']['quotes']->take(1) as $quote)
-                        <div class="flex items-start space-x-3">
-                            <img src="{{ optional($quote->user)->avatar_display ?? 'https://ui-avatars.com/api/?name=User' }}" 
-                                 alt="{{ optional($quote->user)->name ?? 'Користувач' }}" 
-                                 class="w-10 h-10 rounded-full object-cover border border-light-border dark:border-dark-border">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm text-light-text-primary dark:text-dark-text-primary">
-                                    @if($quote->user)
-                                        <a href="{{ route('users.public.profile', $quote->user->username) }}" 
-                                           class="font-medium hover:text-brand-500 transition-colors duration-200">
-                                            {{ $quote->user->name }}
-                                        </a>
-                                    @else
-                                        <span class="font-medium">Видалений користувач</span>
-                                    @endif
-                                     додав цитату
-                                </p>
-                                <p class="text-xs text-light-text-tertiary dark:text-dark-text-terтіary truncate">
-                                    {{ $quote->book_title ?? 'Без назви' }}
-                                </p>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
+            <button id="rating-reset" type="button" class="self-start sm:self-auto rounded-xl border border-light-border/70 dark:border-white/10 px-3 py-2 text-sm text-light-text-primary dark:text-white hover:bg-light-bg-secondary dark:hover:bg-white/10 transition">Скинути фільтри</button>
         </div>
+    </div>
 
-        <!-- Main Content -->
-        <div class="lg:col-span-3">
-            
-            <!-- Results Info -->
-            @if(request('search') || request('rating_filter') || request('activity_filter'))
-                <div class="bg-white backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-2xl dark:bg-gray-900 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-[300px,minmax(0,1fr)] gap-4">
+        <aside class="space-y-4 lg:sticky lg:top-24 h-fit">
+            <div class="rounded-2xl border border-light-border/50 dark:border-white/10 bg-white/70 dark:bg-[#0b1225]/70 backdrop-blur-xl p-4">
+                <div class="text-sm font-bold text-light-text-primary dark:text-white mb-3">Фільтри</div>
+                <div class="space-y-3">
+                    <input id="flt-search" type="text" placeholder="Ім'я або @username" class="w-full rounded-xl border border-light-border/70 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-light-text-primary dark:text-white outline-none">
+                    <select id="flt-rating" class="w-full rounded-xl border border-light-border/70 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-light-text-primary dark:text-white outline-none">
+                        <option value="">Всі рейтинги</option>
+                        <option value="9_stars">9+ зірок</option>
+                        <option value="7_stars">7+ зірок</option>
+                        <option value="5_stars">5+ зірок</option>
+                    </select>
+                    <select id="flt-activity" class="w-full rounded-xl border border-light-border/70 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-light-text-primary dark:text-white outline-none">
+                        <option value="">Вся активність</option>
+                        <option value="most_reviews">Більше рецензій</option>
+                        <option value="most_quotes">Більше цитат</option>
+                        <option value="most_discussions">Більше обговорень</option>
+                        <option value="most_books_read">Більше прочитаних книг</option>
+                    </select>
+                    <select id="flt-sort" class="w-full rounded-xl border border-light-border/70 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-light-text-primary dark:text-white outline-none">
+                        <option value="rating">Сортувати за рейтингом</option>
+                        <option value="name">За ім'ям</option>
+                        <option value="username">За юзернеймом</option>
+                        <option value="reviews">За рецензіями</option>
+                        <option value="quotes">За цитатами</option>
+                        <option value="books">За прочитаними</option>
+                    </select>
+                    <button id="rating-apply" type="button" class="w-full rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white px-3 py-2 text-sm font-semibold hover:opacity-95 transition">Застосувати</button>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-light-border/50 dark:border-white/10 bg-white/70 dark:bg-[#0b1225]/70 backdrop-blur-xl p-4">
+                <div class="text-sm font-bold text-light-text-primary dark:text-white mb-3">Статистика</div>
+                <div class="space-y-2 text-sm">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i class="fas fa-filter text-brand-500"></i>
-                            <span class="text-light-text-primary dark:text-dark-text-primary font-medium">
-                                Застосовані фільтри:
-                            </span>
-                        </div>
-                        <a href="{{ route('users.index') }}" 
-                           class="text-sm text-light-text-tertiary dark:text-dark-text-tertiary hover:text-brand-500 transition-colors duration-200">
-                            <i class="fas fa-times mr-1"></i>Очистити всі
-                        </a>
+                        <span class="text-light-text-secondary dark:text-white/60">Всього</span>
+                        <span id="st-total" class="font-bold text-light-text-primary dark:text-white">{{ $stats['total_users'] ?? 0 }}</span>
                     </div>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                        @if(request('search'))
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-brand-100 dark:bg-brand-900 text-brand-800 dark:text-brand-200">
-                                Пошук: "{{ request('search') }}"
-                            </span>
-                        @endif
-                        @if(request('rating_filter'))
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-accent-100 dark:bg-accent-900 text-accent-800 dark:text-accent-200">
-                                Рейтинг: {{ ucfirst(str_replace('_', ' ', request('rating_filter'))) }}
-                            </span>
-                        @endif
-                        @if(request('activity_filter'))
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
-                                Активність: {{ ucfirst(str_replace('_', ' ', request('activity_filter'))) }}
-                            </span>
-                        @endif
+                    <div class="flex items-center justify-between">
+                        <span class="text-light-text-secondary dark:text-white/60">Активних</span>
+                        <span id="st-active" class="font-bold text-light-text-primary dark:text-white">{{ $stats['active_users'] ?? 0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-light-text-secondary dark:text-white/60">Знайдено</span>
+                        <span id="st-found" class="font-bold text-light-text-primary dark:text-white">{{ $users->total() ?? 0 }}</span>
                     </div>
                 </div>
-            @endif
-
-            <!-- Users Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-2">
-                @forelse($users as $index => $user)
-                    <a href="{{ route('users.public.profile', $user->username) }}" 
-                       class="group relative rounded-xl hover:shadow-lg transition-all duration-200 border border-light-border dark:border-dark-border overflow-hidden">
-                        
-                        <!-- Background Blurred Avatar -->
-                        <div class="absolute inset-0  bg-gradient-to-t from-blue-500 to-cyan-500">
-                            <img src="{{ $user->avatar_display }}" 
-                                 alt="{{ $user->name }}" 
-                                 class="w-full h-full object-cover" style="filter: blur(1px); opacity: 40%;">
-                        </div>
-
-                        <!-- Dark Overlay for Better Text Readability -->
-                        <div class="absolute inset-0 bg-black/40 dark:bg-black/60"></div>
-
-                        <!-- User Info - Horizontal Layout -->
-                        <div class="relative z-10 p-4">
-                            <div class="flex items-center space-x-4">
-                                <!-- Circular Avatar -->
-                                <div class="relative flex-shrink-0">
-                                    <img src="{{ $user->avatar_display }}" 
-                                         alt="{{ $user->name }}" 
-                                         class="w-16 h-16 rounded-full object-cover border-3 border-white dark:border-gray-800 shadow-lg">
-                                </div>
-                                
-                                <!-- User Details -->
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="text-lg font-semibold text-white truncate drop-shadow-lg">
-                                        {{ $user->name }}
-                                    </h3>
-                                    <p class="text-sm text-gray-200 dark:text-white truncate drop-shadow-lg">
-                                        {{ '@' . $user->username }}
-                                    </p>
-                                </div>
-                                
-                                <!-- Rating -->
-                                <div class="flex items-center flex-shrink-0">
-                                    <div class="flex text-yellow-400 dark:text-white mr-1 drop-shadow-lg">
-                                        <i class="fas fa-star text-xs text-yellow-400"></i>
-                                    </div>
-                                    <span class="text-sm font-medium text-white drop-shadow-lg">
-                                        {{ $user->rating_score }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                @empty
-                    <div class="col-span-full text-center py-12">
-                        <div class="text-light-text-tertiary dark:text-dark-text-tertiary">
-                            <i class="fas fa-search text-4xl mb-4"></i>
-                            <h3 class="text-xl font-semibold mb-2">Користувачів не знайдено</h3>
-                            <p class="text-sm">Спробуйте змінити параметри пошуку або фільтри</p>
-                        </div>
-                    </div>
-                @endforelse
             </div>
+        </aside>
 
-            <!-- Pagination -->
-            @if($users->hasPages())
-                <div class="mt-12 flex justify-center">
-                    <div class="bg-light-bg dark:bg-dark-bg-secondary rounded-lg border border-light-border dark:border-dark-border">
-                        {{ $users->appends(request()->query())->links() }}
-                    </div>
-                </div>
-            @endif
-
-        </div>
+        <section>
+            <div id="rating-loading" class="hidden rounded-2xl border border-light-border/50 dark:border-white/10 bg-white/70 dark:bg-[#0b1225]/70 backdrop-blur-xl p-4 text-sm text-light-text-secondary dark:text-white/65">
+                Завантаження...
+            </div>
+            <div id="rating-empty" class="hidden rounded-2xl border border-light-border/50 dark:border-white/10 bg-white/70 dark:bg-[#0b1225]/70 backdrop-blur-xl p-6 text-center text-light-text-secondary dark:text-white/65">
+                Користувачів не знайдено.
+            </div>
+            <div id="rating-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+            <div class="mt-5 flex items-center justify-center gap-2">
+                <button id="rating-prev" type="button" class="rounded-xl border border-light-border/70 dark:border-white/10 px-3 py-2 text-sm text-light-text-primary dark:text-white hover:bg-light-bg-secondary dark:hover:bg-white/10 transition">Назад</button>
+                <div id="rating-page-label" class="text-sm text-light-text-secondary dark:text-white/65">1 / 1</div>
+                <button id="rating-next" type="button" class="rounded-xl border border-light-border/70 dark:border-white/10 px-3 py-2 text-sm text-light-text-primary dark:text-white hover:bg-light-bg-secondary dark:hover:bg-white/10 transition">Вперед</button>
+            </div>
+        </section>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(() => {
+    const state = {
+        page: 1,
+        lastPage: 1,
+        filters: {
+            search: @json(request('search', '')),
+            rating_filter: @json(request('rating_filter', '')),
+            activity_filter: @json(request('activity_filter', '')),
+            sort: @json(request('sort', 'rating')),
+        },
+    };
+
+    const els = {
+        search: document.getElementById('flt-search'),
+        rating: document.getElementById('flt-rating'),
+        activity: document.getElementById('flt-activity'),
+        sort: document.getElementById('flt-sort'),
+        apply: document.getElementById('rating-apply'),
+        reset: document.getElementById('rating-reset'),
+        loading: document.getElementById('rating-loading'),
+        empty: document.getElementById('rating-empty'),
+        grid: document.getElementById('rating-grid'),
+        prev: document.getElementById('rating-prev'),
+        next: document.getElementById('rating-next'),
+        pageLabel: document.getElementById('rating-page-label'),
+        stTotal: document.getElementById('st-total'),
+        stActive: document.getElementById('st-active'),
+        stFound: document.getElementById('st-found'),
+    };
+
+    if (!els.grid) return;
+
+    els.search.value = state.filters.search || '';
+    els.rating.value = state.filters.rating_filter || '';
+    els.activity.value = state.filters.activity_filter || '';
+    els.sort.value = state.filters.sort || 'rating';
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function updateQueryString() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', String(state.page));
+        Object.entries(state.filters).forEach(([key, value]) => {
+            if (value) {
+                url.searchParams.set(key, value);
+            } else {
+                url.searchParams.delete(key);
+            }
+        });
+        window.history.replaceState({}, '', url.toString());
+    }
+
+    async function requestJson(url, params) {
+        const query = new URLSearchParams(params).toString();
+        const target = query ? `${url}?${query}` : url;
+        const response = await fetch(target, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        });
+
+        if (!response.ok) {
+            let errorMessage = 'Помилка завантаження рейтингу.';
+            try {
+                const payload = await response.json();
+                errorMessage = payload?.message || errorMessage;
+            } catch (_) {
+                // ignore json parsing error and keep fallback message
+            }
+            throw new Error(errorMessage);
+        }
+
+        return response.json();
+    }
+
+    async function loadUsers() {
+        els.loading.classList.remove('hidden');
+        els.empty.classList.add('hidden');
+        try {
+            const data = await requestJson("{{ route('users.index') }}", {
+                page: state.page,
+                per_page: 18,
+                ...state.filters,
+            });
+
+            const users = data?.users || [];
+            const pagination = data?.pagination || {};
+            const stats = data?.stats || {};
+            state.lastPage = Number(pagination.last_page || 1);
+            state.page = Number(pagination.current_page || 1);
+
+            els.grid.innerHTML = users.map((user) => `
+                <a href="${escapeHtml(user.profile_url)}" class="group rounded-2xl border border-light-border/50 dark:border-white/10 bg-white/75 dark:bg-[#0b1225]/75 backdrop-blur-xl p-4 hover:shadow-xl transition">
+                    <div class="flex items-center gap-3">
+                        <img src="${escapeHtml(user.avatar)}" alt="${escapeHtml(user.name)}" class="h-14 w-14 rounded-xl object-cover border border-light-border/50 dark:border-white/10" />
+                        <div class="min-w-0 flex-1">
+                            <div class="font-bold text-light-text-primary dark:text-white truncate">${escapeHtml(user.name)}</div>
+                            <div class="text-xs text-light-text-secondary dark:text-white/60 truncate">@${escapeHtml(user.username)}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-light-text-secondary dark:text-white/55">Рейтинг</div>
+                            <div class="text-base font-extrabold text-amber-500 dark:text-amber-300">
+                                <i class="fas fa-star mr-1"></i>${escapeHtml(user.rating_score)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                        <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-light-text-secondary dark:text-white/65">Рецензій: <span class="font-bold text-light-text-primary dark:text-white">${user.main_reviews_count}</span></div>
+                        <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-light-text-secondary dark:text-white/65">Цитат: <span class="font-bold text-light-text-primary dark:text-white">${user.public_quotes_count}</span></div>
+                        <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-light-text-secondary dark:text-white/65">Книг: <span class="font-bold text-light-text-primary dark:text-white">${user.read_books_count}</span></div>
+                        <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-light-text-secondary dark:text-white/65">Обгов.: <span class="font-bold text-light-text-primary dark:text-white">${user.discussions_count}</span></div>
+                    </div>
+                </a>
+            `).join('');
+
+            if (!users.length) {
+                els.empty.classList.remove('hidden');
+            }
+
+            els.pageLabel.textContent = `${state.page} / ${state.lastPage}`;
+            els.prev.disabled = state.page <= 1;
+            els.next.disabled = state.page >= state.lastPage;
+            els.stTotal.textContent = String(stats.total_users ?? 0);
+            els.stActive.textContent = String(stats.active_users ?? 0);
+            els.stFound.textContent = String(stats.found_users ?? 0);
+            updateQueryString();
+        } catch (e) {
+            els.empty.classList.remove('hidden');
+            els.empty.textContent = e?.message || 'Помилка завантаження рейтингу.';
+        } finally {
+            els.loading.classList.add('hidden');
+        }
+    }
+
+    els.apply.addEventListener('click', () => {
+        state.filters.search = (els.search.value || '').trim();
+        state.filters.rating_filter = els.rating.value || '';
+        state.filters.activity_filter = els.activity.value || '';
+        state.filters.sort = els.sort.value || 'rating';
+        state.page = 1;
+        loadUsers();
+    });
+
+    els.reset.addEventListener('click', () => {
+        state.filters = { search: '', rating_filter: '', activity_filter: '', sort: 'rating' };
+        state.page = 1;
+        els.search.value = '';
+        els.rating.value = '';
+        els.activity.value = '';
+        els.sort.value = 'rating';
+        loadUsers();
+    });
+
+    els.prev.addEventListener('click', () => {
+        if (state.page <= 1) return;
+        state.page -= 1;
+        loadUsers();
+    });
+
+    els.next.addEventListener('click', () => {
+        if (state.page >= state.lastPage) return;
+        state.page += 1;
+        loadUsers();
+    });
+
+    els.search.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        els.apply.click();
+    });
+
+    loadUsers();
+})();
+</script>
+@endpush

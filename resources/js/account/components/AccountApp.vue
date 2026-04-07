@@ -30,7 +30,9 @@
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/reviews`">Рецензії</router-link>
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/discussions`">Обговорення</router-link>
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/quotes`">Цитати</router-link>
+            <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/facts`">Факти</router-link>
             <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/collections`">Колекції</router-link>
+            <router-link class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/awards`">Нагороди</router-link>
             <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/favorites`">Збережене</router-link>
             <router-link v-if="isOwner" class="acc-btn !px-3 !py-1.5" :to="`/u/${profile.username}/drafts`">Чернетки</router-link>
             <router-link v-if="isOwner" class="acc-btn-primary !px-3 !py-1.5" to="/settings">

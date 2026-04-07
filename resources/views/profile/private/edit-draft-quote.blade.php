@@ -10,6 +10,17 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+    .review-glass {
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+    }
+    .dark .review-glass {
+        background: rgba(11, 18, 37, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        box-shadow: 0 16px 40px rgba(2, 6, 23, 0.45);
+    }
 </style>
 @endpush
 
@@ -20,7 +31,7 @@
             <!-- Main Content -->
             <div class="lg:col-span-3">
                 <!-- Header -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 mb-6">
+                <div class="review-glass rounded-2xl p-6 mb-6">
                     <div class="flex items-center justify-between mb-4">
                         <div>
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Редагувати чернетку цитати</h2>
@@ -43,7 +54,7 @@
                 </div>
 
                 <!-- Form -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="review-glass rounded-2xl p-6">
         <form action="{{ route('books.quotes.update', [$book, $quote]) }}" method="POST" id="edit-quote-form">
             @csrf
             @method('PUT')
@@ -99,37 +110,22 @@
                 </label>
             </div>
 
-            <!-- Draft Checkbox -->
-            <div class="mb-6">
-                <label class="flex items-center">
-                    <input type="checkbox" 
-                           name="is_draft" 
-                           value="1"
-                           id="is-draft-checkbox"
-                           {{ old('is_draft', $quote->is_draft ?? true) ? 'checked' : '' }}
-                           class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Зберегти як чернетку</span>
-                </label>
-            </div>
+            <input type="hidden" name="is_draft" value="{{ old('is_draft', $quote->is_draft ?? true) ? '1' : '0' }}" id="is-draft-checkbox">
 
             <!-- Submit Buttons -->
             <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button type="submit" 
-                        name="action" 
-                        value="publish"
-                        class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-medium transition-all transform hover:scale-105">
-                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Опублікувати
-                </button>
-                <button type="submit" 
-                        name="action" 
-                        value="save"
-                        class="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors">
-                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                    </svg>
+                <div class="inline-flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 gap-1">
+                    <button type="button" data-mode="draft"
+                            class="flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-sm font-medium transition-all duration-200 action-tab active bg-white dark:bg-slate-700 text-orange-500 dark:text-orange-400 shadow-sm">
+                        <span>Чернетка</span>
+                    </button>
+                    <button type="button" data-mode="publish"
+                            class="flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-sm font-medium transition-all duration-200 action-tab text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        <span>Опублікувати</span>
+                    </button>
+                </div>
+                <button type="submit" id="submit-btn"
+                        class="px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-orange-500 dark:text-orange-400 rounded-xl font-medium transition-colors">
                     Зберегти чернетку
                 </button>
                 <a href="{{ route('profile.show', ['tab' => 'drafts']) }}" 
@@ -145,7 +141,7 @@
             @if($book)
             <div class="lg:col-span-1">
                 <div class="sticky top-8">
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="review-glass rounded-2xl overflow-hidden">
                         <!-- Book Cover -->
                         <div class="p-4">
                             <a href="{{ route('books.show', $book->slug) }}" class="block group">
@@ -254,21 +250,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // Form submit handler
     const form = document.getElementById('edit-quote-form');
-    const isDraftCheckbox = document.getElementById('is-draft-checkbox');
-    
-    form.addEventListener('submit', function(e) {
-        const submitButton = document.activeElement;
-        
-        if (submitButton && submitButton.name === 'action') {
-            if (submitButton.value === 'publish') {
-                // При публикации снимаем флаг черновика
-                isDraftCheckbox.checked = false;
-            } else if (submitButton.value === 'save') {
-                // При сохранении как черновик ставим флаг
-                isDraftCheckbox.checked = true;
+    const isDraftInput = document.getElementById('is-draft-checkbox');
+    const submitBtn = document.getElementById('submit-btn');
+    const actionTabs = form ? form.querySelectorAll('.action-tab') : [];
+    let actionMode = isDraftInput && isDraftInput.value === '0' ? 'publish' : 'draft';
+
+    const syncActionUi = () => {
+        actionTabs.forEach((tab) => {
+            if (tab.dataset.mode === actionMode) {
+                tab.classList.add('active');
+                if (actionMode === 'draft') {
+                    tab.classList.add('bg-white', 'dark:bg-slate-700', 'text-orange-500', 'dark:text-orange-400', 'shadow-sm');
+                    tab.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white');
+                } else {
+                    tab.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white', 'shadow-md');
+                    tab.classList.remove('bg-white', 'dark:bg-slate-700', 'text-orange-500', 'dark:text-orange-400');
+                }
+            } else {
+                tab.classList.remove('active', 'bg-white', 'dark:bg-slate-700', 'text-orange-500', 'dark:text-orange-400', 'shadow-sm', 'bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white', 'shadow-md');
+                tab.classList.add('text-slate-600', 'dark:text-slate-400');
+            }
+        });
+
+        if (submitBtn) {
+            if (actionMode === 'draft') {
+                submitBtn.textContent = 'Зберегти чернетку';
+                submitBtn.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'hover:from-indigo-600', 'hover:to-purple-700', 'text-white');
+                submitBtn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'hover:bg-slate-200', 'dark:hover:bg-slate-700', 'text-orange-500', 'dark:text-orange-400');
+            } else {
+                submitBtn.textContent = 'Опублікувати';
+                submitBtn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'hover:bg-slate-200', 'dark:hover:bg-slate-700', 'text-orange-500', 'dark:text-orange-400');
+                submitBtn.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'hover:from-indigo-600', 'hover:to-purple-700', 'text-white');
             }
         }
+
+        if (isDraftInput) {
+            isDraftInput.value = actionMode === 'draft' ? '1' : '0';
+        }
+    };
+
+    actionTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            actionMode = tab.dataset.mode === 'publish' ? 'publish' : 'draft';
+            syncActionUi();
+        });
     });
+
+    if (form) {
+        syncActionUi();
+        form.addEventListener('submit', function() {
+            if (isDraftInput) {
+                isDraftInput.value = actionMode === 'draft' ? '1' : '0';
+            }
+        });
+    }
 });
 </script>
 @endpush

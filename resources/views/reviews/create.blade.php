@@ -9,9 +9,55 @@
 @push('styles')
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
+        .review-glass {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 12px 40px rgba(15, 23, 42, 0.10);
+            border-radius: 1rem;
+        }
+
+        .dark .review-glass {
+            background: rgba(11, 18, 37, 0.72);
+            border-color: rgba(255, 255, 255, 0.10);
+            box-shadow: 0 16px 40px rgba(2, 6, 23, 0.45);
+        }
+
+        .review-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgb(203 213 225 / 0.85);
+            background: rgb(255 255 255 / 0.95);
+            color: rgb(15 23 42);
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .review-input:focus {
+            border-color: rgb(99 102 241 / 0.75);
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+        }
+
+        .dark .review-input {
+            border-color: rgb(148 163 184 / 0.2);
+            background: rgb(255 255 255 / 0.04);
+            color: rgb(241 245 249);
+        }
+
+        .lang-modal-backdrop {
+            background: rgba(2, 6, 23, 0.55);
+            backdrop-filter: blur(4px);
+        }
+
         /* Quill editor styles */
         #quill-editor-review {
             min-height: 400px;
+            border: none;
+            border-radius: 0;
+            overflow: hidden;
+            background: rgb(15 23 42 / 0.55);
         }
 
         .ql-container {
@@ -19,7 +65,8 @@
             font-size: 1rem;
             line-height: 1.7;
             border: none;
-            border-radius: 0.75rem;
+            border-radius: 0;
+            background: transparent;
         }
 
         .ql-editor {
@@ -34,19 +81,20 @@
 
         .ql-toolbar {
             border: none;
-            border-bottom: 1px solid rgb(226 232 240);
-            border-radius: 0.75rem 0.75rem 0 0;
-            padding: 0.75rem;
-            background: rgb(248 250 252);
+            border-bottom: none;
+            border-radius: 0;
+            padding: 0.65rem 0.75rem;
+            background: rgb(30 41 59 / 0.72);
         }
 
-        .dark .ql-toolbar {
-            border-bottom-color: rgb(51 65 85);
-            background: rgb(30 41 59);
+        .dark #quill-editor-review { background: rgb(30 41 59 / 0.92); }
+
+        #quill-editor-review:focus-within {
+            box-shadow: none;
         }
 
         .ql-snow .ql-stroke {
-            stroke: rgb(100 116 139);
+            stroke: rgb(148 163 184);
         }
 
         .dark .ql-snow .ql-stroke {
@@ -54,7 +102,7 @@
         }
 
         .ql-snow .ql-fill {
-            fill: rgb(100 116 139);
+            fill: rgb(148 163 184);
         }
 
         .dark .ql-snow .ql-fill {
@@ -62,7 +110,7 @@
         }
 
         .ql-snow .ql-picker-label {
-            color: rgb(100 116 139);
+            color: rgb(148 163 184);
         }
 
         .dark .ql-snow .ql-picker-label {
@@ -70,13 +118,28 @@
         }
 
         .ql-snow .ql-picker-options {
-            background: white;
-            border: 1px solid rgb(226 232 240);
+            background: rgb(15 23 42 / 0.96);
+            border: 1px solid rgb(71 85 105 / 0.55);
         }
 
         .dark .ql-snow .ql-picker-options {
-            background: rgb(30 41 59);
-            border-color: rgb(51 65 85);
+            background: rgb(15 23 42 / 0.96);
+            border-color: rgb(71 85 105 / 0.55);
+        }
+
+        .ql-snow.ql-toolbar button:hover,
+        .ql-snow .ql-toolbar button:hover,
+        .ql-snow.ql-toolbar button.ql-active,
+        .ql-snow .ql-toolbar button.ql-active {
+            background: rgb(99 102 241 / 0.12);
+            border-radius: 0.45rem;
+        }
+
+        .dark .ql-snow.ql-toolbar button:hover,
+        .dark .ql-snow .ql-toolbar button:hover,
+        .dark .ql-snow.ql-toolbar button.ql-active,
+        .dark .ql-snow .ql-toolbar button.ql-active {
+            background: rgb(99 102 241 / 0.2);
         }
     </style>
 @endpush
@@ -102,7 +165,7 @@
         <div class="w-full flex flex-col lg:flex-row gap-4 items-start">
             <!-- Sticky Book Sidebar -->
             <aside class="w-full lg:max-w-[220px] lg:block lg:sticky top-4 space-y-6">
-                <div class="flex flex-row items-center lg:flex-col lg:items-start gap-x-4">
+                <div class="flex flex-col items-start gap-x-4">
                     <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
                         alt="{{ $book->title }}" class="w-full max-w-[120px] lg:max-w-full object-cover rounded-lg mb-4" style="aspect-ratio: 2 / 3;">
                     <div>
@@ -132,7 +195,7 @@
             </aside>
             <!-- Review Form Section -->
             <div class="w-full flex-1">
-                <div class=" overflow-hidden">
+                <div class="review-glass p-4 sm:p-5 overflow-visible">
                     <!-- Form Header -->
                     <h2 class="text-2xl py-4 font-bold text-slate-900 dark:text-white">
                             {{ isset($review) ? 'Редагувати рецензію' : 'Написати рецензію' }}</h2>
@@ -216,7 +279,7 @@
                                 <input type="hidden" name="review_type" v-model="reviewType">
                                 <input type="hidden" name="opinion_type" v-model="opinionType">
                                 <input type="hidden" name="book_type" v-model="bookType">
-                                <input type="hidden" name="language" :value="language === 'other' ? otherLanguage : language">
+                                <input type="hidden" name="language" :value="language">
                                 <input type="hidden" name="contains_spoiler" :value="containsSpoiler ? '1' : '0'">
                                 <input type="hidden" name="rating" v-model="rating">
                                 <!-- Rating -->
@@ -239,7 +302,7 @@
                                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Тип
                                         відгуку</label>
                                     <select id="review_type"
-                                        class="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                        class="review-input"
                                         v-model="reviewType">
                                         <option value="review">Рецензія</option>
                                         <option value="opinion">Відгук</option>
@@ -325,7 +388,7 @@
                                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Тип
                                         книги</label>
                                     <select id="book_type"
-                                        class="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                        class="review-input"
                                         v-model="bookType">
                                         <option value="paper">Паперова</option>
                                         <option value="electronic">Електронна</option>
@@ -336,38 +399,44 @@
                                 <!-- Language -->
                                 <div class="mb-6">
                                     <label class="block text-sm font-semibold text-slate-900 dark:text-white mb-2">Мова читання</label>
-                                    <select id="language"
-                                        class="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                        v-model="language">
-                                        <option value="uk">Українська</option>
-                                        <option value="en">Англійська</option>
-                                        <option value="pl">Польська</option>
-                                        <option value="de">Німецька</option>
-                                        <option value="fr">Французька</option>
-                                        <option value="es">Іспанська</option>
-                                        <option value="it">Італійська</option>
-                                        <option value="ru">російська</option>
-                                        <option value="other">Інша</option>
-                                    </select>
-                                    <select v-if="language === 'other'" id="other-language"
-                                        class="w-full mt-2 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                        v-model="otherLanguage">
-                                        <option value="cs">Чеська</option>
-                                        <option value="sk">Словацька</option>
-                                        <option value="hu">Угорська</option>
-                                        <option value="ro">Румунська</option>
-                                        <option value="bg">Болгарська</option>
-                                        <option value="lt">Литовська</option>
-                                        <option value="pt">Португальська</option>
-                                        <option value="nl">Нідерландська</option>
-                                        <option value="sv">Шведська</option>
-                                        <option value="no">Норвезька</option>
-                                        <option value="da">Данська</option>
-                                        <option value="fi">Фінська</option>
-                                        <option value="ja">Японська</option>
-                                        <option value="ko">Корейська</option>
-                                        <option value="zh">Китайська</option>
-                                    </select>
+                                    <button
+                                        type="button"
+                                        class="review-input text-left flex items-center justify-between"
+                                        @click="languagePickerOpen = true"
+                                    >
+                                        <span>@{{ selectedLanguageLabel }}</span>
+                                        <i class="fas fa-chevron-down text-slate-400 dark:text-slate-500"></i>
+                                    </button>
+
+                                    <div v-show="languagePickerOpen" ref="languagePickerModal" class="fixed inset-0 z-[220]">
+                                        <div class="absolute inset-0 lang-modal-backdrop" @click="closeLanguagePicker"></div>
+                                        <div class="absolute inset-0 flex items-center justify-center p-4">
+                                            <div class="w-full max-w-xl review-glass p-4">
+                                                <div class="flex items-center justify-between gap-3 mb-3">
+                                                    <div class="text-sm font-bold text-slate-900 dark:text-white">Оберіть мову читання</div>
+                                                    <button type="button" class="review-input !w-auto !py-1.5 !px-2.5" @click="closeLanguagePicker">✕</button>
+                                                </div>
+                                                <input
+                                                    v-model.trim="languageSearch"
+                                                    type="text"
+                                                    class="review-input"
+                                                    placeholder="Пошук мови..."
+                                                >
+                                                <div class="mt-3 max-h-[50vh] overflow-auto space-y-1 pr-1">
+                                                    <button
+                                                        v-for="lang in filteredLanguageOptions"
+                                                        :key="`lang-opt-${lang.code}`"
+                                                        type="button"
+                                                        class="w-full text-left rounded-lg px-3 py-2 text-sm transition"
+                                                        :class="language === lang.code ? 'bg-indigo-500 text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10'"
+                                                        @click="selectLanguage(lang.code)"
+                                                    >
+                                                        @{{ lang.name }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Form Actions -->
@@ -429,6 +498,7 @@
         </div>
         @if(!isset($lastReviewInfo) || !$lastReviewInfo || !isset($lastReviewInfo['remaining_seconds']) || $lastReviewInfo['remaining_seconds'] <= 0)
         @push('scripts')
+            <script src="https://cdn.jsdelivr.net/npm/iso-639-1@3.1.5/build/index.js"></script>
             <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
@@ -446,17 +516,11 @@
                             bookType: '{{ isset($review) ? ($review->book_type ?? 'paper') : 'paper' }}',
                             @php
                                 $reviewLanguage = isset($review) ? ($review->language ?? 'uk') : 'uk';
-                                $otherLanguages = ['cs', 'sk', 'hu', 'ro', 'bg', 'lt', 'pt', 'nl', 'sv', 'no', 'da', 'fi', 'ja', 'ko', 'zh'];
-                                if (in_array($reviewLanguage, $otherLanguages)) {
-                                    $language = 'other';
-                                    $otherLanguage = $reviewLanguage;
-                                } else {
-                                    $language = $reviewLanguage;
-                                    $otherLanguage = 'cs';
-                                }
                             @endphp
-                            language: '{{ $language }}',
-                            otherLanguage: '{{ $otherLanguage }}',
+                            language: '{{ $reviewLanguage }}',
+                            languagePickerOpen: false,
+                            languageSearch: '',
+                            languageOptions: [],
                             content: '',
                             containsSpoiler: {{ isset($review) ? ($review->contains_spoiler ? 'true' : 'false') : 'false' }},
                             isSubmitting: false,
@@ -464,6 +528,18 @@
                             actionMode: '{{ isset($review) && $review->is_draft ? 'draft' : 'publish' }}' // 'draft' or 'publish'
                         },
                         computed: {
+                            selectedLanguageLabel() {
+                                const selected = this.languageOptions.find((l) => l.code === this.language);
+                                return selected ? selected.name : 'Оберіть мову';
+                            },
+                            filteredLanguageOptions() {
+                                const query = String(this.languageSearch || '').toLowerCase().trim();
+                                if (!query) return this.languageOptions;
+                                return this.languageOptions.filter((lang) =>
+                                    String(lang.name).toLowerCase().includes(query) ||
+                                    String(lang.code).toLowerCase().includes(query)
+                                );
+                            },
                             contentLength() {
                                 if (this.quillInstance) {
                                     return this.quillInstance.getText().length;
@@ -486,9 +562,59 @@
                             }
                         },
                         mounted() {
+                            this.buildLanguageOptions();
+                            this.$nextTick(() => {
+                                this.mountLanguagePickerPortal();
+                            });
                             this.initQuill();
                         },
+                        beforeDestroy() {
+                            const modal = this.$refs.languagePickerModal;
+                            if (modal && modal.parentNode === document.body) {
+                                document.body.removeChild(modal);
+                            }
+                        },
                         methods: {
+                            mountLanguagePickerPortal() {
+                                const modal = this.$refs.languagePickerModal;
+                                if (!modal) return;
+                                if (modal.parentNode !== document.body) {
+                                    document.body.appendChild(modal);
+                                }
+                            },
+                            buildLanguageOptions() {
+                                if (typeof window.ISO6391 !== 'undefined' && window.ISO6391.getAllCodes) {
+                                    this.languageOptions = window.ISO6391
+                                        .getAllCodes()
+                                        .filter((code) => window.ISO6391.validate(code))
+                                        .map((code) => ({
+                                            code,
+                                            name: window.ISO6391.getNativeName(code) || window.ISO6391.getName(code) || code.toUpperCase(),
+                                        }))
+                                        .sort((a, b) => a.name.localeCompare(b.name, 'uk'));
+                                } else {
+                                    this.languageOptions = [
+                                        { code: 'uk', name: 'Українська' },
+                                        { code: 'en', name: 'English' },
+                                        { code: 'pl', name: 'Polski' },
+                                        { code: 'de', name: 'Deutsch' },
+                                        { code: 'fr', name: 'Français' },
+                                        { code: 'es', name: 'Español' },
+                                    ];
+                                }
+
+                                if (!this.languageOptions.some((l) => l.code === this.language)) {
+                                    this.language = 'uk';
+                                }
+                            },
+                            closeLanguagePicker() {
+                                this.languagePickerOpen = false;
+                                this.languageSearch = '';
+                            },
+                            selectLanguage(code) {
+                                this.language = code;
+                                this.closeLanguagePicker();
+                            },
                             getContentLengthClass() {
                                 const length = this.contentLength;
                                 const min = this.minContentLength;
@@ -676,8 +802,8 @@
                                 // Тип думки потрібен і для відгуків, і для рецензій
                                 formData.set('opinion_type', this.opinionType);
                                 formData.set('book_type', this.bookType);
-                                // Використовуємо otherLanguage якщо вибрано "other", інакше використовуємо language
-                                formData.set('language', this.language === 'other' ? this.otherLanguage : this.language);
+                                // Використовуємо обрану мову з єдиного списку
+                                formData.set('language', this.language);
                                 formData.set('contains_spoiler', this.containsSpoiler ? '1' : '0');
                                 formData.set('is_draft', isDraft ? '1' : '0');
 

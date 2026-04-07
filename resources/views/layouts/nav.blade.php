@@ -82,6 +82,16 @@
                     @endauth
 
                     @auth
+                        @php
+                            $navUser = auth()->user();
+                            $accountOverviewUrl = url('/account/u/' . $navUser->username . '/overview');
+                            $accountSettingsUrl = url('/account/settings');
+                            $navStats = [
+                                'books' => $navUser->readingStatuses()->count(),
+                                'reviews' => $navUser->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
+                                'quotes' => $navUser->quotes()->where('is_public', true)->count(),
+                            ];
+                        @endphp
                         <!-- User Menu -->
                         <div class="relative hidden md:block" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary p-2 transition-all duration-200">
@@ -96,17 +106,48 @@
                                 @endif
                             </button>
 
-                            <div x-show="open" @click.away="open = false" 
-                                 class="absolute right-0 mt-2 w-48 bg-light-bg/90 dark:bg-dark-bg/90 backdrop-blur-md rounded-xl shadow-xl py-2 z-50 border border-light-border/20 dark:border-dark-border/20">
-                                <a href="{{ route('users.public.profile', auth()->user()->username) }}" class="block px-4 py-2 text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors"><i class="fas fa-user"></i> Публічний профіль</a>
-                                <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors"><i class="fas fa-cog"></i> Панель керування</a>
-                                <a href="{{ route('users.index') }}" class="block px-4 py-2 text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors"><i class="fas fa-star"></i> Рейтинг читачів</a>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-colors">
-                                        <i class="fas fa-sign-out-alt"></i> Вийти</button>
-                                    </button>
-                                </form>
+                            <div x-show="open" @click.away="open = false"
+                                 class="absolute right-0 mt-2 w-[320px] rounded-2xl p-3 z-50 border border-light-border/40 dark:border-white/10 bg-white/75 dark:bg-[#0b1225]/75 backdrop-blur-xl shadow-2xl">
+                                <a href="{{ $accountOverviewUrl }}" class="block rounded-xl border border-light-border/50 dark:border-white/10 bg-white/70 dark:bg-white/5 p-3 hover:bg-white/90 dark:hover:bg-white/10 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        @if($navUser->avatar)
+                                            <img src="{{ $navUser->avatar }}" alt="{{ $navUser->name }}" class="w-12 h-12 rounded-xl object-cover border border-light-border/50 dark:border-white/10">
+                                        @else
+                                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center text-white font-bold">
+                                                {{ mb_substr($navUser->name, 0, 1) }}
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-light-text-primary dark:text-dark-text-primary truncate">{{ $navUser->name }}</div>
+                                            <div class="text-xs text-light-text-secondary dark:text-white/60 truncate">{{ '@' . $navUser->username }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 grid grid-cols-3 gap-2">
+                                        <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-center">
+                                            <div class="text-[11px] text-light-text-secondary dark:text-white/55">Книги</div>
+                                            <div class="text-sm font-bold text-light-text-primary dark:text-white">{{ $navStats['books'] }}</div>
+                                        </div>
+                                        <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-center">
+                                            <div class="text-[11px] text-light-text-secondary dark:text-white/55">Рец.</div>
+                                            <div class="text-sm font-bold text-light-text-primary dark:text-white">{{ $navStats['reviews'] }}</div>
+                                        </div>
+                                        <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-center">
+                                            <div class="text-[11px] text-light-text-secondary dark:text-white/55">Цит.</div>
+                                            <div class="text-sm font-bold text-light-text-primary dark:text-white">{{ $navStats['quotes'] }}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div class="mt-2 space-y-1">
+                                    <a href="{{ $accountOverviewUrl }}" class="block px-3 py-2 rounded-lg text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary/80 dark:hover:bg-white/10 transition-colors"><i class="fas fa-user mr-2"></i> Мій профіль</a>
+                                    <a href="{{ $accountSettingsUrl }}" class="block px-3 py-2 rounded-lg text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary/80 dark:hover:bg-white/10 transition-colors"><i class="fas fa-cog mr-2"></i> Налаштування</a>
+                                    <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-lg text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary/80 dark:hover:bg-white/10 transition-colors"><i class="fas fa-star mr-2"></i> Рейтинг читачів</a>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="block w-full text-left px-3 py-2 rounded-lg text-sm text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-bg-secondary/80 dark:hover:bg-white/10 transition-colors">
+                                            <i class="fas fa-sign-out-alt mr-2"></i> Вийти
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     @else
@@ -194,18 +235,47 @@
                 <!-- Profile Tab -->
                 @auth
                 <div id="tab-profile" class="tab-content hidden p-4 space-y-2">
-                    <a href="{{ route('users.public.profile', auth()->user()->username) }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200 text-light-text-primary dark:text-dark-text-primary">
+                    <div class="rounded-2xl border border-light-border/40 dark:border-white/10 bg-white/75 dark:bg-[#0b1225]/75 backdrop-blur-xl p-3 mb-2">
+                        <div class="flex items-center gap-3">
+                            @if($navUser->avatar)
+                                <img src="{{ $navUser->avatar }}" alt="{{ $navUser->name }}" class="w-11 h-11 rounded-xl object-cover border border-light-border/50 dark:border-white/10">
+                            @else
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center text-white font-bold">
+                                    {{ mb_substr($navUser->name, 0, 1) }}
+                                </div>
+                            @endif
+                            <div class="min-w-0">
+                                <div class="font-bold text-light-text-primary dark:text-dark-text-primary truncate">{{ $navUser->name }}</div>
+                                <div class="text-xs text-light-text-secondary dark:text-white/60 truncate">{{ '@' . $navUser->username }}</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 grid grid-cols-3 gap-2">
+                            <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-center">
+                                <div class="text-[11px] text-light-text-secondary dark:text-white/55">Книги</div>
+                                <div class="text-sm font-bold text-light-text-primary dark:text-white">{{ $navStats['books'] }}</div>
+                            </div>
+                            <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-center">
+                                <div class="text-[11px] text-light-text-secondary dark:text-white/55">Рец.</div>
+                                <div class="text-sm font-bold text-light-text-primary dark:text-white">{{ $navStats['reviews'] }}</div>
+                            </div>
+                            <div class="rounded-lg bg-light-bg-secondary/70 dark:bg-white/5 px-2 py-1.5 text-center">
+                                <div class="text-[11px] text-light-text-secondary dark:text-white/55">Цит.</div>
+                                <div class="text-sm font-bold text-light-text-primary dark:text-white">{{ $navStats['quotes'] }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ $accountOverviewUrl }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200 text-light-text-primary dark:text-dark-text-primary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
-                        <span class="font-medium">Публічний профіль</span>
+                        <span class="font-medium">Мій профіль</span>
                     </a>
-                    <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200 text-light-text-primary dark:text-dark-text-primary">
+                    <a href="{{ $accountSettingsUrl }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200 text-light-text-primary dark:text-dark-text-primary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
-                        <span class="font-medium">Панель керування</span>
+                        <span class="font-medium">Налаштування</span>
                     </a>
                     <a href="{{ route('users.index') }}" class="flex items-center space-x-3 p-3 rounded-xl hover:bg-light-bg-secondary dark:hover:bg-dark-bg-secondary transition-all duration-200 text-light-text-primary dark:text-dark-text-primary">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

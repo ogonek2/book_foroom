@@ -62,7 +62,9 @@
             <AccNavItem :to="`/u/${username}/reviews`" icon="star">Рецензії</AccNavItem>
             <AccNavItem :to="`/u/${username}/discussions`" icon="chat">Обговорення</AccNavItem>
             <AccNavItem :to="`/u/${username}/quotes`" icon="quote">Цитати</AccNavItem>
+            <AccNavItem :to="`/u/${username}/facts`" icon="chat">Факти</AccNavItem>
             <AccNavItem :to="`/u/${username}/collections`" icon="grid">Колекції</AccNavItem>
+            <AccNavItem :to="`/u/${username}/awards`" icon="star">Нагороди</AccNavItem>
           </div>
 
           <div class="mt-6 px-2 pb-2 text-[11px] font-extrabold uppercase tracking-widest text-white/40">
@@ -84,14 +86,9 @@
         </div>
 
         <div class="p-4 border-t border-white/10">
-          <div class="flex items-center justify-between gap-3">
-            <a class="acc-btn w-full justify-center" :href="`/users/${username}`">
-              Публічний профіль
-            </a>
-            <a v-if="isOwner" class="acc-btn w-full justify-center" href="/profile">
-              Стара приватна
-            </a>
-          </div>
+          <a class="acc-btn w-full justify-center" :href="`/account/u/${username}/overview`">
+            Відкрити профіль
+          </a>
         </div>
       </div>
     </aside>

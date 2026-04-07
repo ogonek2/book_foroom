@@ -431,12 +431,14 @@ class DiscussionController extends Controller
         // Подсчитываем длину (используем mb_strlen для правильной работы с UTF-8)
         $contentLength = mb_strlen($contentText, 'UTF-8');
         
-        $minChars = 300;
+        $minChars = $isDraft ? 1 : 300;
         $maxChars = 40000;
         
         if ($contentLength < $minChars || $contentLength > $maxChars) {
             $errorMessage = $contentLength < $minChars 
-                ? 'Текст обговорення повинен містити мінімум 300 символів.' 
+                ? ($isDraft
+                    ? 'Текст чернетки не може бути порожнім.'
+                    : 'Текст обговорення повинен містити мінімум 300 символів.')
                 : 'Текст обговорення повинен містити максимум 40000 символів.';
             
             if ($request->expectsJson()) {
@@ -991,12 +993,14 @@ class DiscussionController extends Controller
         // Подсчитываем длину (используем mb_strlen для правильной работы с UTF-8)
         $contentLength = mb_strlen($contentText, 'UTF-8');
         
-        $minChars = 300;
+        $minChars = $isDraft ? 1 : 300;
         $maxChars = 40000;
         
         if ($contentLength < $minChars || $contentLength > $maxChars) {
             $errorMessage = $contentLength < $minChars 
-                ? 'Текст обговорення повинен містити мінімум 300 символів.' 
+                ? ($isDraft
+                    ? 'Текст чернетки не може бути порожнім.'
+                    : 'Текст обговорення повинен містити мінімум 300 символів.')
                 : 'Текст обговорення повинен містити максимум 40000 символів.';
             
             if ($request->expectsJson()) {
@@ -1099,10 +1103,23 @@ class DiscussionController extends Controller
     public function destroy(Discussion $discussion)
     {
         if (!$discussion->canBeEditedBy(Auth::user())) {
+            if (request()->expectsJson() || request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'У вас нет прав для удаления этого обсуждения',
+                ], 403);
+            }
             abort(403, 'У вас нет прав для удаления этого обсуждения');
         }
 
         $discussion->delete();
+
+        if (request()->expectsJson() || request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Обсуждение удалено!',
+            ]);
+        }
 
         return redirect()->route('discussions.index')
             ->with('success', 'Обсуждение удалено!');

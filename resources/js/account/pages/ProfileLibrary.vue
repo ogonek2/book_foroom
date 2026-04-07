@@ -42,11 +42,8 @@
     <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
       <div v-for="item in books" :key="item.id" class="acc-glass rounded-2xl border border-white/10">
         <div class="h-auto w-100 aspect-[3/4]">
-          <img v-if="item.book && item.book.cover" :src="item.book.cover"
-            class="h-full w-full rounded object-cover border border-white/10" alt="">
-          <div v-else
-            class="h-full w-full rounded bg-white/10 border border-white/10 flex items-center justify-center text-[10px] text-white/40">
-            N/A</div>
+          <img :src="resolveBookCover(item.book && item.book.cover)"
+            class="h-full w-full rounded object-cover border border-white/10" alt="" @error="onCoverError">
         </div>
         <div class="p-4">
           <span class="acc-pill my-2">{{ statusLabel(item.status) }}</span>
@@ -209,6 +206,15 @@ export default {
     this.loadBooks();
   },
   methods: {
+    resolveBookCover(cover) {
+      return cover || '/images/placeholders/book-cover.svg';
+    },
+    onCoverError(event) {
+      const fallback = '/images/placeholders/book-cover.svg';
+      if (event?.target && !String(event.target.src || '').includes(fallback)) {
+        event.target.src = fallback;
+      }
+    },
     statusLabel(status) {
       if (status === 'read') return 'Завершено';
       if (status === 'reading') return 'Читаю';

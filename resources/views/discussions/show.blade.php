@@ -122,6 +122,16 @@
                                             class="text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-500 dark:hover:text-brand-400 transition-colors">
                                             Редагувати
                                         </a>
+                                        <form action="{{ route('discussions.destroy', $discussion) }}" method="POST" class="inline" onsubmit="return confirm('Видалити це обговорення? Дію неможливо скасувати.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors"
+                                                title="Видалити обговорення">
+                                                <i class="fas fa-trash-alt mr-1"></i>
+                                                Видалити
+                                            </button>
+                                        </form>
                                     @endif
 
                                     @if ($discussion->canBeClosedBy(Auth::user()))

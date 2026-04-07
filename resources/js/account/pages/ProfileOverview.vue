@@ -131,7 +131,7 @@
         </div>
 
         <div>
-          <div class="flex items-center justify-between mb-3">
+          <div class="flex items-start md:items-center flex-col md:flex-row justify-between mb-3 gap-2">
             <div class="text-base font-extrabold">Улюблені</div>
             <div class="flex gap-1 text-xs">
               <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'books' }"
@@ -148,9 +148,8 @@
             <div v-if="favoriteItems.length" class="space-y-3">
               <div v-for="item in favoriteItems.slice(0, 3)" :key="`${activeFavoritesTab}-${item.id}`"
                 class="flex items-center gap-3">
-                <img v-if="item.cover" :src="item.cover" class="h-11 w-8 rounded object-cover border border-white/10"
-                  alt="" />
-                <div v-else class="h-11 w-8 rounded bg-white/10 border border-white/10" />
+                <img :src="resolveBookCover(item.cover)" class="h-11 w-8 rounded object-cover border border-white/10"
+                  alt="" @error="onCoverError" />
                 <div class="min-w-0">
                   <div class="text-sm font-semibold truncate">{{ item.title }}</div>
                   <div class="text-xs text-white/55">{{ item.meta }}</div>
@@ -225,7 +224,7 @@
                   <div class="grid grid-cols-3 gap-0.5 h-8 w-14 shrink-0">
                     <template v-if="col.preview_covers && col.preview_covers.length">
                       <img v-for="(cover, idx) in col.preview_covers.slice(0, 3)" :key="`cover-${col.id}-${idx}`"
-                        :src="cover" class="h-8 w-full rounded-sm object-cover border border-white/10" alt="">
+                        :src="resolveBookCover(cover)" class="h-8 w-full rounded-sm object-cover border border-white/10" alt="" @error="onCoverError">
                     </template>
                     <template v-else>
                       <div v-for="idx in 3" :key="`empty-${col.id}-${idx}`"
@@ -549,6 +548,15 @@ export default {
     };
   },
   methods: {
+    resolveBookCover(cover) {
+      return cover || '/images/placeholders/book-cover.svg';
+    },
+    onCoverError(event) {
+      const fallback = '/images/placeholders/book-cover.svg';
+      if (event?.target && !String(event.target.src || '').includes(fallback)) {
+        event.target.src = fallback;
+      }
+    },
     async openPlannerModal() {
       this.showPlannerModal = true;
       this.plannerForm = { title: '', goal: '', target_date: '', book_ids: [] };

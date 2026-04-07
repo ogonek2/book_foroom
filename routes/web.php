@@ -44,17 +44,50 @@ Route::get('/account/{any}', [AccountController::class, 'show'])
     ->name('account.spa');
 
 // Public profile routes (new design)
-Route::get('/users/{username}', [UserController::class, 'publicProfile'])->name('users.public.profile');
-Route::get('/users/{username}/library', [UserController::class, 'publicLibrary'])->name('users.public.library');
-Route::get('/users/{username}/reviews', [UserController::class, 'publicReviews'])->name('users.public.reviews');
-Route::get('/users/{username}/discussions', [UserController::class, 'publicDiscussions'])->name('users.public.discussions');
-Route::get('/users/{username}/quotes', [UserController::class, 'publicQuotes'])->name('users.public.quotes');
-Route::get('/users/{username}/collections', [UserController::class, 'publicCollections'])->name('users.public.collections');
-Route::get('/users/{username}/awards', [UserController::class, 'publicAwards'])->name('users.public.awards');
+Route::get('/users/{username}', function (string $username) {
+    return redirect("/account/u/{$username}/overview");
+})->name('users.public.profile');
+Route::get('/users/{username}/library', function (string $username) {
+    return redirect("/account/u/{$username}/library");
+})->name('users.public.library');
+Route::get('/users/{username}/reviews', function (string $username) {
+    return redirect("/account/u/{$username}/reviews");
+})->name('users.public.reviews');
+Route::get('/users/{username}/discussions', function (string $username) {
+    return redirect("/account/u/{$username}/discussions");
+})->name('users.public.discussions');
+Route::get('/users/{username}/quotes', function (string $username) {
+    return redirect("/account/u/{$username}/quotes");
+})->name('users.public.quotes');
+Route::get('/users/{username}/collections', function (string $username) {
+    return redirect("/account/u/{$username}/collections");
+})->name('users.public.collections');
+Route::get('/users/{username}/awards', function (string $username) {
+    return redirect("/account/u/{$username}/awards");
+})->name('users.public.awards');
 
 // Profile routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile', function (\Illuminate\Http\Request $request) {
+        $username = auth()->user()->username;
+        $tab = (string) $request->query('tab', 'overview');
+        $tabMap = [
+            'overview' => 'overview',
+            'library' => 'library',
+            'reviews' => 'reviews',
+            'discussions' => 'discussions',
+            'quotes' => 'quotes',
+            'collections' => 'collections',
+            'favorites' => 'favorites',
+            'drafts' => 'drafts',
+            'settings' => 'settings',
+        ];
+        $target = $tabMap[$tab] ?? 'overview';
+        if ($target === 'settings') {
+            return redirect('/account/settings');
+        }
+        return redirect("/account/u/{$username}/{$target}");
+    })->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
@@ -67,7 +100,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
     // Public profile routes (with username)
-    Route::get('/profile/{username}', [ProfileController::class, 'show'])->name('profile.user.show');
+    Route::get('/profile/{username}', function (string $username) {
+        return redirect("/account/u/{$username}/overview");
+    })->name('profile.user.show');
     
     // Drafts routes
     Route::prefix('drafts')->name('drafts.')->group(function () {
@@ -88,7 +123,9 @@ Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->gr
 });
 
 // Public library routes
-Route::get('/users/{username}/libraries', [LibraryController::class, 'publicLibraries'])->name('libraries.public');
+Route::get('/users/{username}/libraries', function (string $username) {
+    return redirect("/account/u/{$username}/collections");
+})->name('libraries.public');
 
 // Hashtags routes
 Route::get('/hashtags/{slug}', [ReviewController::class, 'searchByHashtag'])->name('hashtags.show');

@@ -8,11 +8,22 @@
 
 @push('styles')
     <style>
+        .review-glass {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+        }
+        .dark .review-glass {
+            background: rgba(11, 18, 37, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            box-shadow: 0 16px 40px rgba(2, 6, 23, 0.45);
+        }
         /* Reddit-style Editor Styles */
         .tiptap-editor {
             min-height: 7rem;
             max-height: calc(100vh - 12rem);
-            background: white;
+            background: transparent;
             color: rgb(15 23 42);
             font-size: 1rem;
             line-height: 1.5;
@@ -23,7 +34,7 @@
             user-select: text;
             white-space: pre-wrap;
             word-break: break-word;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: background 0.2s;
         }
 
         .tiptap-editor p.is-editor-empty:first-child::before {
@@ -54,26 +65,15 @@
             color: rgb(100 116 139);
         }
 
-        .dark .tiptap-editor {
-            border-color: rgb(51 65 85);
-            background: rgb(30 41 59);
-            color: rgb(241 245 249);
-        }
+        .dark .tiptap-editor { background: transparent; color: rgb(241 245 249); }
 
         .dark .tiptap-editor:empty:before {
             color: rgb(100 116 139);
         }
 
-        .tiptap-editor:focus {
-            border-color: rgb(99 102 241);
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
-            outline: none;
-        }
+        .tiptap-editor:focus { outline: none; }
 
-        .dark .tiptap-editor:focus {
-            border-color: rgb(99 102 241);
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-        }
+        .dark .tiptap-editor:focus { outline: none; }
 
         /* Reddit-style paragraph */
         .tiptap-editor p {
@@ -144,22 +144,22 @@
             gap: 0.25rem;
             padding: 0.5rem;
             border-bottom: none;
-            border-radius: 0.5rem 0.5rem 0 0;
-            background: rgb(248 250 252);
+            border-radius: 0;
+            background: rgba(248, 250, 252, 0.95);
             flex-wrap: wrap;
             align-items: center;
         }
 
         .dark .tiptap-toolbar {
             border-color: rgb(51 65 85);
-            background: rgb(30 41 59);
+            background: rgba(30, 41, 59, 0.72);
         }
 
         .tiptap-toolbar button {
             padding: 0.375rem 0.5rem;
             border: none;
             background: transparent;
-            color: rgb(100 116 139);
+            color: rgb(71 85 105);
             cursor: pointer;
             border-radius: 0.25rem;
             transition: all 0.15s;
@@ -175,7 +175,7 @@
         }
 
         .tiptap-toolbar button:hover {
-            background: rgb(241 245 249);
+            background: rgb(226 232 240);
             color: rgb(15 23 42);
         }
 
@@ -296,7 +296,7 @@
             <!-- Form Card -->
             <div>
                 <!-- Form Header -->
-                <div>
+                <div class="review-glass rounded-2xl p-4 sm:p-5">
                     <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Створити обговорення</h2>
                     <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Поділіться своїми думками і почніть
                         обговорення зі спільнотою</p>
@@ -436,7 +436,8 @@
                 }
 
                 const contentInput = document.getElementById('content');
-                let actionMode = 'publish';
+                const initialIsDraft = @json((bool) old('is_draft', false));
+                let actionMode = initialIsDraft ? 'draft' : 'publish';
 
                 // Remove any duplicate textareas (TipTap should only use contenteditable)
                 const allTextareas = document.querySelectorAll('textarea[name="content"]');
@@ -537,39 +538,41 @@
 
                 // Action mode tabs
                 const actionTabs = document.querySelectorAll('.action-tab');
-                actionTabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        actionMode = tab.dataset.mode;
-                        actionTabs.forEach(t => {
-                            if (t.dataset.mode === actionMode) {
-                                t.classList.add('active', 'bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white', 'shadow-md');
-                                t.classList.remove('text-slate-600', 'dark:text-slate-400');
-                            } else {
-                                t.classList.remove('active', 'bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white', 'shadow-md');
-                                t.classList.add('text-slate-600', 'dark:text-slate-400');
-                            }
-                        });
-
-                        const submitBtn = document.getElementById('submit-btn');
-                        if (submitBtn) {
-                            if (actionMode === 'draft') {
-                                submitBtn.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'hover:from-indigo-600', 'hover:to-purple-700');
-                                submitBtn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'hover:bg-slate-200', 'dark:hover:bg-slate-700', 'text-orange-500', 'dark:text-orange-400');
-                                const span = submitBtn.querySelector('span');
-                                if (span) {
-                                    span.textContent = 'Зберегти чернетку';
-                                }
-                            } else {
-                                submitBtn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'hover:bg-slate-200', 'dark:hover:bg-slate-700', 'text-orange-500', 'dark:text-orange-400');
-                                submitBtn.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'hover:from-indigo-600', 'hover:to-purple-700', 'text-white');
-                                const span = submitBtn.querySelector('span');
-                                if (span) {
-                                    span.textContent = 'Створити обговорення';
-                                }
-                            }
+                const syncActionUI = () => {
+                    actionTabs.forEach((t) => {
+                        if (t.dataset.mode === actionMode) {
+                            t.classList.add('active', 'bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white', 'shadow-md');
+                            t.classList.remove('text-slate-600', 'dark:text-slate-400');
+                        } else {
+                            t.classList.remove('active', 'bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white', 'shadow-md');
+                            t.classList.add('text-slate-600', 'dark:text-slate-400');
                         }
                     });
+
+                    const submitBtn = document.getElementById('submit-btn');
+                    if (submitBtn) {
+                        const span = submitBtn.querySelector('span');
+                        if (actionMode === 'draft') {
+                            submitBtn.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'hover:from-indigo-600', 'hover:to-purple-700');
+                            submitBtn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'hover:bg-slate-200', 'dark:hover:bg-slate-700', 'text-orange-500', 'dark:text-orange-400');
+                            if (span) span.textContent = 'Зберегти чернетку';
+                        } else {
+                            submitBtn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'hover:bg-slate-200', 'dark:hover:bg-slate-700', 'text-orange-500', 'dark:text-orange-400');
+                            submitBtn.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'hover:from-indigo-600', 'hover:to-purple-700', 'text-white');
+                            if (span) span.textContent = 'Створити обговорення';
+                        }
+                    }
+                };
+
+                actionTabs.forEach((tab) => {
+                    tab.addEventListener('click', () => {
+                        actionMode = tab.dataset.mode;
+                        syncActionUI();
+                    });
                 });
+
+                // Keep UI synced after validation redirect with old('is_draft')
+                syncActionUI();
 
                 // Form submission
                 const form = document.getElementById('discussion-form');

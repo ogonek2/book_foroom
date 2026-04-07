@@ -126,6 +126,11 @@ class User extends Authenticatable
         return $this->hasMany(Publication::class);
     }
 
+    public function facts(): HasMany
+    {
+        return $this->hasMany(Fact::class);
+    }
+
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);

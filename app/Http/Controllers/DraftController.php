@@ -31,7 +31,12 @@ class DraftController extends Controller
             ], 400);
         }
 
-        $model->update(['is_draft' => false]);
+        $payload = ['is_draft' => false];
+        if ($type === 'discussion' && $model instanceof Discussion) {
+            // Draft discussions may also keep legacy status=draft, force publish state.
+            $payload['status'] = 'active';
+        }
+        $model->update($payload);
 
         // Для рецензий обновляем рейтинги при публикации
         if ($type === 'review' && $model instanceof Review) {

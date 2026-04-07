@@ -5,7 +5,9 @@ import ProfileLibrary from './pages/ProfileLibrary.vue';
 import ProfileReviews from './pages/ProfileReviews.vue';
 import ProfileDiscussions from './pages/ProfileDiscussions.vue';
 import ProfileQuotes from './pages/ProfileQuotes.vue';
+import ProfileFacts from './pages/ProfileFacts.vue';
 import ProfileCollections from './pages/ProfileCollections.vue';
+import ProfileAwards from './pages/ProfileAwards.vue';
 import ProfileFavorites from './pages/ProfileFavorites.vue';
 import ProfileDrafts from './pages/ProfileDrafts.vue';
 import SettingsUnified from './pages/SettingsUnified.vue';
@@ -42,7 +44,9 @@ export function createAccountRouter() {
       { path: '/u/:username/reviews', name: 'acc.profile.reviews', component: ProfileReviews },
       { path: '/u/:username/discussions', name: 'acc.profile.discussions', component: ProfileDiscussions },
       { path: '/u/:username/quotes', name: 'acc.profile.quotes', component: ProfileQuotes },
+      { path: '/u/:username/facts', name: 'acc.profile.facts', component: ProfileFacts },
       { path: '/u/:username/collections', name: 'acc.profile.collections', component: ProfileCollections },
+      { path: '/u/:username/awards', name: 'acc.profile.awards', component: ProfileAwards },
       { path: '/u/:username/favorites', name: 'acc.profile.favorites', component: ProfileFavorites },
       { path: '/u/:username/drafts', name: 'acc.profile.drafts', component: ProfileDrafts },
 

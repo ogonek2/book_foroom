@@ -58,6 +58,9 @@ class UserController extends Controller
                 $query->where('status', 'active');
             },
             'discussionReplies as replies_count',
+            'reviews as review_replies_count' => function($query) {
+                $query->whereNotNull('parent_id')->where('is_draft', false);
+            },
             'readingStatuses as ratings_count' => function($query) {
                 $query->whereNotNull('rating');
             },
@@ -65,6 +68,17 @@ class UserController extends Controller
                 $query->where('status', 'read');
             }
         ]);
+
+        $ratingRawExpression = "LEAST(("
+            . "(SELECT COUNT(*) FROM reviews r1 WHERE r1.user_id = users.id AND r1.parent_id IS NULL AND r1.is_draft = 0) * 10 + "
+            . "(SELECT COUNT(*) FROM quotes q1 WHERE q1.user_id = users.id AND q1.is_public = 1 AND q1.is_draft = 0) * 5 + "
+            . "(SELECT COUNT(*) FROM publications p1 WHERE p1.user_id = users.id AND p1.status = 'published') * 15 + "
+            . "(SELECT COUNT(*) FROM book_reading_statuses b1 WHERE b1.user_id = users.id AND b1.rating IS NOT NULL) * 2 + "
+            . "(SELECT COUNT(*) FROM book_reading_statuses b2 WHERE b2.user_id = users.id AND b2.status = 'read') * 3 + "
+            . "(SELECT COUNT(*) FROM discussions d1 WHERE d1.user_id = users.id AND d1.status = 'active' AND d1.is_draft = 0) * 8 + "
+            . "(SELECT COUNT(*) FROM discussion_replies dr1 WHERE dr1.user_id = users.id) * 3 + "
+            . "(SELECT COUNT(*) FROM reviews r2 WHERE r2.user_id = users.id AND r2.parent_id IS NOT NULL AND r2.is_draft = 0) * 2"
+            . "), 100)";
 
         // Поиск по юзернейму или имени
         if ($request->has('search') && $request->search) {
@@ -75,10 +89,19 @@ class UserController extends Controller
             });
         }
 
-        // Фильтр по рейтингу
         if ($request->has('rating_filter') && $request->rating_filter) {
             $ratingFilter = $request->rating_filter;
-            // Применяем фильтр после расчета рейтинга
+            switch ($ratingFilter) {
+                case '5_stars':
+                    $query->whereRaw("CEIL(($ratingRawExpression) / 10) >= 5");
+                    break;
+                case '7_stars':
+                    $query->whereRaw("CEIL(($ratingRawExpression) / 10) >= 7");
+                    break;
+                case '9_stars':
+                    $query->whereRaw("CEIL(($ratingRawExpression) / 10) >= 9");
+                    break;
+            }
         }
 
         // Фильтр по активности
@@ -100,72 +123,47 @@ class UserController extends Controller
             }
         }
 
-        $users = $query->get()
-        ->map(function($user) {
-            // Добавляем рассчитанный рейтинг
-            $user->calculated_rating = $user->calculateRating();
-            $user->stars_count = $user->getStarsCount();
-            $user->rating_score = $user->getRatingScore();
-            return $user;
-        });
-
-        // Применяем фильтр по рейтингу после расчета
-        if ($request->has('rating_filter') && $request->rating_filter) {
-            $ratingFilter = $request->rating_filter;
-            switch ($ratingFilter) {
-                case '5_stars':
-                    $users = $users->filter(function($user) {
-                        return $user->stars_count >= 5;
-                    });
-                    break;
-                case '7_stars':
-                    $users = $users->filter(function($user) {
-                        return $user->stars_count >= 7;
-                    });
-                    break;
-                case '9_stars':
-                    $users = $users->filter(function($user) {
-                        return $user->stars_count >= 9;
-                    });
-                    break;
-            }
-        }
-
-        // Сортировка
         $sort = $request->get('sort', 'rating');
         switch ($sort) {
             case 'name':
-                $users = $users->sortBy('name')->values();
+                $query->orderBy('name');
                 break;
             case 'username':
-                $users = $users->sortBy('username')->values();
+                $query->orderBy('username');
                 break;
             case 'reviews':
-                $users = $users->sortByDesc('main_reviews_count')->values();
+                $query->orderByDesc('main_reviews_count');
                 break;
             case 'quotes':
-                $users = $users->sortByDesc('public_quotes_count')->values();
+                $query->orderByDesc('public_quotes_count');
+                break;
+            case 'books':
+                $query->orderByDesc('read_books_count');
                 break;
             default:
-                $users = $users->sortByDesc('calculated_rating')->values();
+                $query->orderByRaw("$ratingRawExpression DESC");
         }
 
-        // Создаем пагинацию вручную
-        $perPage = 32;
-        $currentPage = $request->get('page', 1);
-        $offset = ($currentPage - 1) * $perPage;
-        $items = $users->slice($offset, $perPage);
-        
-        $users = new \Illuminate\Pagination\LengthAwarePaginator(
-            $items,
-            $users->count(),
-            $perPage,
-            $currentPage,
-            [
-                'path' => request()->url(),
-                'pageName' => 'page',
-            ]
-        );
+        $perPage = (int) $request->get('per_page', 18);
+        $perPage = max(9, min($perPage, 36));
+        $users = $query->paginate($perPage)->appends($request->query());
+
+        $users->getCollection()->transform(function ($user) {
+            $scoreRaw = min(
+                ((int) $user->main_reviews_count * 10) +
+                ((int) $user->public_quotes_count * 5) +
+                ((int) $user->published_publications_count * 15) +
+                ((int) $user->ratings_count * 2) +
+                ((int) $user->read_books_count * 3) +
+                ((int) $user->discussions_count * 8) +
+                ((int) $user->replies_count * 3) +
+                ((int) $user->review_replies_count * 2),
+                100
+            );
+            $user->rating_score = round($scoreRaw / 10, 1);
+            $user->stars_count = max(1, min(10, (int) ceil($scoreRaw / 10)));
+            return $user;
+        });
 
         // Статистика для сайдбара
         $stats = [
@@ -174,9 +172,38 @@ class UserController extends Controller
             'top_reviewers' => User::withCount(['reviews as main_reviews_count' => function($query) {
                 $query->whereNull('parent_id');
             }])->orderBy('main_reviews_count', 'desc')->limit(5)->get(),
-            'rating_distribution' => $this->getRatingDistribution(),
-            'recent_activity' => $this->getRecentActivity(),
         ];
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'users' => $users->getCollection()->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'username' => $user->username,
+                        'avatar' => $user->avatar_display,
+                        'rating_score' => $user->rating_score,
+                        'stars_count' => $user->stars_count,
+                        'main_reviews_count' => (int) $user->main_reviews_count,
+                        'public_quotes_count' => (int) $user->public_quotes_count,
+                        'read_books_count' => (int) $user->read_books_count,
+                        'discussions_count' => (int) $user->discussions_count,
+                        'profile_url' => url('/account/u/' . $user->username . '/overview'),
+                    ];
+                })->values(),
+                'pagination' => [
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                    'per_page' => $users->perPage(),
+                    'total' => $users->total(),
+                ],
+                'stats' => [
+                    'total_users' => (int) $stats['total_users'],
+                    'active_users' => (int) $stats['active_users'],
+                    'found_users' => (int) $users->total(),
+                ],
+            ]);
+        }
 
         return view('users.index', compact('users', 'stats'));
     }

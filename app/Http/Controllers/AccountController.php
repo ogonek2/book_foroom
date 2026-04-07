@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\CDNUploader;
 use App\Models\Book;
 use App\Models\BookReadingStatus;
+use App\Models\Fact;
 use App\Models\Library;
 use App\Models\ReadingPlan;
 use App\Models\ReadingPlanItem;
@@ -258,6 +259,29 @@ class AccountController extends Controller
             })
             ->values();
 
+        $recentFacts = $user->facts()
+            ->where('is_public', true)
+            ->with(['book'])
+            ->withCount('likes')
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get()
+            ->map(function ($fact) {
+                return [
+                    'id' => $fact->id,
+                    'content' => mb_substr((string) $fact->content, 0, 220),
+                    'likes_count' => (int) ($fact->likes_count ?? 0),
+                    'book' => $fact->book ? [
+                        'title' => $fact->book->title,
+                        'slug' => $fact->book->slug,
+                        'cover' => $fact->book->cover_image_display ?? $fact->book->cover_image ?? null,
+                    ] : null,
+                    'created_at_human' => optional($fact->created_at)->diffForHumans(),
+                    'created_at' => optional($fact->created_at)->toISOString(),
+                ];
+            })
+            ->values();
+
         $librariesQuery = $user->libraries()->withCount('books')->orderByDesc('created_at');
         if (!$isOwner) {
             $librariesQuery->where('is_private', false);
@@ -267,9 +291,13 @@ class AccountController extends Controller
             ->limit(6)
             ->get()
             ->map(function ($library) {
-                $covers = $library->books()
-                    ->limit(3)
-                    ->get()
+                $previewBooks = $library->books()
+                    ->select('title', 'cover_image')
+                    ->limit(5)
+                    ->get();
+
+                $covers = $previewBooks
+                    ->take(3)
                     ->map(function ($book) {
                         return $book->cover_image_display ?? $book->cover_image ?? null;
                     })
@@ -284,7 +312,9 @@ class AccountController extends Controller
                     'books_count' => $library->books_count,
                     'is_private' => (bool) $library->is_private,
                     'preview_covers' => $covers,
+                    'preview_titles' => $previewBooks->pluck('title')->filter()->values(),
                     'created_at_human' => optional($library->created_at)->diffForHumans(),
+                    'created_at' => optional($library->created_at)->toISOString(),
                 ];
             })
             ->values();
@@ -329,7 +359,8 @@ class AccountController extends Controller
                         'book_title' => optional($quote->book)->title,
                         'book_cover' => optional($quote->book)->cover_image_display ?? optional($quote->book)->cover_image,
                         'content' => mb_substr((string) $quote->content, 0, 220),
-                        'created_at_human' => optional($quote->created_at)->diffForHumans(),
+                        'created_at_human' => optional($quote->pivot?->created_at ?? $quote->created_at)->diffForHumans(),
+                        'created_at' => optional($quote->pivot?->created_at ?? $quote->created_at)->toISOString(),
                     ];
                 })->values();
 
@@ -347,7 +378,8 @@ class AccountController extends Controller
                         'book_cover' => optional($review->book)->cover_image_display ?? optional($review->book)->cover_image,
                         'content' => mb_substr(strip_tags((string) $review->content), 0, 220),
                         'rating' => $review->rating,
-                        'created_at_human' => optional($review->created_at)->diffForHumans(),
+                        'created_at_human' => optional($review->pivot?->created_at ?? $review->created_at)->diffForHumans(),
+                        'created_at' => optional($review->pivot?->created_at ?? $review->created_at)->toISOString(),
                     ];
                 })->values();
 
@@ -363,8 +395,14 @@ class AccountController extends Controller
                         'id' => $review->id,
                         'book_slug' => optional($review->book)->slug,
                         'book_title' => optional($review->book)->title,
+                        'book_cover' => optional($review->book)->cover_image_display ?? optional($review->book)->cover_image,
                         'content' => mb_substr(strip_tags((string) $review->content), 0, 200),
+                        'review_type' => $review->review_type,
+                        'opinion_type' => $review->opinion_type,
+                        'rating' => $review->rating,
+                        'language' => $review->language,
                         'updated_at_human' => optional($review->updated_at)->diffForHumans(),
+                        'updated_at' => optional($review->updated_at)->toISOString(),
                     ];
                 })->values();
 
@@ -379,13 +417,19 @@ class AccountController extends Controller
                         'id' => $quote->id,
                         'book_slug' => optional($quote->book)->slug,
                         'book_title' => optional($quote->book)->title,
+                        'book_cover' => optional($quote->book)->cover_image_display ?? optional($quote->book)->cover_image,
                         'content' => mb_substr((string) $quote->content, 0, 200),
+                        'language' => optional($quote->book)->language,
                         'updated_at_human' => optional($quote->updated_at)->diffForHumans(),
+                        'updated_at' => optional($quote->updated_at)->toISOString(),
                     ];
                 })->values();
 
             $draftDiscussions = $user->discussions()
-                ->where('status', 'draft')
+                ->where(function ($query) {
+                    $query->where('is_draft', true)
+                        ->orWhere('status', 'draft');
+                })
                 ->orderByDesc('updated_at')
                 ->limit(20)
                 ->get()
@@ -396,6 +440,7 @@ class AccountController extends Controller
                         'title' => $discussion->title,
                         'content' => mb_substr(strip_tags((string) $discussion->content), 0, 200),
                         'updated_at_human' => optional($discussion->updated_at)->diffForHumans(),
+                        'updated_at' => optional($discussion->updated_at)->toISOString(),
                     ];
                 })->values();
         }
@@ -440,6 +485,7 @@ class AccountController extends Controller
                     'reviews_count' => $user->reviews()->whereNull('parent_id')->where('is_draft', false)->count(),
                     'discussions_count' => $user->discussions()->whereIn('status', ['active', 'blocked'])->count(),
                     'quotes_count' => $user->quotes()->where('is_public', true)->count(),
+                    'facts_count' => $user->facts()->where('is_public', true)->count(),
                     'collections_count' => $user->libraries()->when(!$isOwner, function ($q) {
                         $q->where('is_private', false);
                     })->count(),
@@ -456,6 +502,7 @@ class AccountController extends Controller
                 'recent_reviews' => $recentReviews,
                 'recent_discussions' => $recentDiscussions,
                 'recent_quotes' => $recentQuotes,
+                'recent_facts' => $recentFacts,
                 'collections' => $collections,
                 'awards' => $awards,
                 'favorite_quotes' => $favoriteQuotes,
