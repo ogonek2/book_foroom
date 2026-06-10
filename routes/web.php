@@ -18,7 +18,11 @@ Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
 Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
 
-Route::get('dashboard', [ProfileController::class, 'show'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', function () {
+    $username = auth()->user()->username;
+
+    return redirect("/account/u/{$username}/overview");
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 
 // Book rating routes (должны быть ПЕРЕД другими маршрутами)
