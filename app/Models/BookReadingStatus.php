@@ -47,6 +47,11 @@ class BookReadingStatus extends Model
         return $this->belongsTo(Book::class);
     }
 
+    public function scopeWithExistingBook($query)
+    {
+        return $query->whereHas('book');
+    }
+
     public function sessions(): HasMany
     {
         return $this->hasMany(ReadingSession::class, 'book_reading_status_id')->orderByDesc('read_at');

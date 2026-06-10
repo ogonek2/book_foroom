@@ -58,6 +58,7 @@ class ProfileController extends Controller
         if ($tab === 'library') {
             // Оптимізоване завантаження книг з використанням кешу
             $readingStatuses = $user->bookReadingStatuses()
+                ->withExistingBook()
                 ->orderBy('created_at', 'desc')
                 ->paginate(12);
             

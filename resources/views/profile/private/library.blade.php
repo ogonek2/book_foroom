@@ -90,6 +90,7 @@
                 @php
                     // Використовуємо оптимізовані дані з контролера, якщо вони є
                     $books = isset($books) ? $books : $user->bookReadingStatuses()
+                        ->withExistingBook()
                         ->with(['book.author', 'book.categories'])
                         ->orderBy('created_at', 'desc')
                         ->paginate(12);
@@ -97,6 +98,9 @@
 
                 @if($books->count() > 0)
                     @foreach($books as $readingStatus)
+                        @if (!$readingStatus->book)
+                            @continue
+                        @endif
                         <div class="group relative book-item" 
                              data-status="{{ $readingStatus->status }}"
                              data-title="{{ mb_strtolower($readingStatus->book->title, 'UTF-8') }}"

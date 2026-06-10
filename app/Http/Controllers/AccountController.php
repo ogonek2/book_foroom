@@ -126,6 +126,7 @@ class AccountController extends Controller
         $activityMax = max(1, (int) $activitySeries->max('value'));
 
         $recentReadBooks = $user->readingStatuses()
+            ->withExistingBook()
             ->whereIn('status', ['read', 'reading', 'want_to_read', 'abandoned'])
             ->with(['book', 'sessions'])
             ->orderByDesc('updated_at')

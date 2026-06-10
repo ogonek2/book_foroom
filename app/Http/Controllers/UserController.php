@@ -312,7 +312,7 @@ class UserController extends Controller
         // Недавно прочитанные книги (только если разрешено или это владелец)
         $recentReadBooks = collect();
         if ($isOwner || $user->show_reading_stats) {
-            $recentReadBooks = $user->readingStatuses()
+            $recentReadBooks = $user->readingStatuses()->withExistingBook()
                 ->where('status', 'read')
                 ->orderBy('finished_at', 'desc')
                 ->limit(4)
@@ -393,7 +393,7 @@ class UserController extends Controller
             'average_rating' => $user->readingStatuses()->whereNotNull('rating')->avg('rating'),
         ];
         
-        $recentReadBooks = $user->readingStatuses()
+        $recentReadBooks = $user->readingStatuses()->withExistingBook()
             ->orderBy('updated_at', 'desc')
             ->limit(3)
             ->get();
@@ -465,7 +465,7 @@ class UserController extends Controller
         
         $recentReadBooks = collect();
         if ($isOwner || $user->show_reading_stats) {
-            $recentReadBooks = $user->readingStatuses()
+            $recentReadBooks = $user->readingStatuses()->withExistingBook()
                 ->with('book')
                 ->orderBy('updated_at', 'desc')
                 ->limit(3)
@@ -526,7 +526,7 @@ class UserController extends Controller
         
         $recentReadBooks = collect();
         if ($isOwner || $user->show_reading_stats) {
-            $recentReadBooks = $user->readingStatuses()
+            $recentReadBooks = $user->readingStatuses()->withExistingBook()
                 ->with('book')
                 ->orderBy('updated_at', 'desc')
                 ->limit(3)
@@ -586,7 +586,7 @@ class UserController extends Controller
         
         $recentReadBooks = collect();
         if ($isOwner || $user->show_reading_stats) {
-            $recentReadBooks = $user->readingStatuses()
+            $recentReadBooks = $user->readingStatuses()->withExistingBook()
                 ->with('book')
                 ->orderBy('updated_at', 'desc')
                 ->limit(3)
@@ -671,7 +671,7 @@ class UserController extends Controller
         
         $recentReadBooks = collect();
         if ($isOwner || $user->show_reading_stats) {
-            $recentReadBooks = $user->readingStatuses()
+            $recentReadBooks = $user->readingStatuses()->withExistingBook()
                 ->orderBy('updated_at', 'desc')
                 ->limit(3)
                 ->get();
@@ -739,7 +739,7 @@ class UserController extends Controller
         // Недавно прочитанные книги (только если разрешено или это владелец)
         $recentReadBooks = collect();
         if ($isOwner || $user->show_reading_stats) {
-            $recentReadBooks = $user->readingStatuses()
+            $recentReadBooks = $user->readingStatuses()->withExistingBook()
                 ->where('status', 'read')
                 ->with('book')
                 ->orderBy('finished_at', 'desc')

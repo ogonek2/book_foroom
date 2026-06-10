@@ -401,6 +401,9 @@
                 <div class="space-y-4">
                     @if (isset($recentReadBooks) && $recentReadBooks->count() > 0)
                         @foreach ($recentReadBooks->take(3) as $readingStatus)
+                            @if (!$readingStatus->book)
+                                @continue
+                            @endif
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-16 bg-gray-300 dark:bg-gray-700 rounded flex items-center justify-center">
                                     <img src="{{ $readingStatus->book->cover_image_display }}" data-fallback="bookCover" alt="{{ $readingStatus->book->title }}">
