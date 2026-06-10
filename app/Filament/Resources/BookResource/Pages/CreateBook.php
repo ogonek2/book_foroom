@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BookResource\Pages;
 
 use App\Filament\Resources\BookResource;
+use App\Models\Author;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -29,5 +30,27 @@ class CreateBook extends CreateRecord
         ];
     }
 
-    // Дополнительная обработка не требуется: загрузка на CDN выполняется прямо в форме
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        return $this->syncPrimaryAuthorFields($data);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function syncPrimaryAuthorFields(array $data): array
+    {
+        $authorIds = array_values(array_filter((array) ($data['authors'] ?? [])));
+
+        if ($authorIds !== []) {
+            $data['author_id'] = $authorIds[0];
+            $author = Author::find($authorIds[0]);
+            if ($author) {
+                $data['author'] = $author->full_name;
+            }
+        }
+
+        return $data;
+    }
 }

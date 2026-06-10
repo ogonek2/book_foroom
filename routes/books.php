@@ -80,6 +80,7 @@ Route::prefix('books')->name('books.')->group(function () {
 // Categories for books
 Route::prefix('categories')->name('categories.')->group(function () {
     Route::get('/', [App\Http\Controllers\CategoryController::class, 'index'])->name('index');
+    Route::get('/cards', [App\Http\Controllers\CategoryController::class, 'cards'])->name('cards');
     Route::get('/{category}', [App\Http\Controllers\CategoryController::class, 'show'])->name('show');
 });
 

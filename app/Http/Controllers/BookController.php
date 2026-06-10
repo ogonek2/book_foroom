@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Author;
+use App\Services\CategoryTreeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -29,8 +30,9 @@ class BookController extends Controller
             $slugs = array_values(array_filter(array_map(fn ($s) => is_string($s) ? trim($s) : '', $slugs)));
 
             if (! empty($slugs)) {
-                $query->whereHas('categories', function ($q) use ($slugs) {
-                    $q->whereIn('slug', $slugs);
+                $expandedSlugs = CategoryTreeService::expandSlugs($slugs);
+                $query->whereHas('categories', function ($q) use ($expandedSlugs) {
+                    $q->whereIn('slug', $expandedSlugs);
                 });
             }
         }
@@ -114,10 +116,8 @@ class BookController extends Controller
         }
 
         $books = $query->paginate(12);
-        $categories = Category::where('is_active', true)
-            ->withCount('books')
-            ->orderBy('name')
-            ->get();
+        $categoryTree = CategoryTreeService::toFrontendTree();
+        $totalBooksCount = Book::count();
 
         $languages = Book::query()
             ->select('language')
@@ -169,7 +169,7 @@ class BookController extends Controller
             ]);
         }
 
-        return view('books.index', compact('books', 'categories', 'userLibraries', 'languages'));
+        return view('books.index', compact('books', 'categoryTree', 'totalBooksCount', 'userLibraries', 'languages'));
     }
 
     /**

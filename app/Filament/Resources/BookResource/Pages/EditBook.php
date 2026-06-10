@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BookResource\Pages;
 
 use App\Filament\Resources\BookResource;
+use App\Models\Author;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Components\Tab;
@@ -48,14 +49,34 @@ class EditBook extends EditRecord
         ];
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $authorIds = $this->record->authors()->pluck('authors.id')->all();
+
+        if ($authorIds === [] && $this->record->author_id) {
+            $data['authors'] = [$this->record->author_id];
+        } elseif ($authorIds !== []) {
+            $data['authors'] = $authorIds;
+        }
+
+        return $data;
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        \Log::info('EditBook::mutateFormDataBeforeSave called', ['data' => $data]);
-
         unset($data['rating'], $data['reviews_count']);
 
         if (isset($data['cover_image']) && is_array($data['cover_image'])) {
             $data['cover_image'] = $data['cover_image'][0] ?? null;
+        }
+
+        $authorIds = array_values(array_filter((array) ($data['authors'] ?? [])));
+        if ($authorIds !== []) {
+            $data['author_id'] = $authorIds[0];
+            $author = Author::find($authorIds[0]);
+            if ($author) {
+                $data['author'] = $author->full_name;
+            }
         }
 
         return $data;

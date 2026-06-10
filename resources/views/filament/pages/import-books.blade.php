@@ -34,12 +34,16 @@
                 Инструкции по импорту:
             </h3>
             <ul class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                <li>• Скачайте шаблон Excel файла для правильного формата</li>
-                <li>• Заполните обязательные поля (как минимум `nazvanie` / `book_name_ua`)</li>
-                <li>• Если автор или жанр не найдены, система предложит создать их автоматически (см. предпросмотр)</li>
-                <li>• Для авторов используйте формат «Имя Фамилия»</li>
-                <li>• Для рекомендуемых книг используйте «Да» или «Нет»</li>
-                <li>• Сохраните файл в формате .xlsx или .xls</li>
+                <li>• Завантажте шаблон Excel — колонки відповідають актуальному формату імпорту</li>
+                <li>• Обовʼязково: <code>main_book_name</code> (або <code>book_name_ua</code>), <code>first_name_author</code> + <code>last_name_author</code>, <code>category</code></li>
+                <li>• Підкатегорії в імпорті: <code>Художня / Фантастика</code> або <code>Художня &gt; Фантастика</code> (кілька — через <code>;</code>)</li>
+                <li>• Автор: імʼя та прізвище в окремих колонках (подвійне прізвище — повністю в <code>last_name_author</code>)</li>
+                <li>• Кілька авторів: розділяйте <code>;</code> у <code>first_name_author</code> та <code>last_name_author</code></li>
+                <li>• <code>avtor_staryy</code> — необовʼязково, для повного імені в картці книги</li>
+                <li>• <code>num_in_series</code> — 1, 1.5, бонус; <code>cycle</code> — цикл творів; <code>format</code> — формат(и) через <code>;</code></li>
+                <li>• <code>included_works</code> — зміст збірника через <code>;</code> або <code>|</code></li>
+                <li>• <code>UKR_publish_year</code> і <code>first_publish_year</code> — окремі роки (не плутати)</li>
+                <li>• <code>recommend</code>: Так / Ні</li>
             </ul>
         </div>
         

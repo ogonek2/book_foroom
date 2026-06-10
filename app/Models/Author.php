@@ -153,7 +153,12 @@ class Author extends Model
 
     public function scopeByLetter($query, string $letter)
     {
-        return $query->where('last_name', 'like', $letter . '%');
+        $letter = mb_strtoupper($letter);
+
+        return $query->where(function ($q) use ($letter) {
+            $q->where('last_name', 'like', $letter . '%')
+                ->orWhere('last_name_ua', 'like', $letter . '%');
+        });
     }
 
     public function scopeByNationality($query, string $nationality)

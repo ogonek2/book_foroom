@@ -10,53 +10,41 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class BooksTemplateExport implements FromArray, WithHeadings, WithStyles, WithColumnWidths
 {
-    /**
-     * @return array
-     */
     public function array(): array
     {
-        // Возвращаем пустой массив, так как это шаблон
         return [];
     }
 
-    /**
-     * @return array
-     */
     public function headings(): array
     {
         return [
-            'nazvanie',             // Название (основное, ОБЯЗАТЕЛЬНО)
-            'book_name_ua',         // Название украинською
-            'slag',                 // Слаг (автогенерация при пустом)
-            'annotation',           // Анотація
-            'annotation_source',    // Джерело анотації
-            'avtor_staryy',         // Автор (старый) (опционально)
-            'avtor',                // Автор (создается автоматически)
-            'isbn',                 // ISBN (опционально)
-            'god_izdaniya',         // Год издания (опционально)
-            'first_publish_year',   // Рік першого видання
-            'izdatelstvo',          // Издательство (опционально)
-            'oblozhka',             // Обложка (опционально)
-            'yazyk',                // Язык (по умолчанию: ru)
-            'original_language',    // Мова оригіналу
-            'synonyms',             // Синоніми (через кому)
-            'series',               // Серія
-            'stranitsy',            // Страницы (опционально)
-            'reiting',              // Рейтинг (опционально)
-            'kolichestvo_recenziy', // Количество рецензий (опционально)
-            'kategoriya',           // Категории (через кому, создаются автоматически)
-            'rekomenduemaya',       // Рекомендуемая (Да/Нет)
+            'main_book_name',
+            'book_name_ua',
+            'slag',
+            'annotation',
+            'annotation_source',
+            'avtor_staryy',
+            'first_name_author',
+            'last_name_author',
+            'UKR_publish_year',
+            'first_publish_year',
+            'cover',
+            'original_language',
+            'synonym',
+            'series',
+            'num_in_series',
+            'cycle',
+            'format',
+            'included_works',
+            'pages',
+            'category',
+            'recommend',
         ];
     }
 
-    /**
-     * @param Worksheet $sheet
-     * @return array
-     */
     public function styles(Worksheet $sheet)
     {
         return [
-            // Заголовки
             1 => [
                 'font' => [
                     'bold' => true,
@@ -72,33 +60,30 @@ class BooksTemplateExport implements FromArray, WithHeadings, WithStyles, WithCo
         ];
     }
 
-    /**
-     * @return array
-     */
     public function columnWidths(): array
     {
         return [
-            'A' => 30,  // Название
-            'B' => 30,  // Название UA
-            'C' => 20,  // Слаг
-            'D' => 40,  // Анотація
-            'E' => 25,  // Джерело анотації
-            'F' => 20,  // Автор (старый)
-            'G' => 25,  // Автор
-            'H' => 15,  // ISBN
-            'I' => 12,  // Год издания
-            'J' => 12,  // Перше видання
-            'K' => 20,  // Издательство
-            'L' => 30,  // Обложка
-            'M' => 8,   // Язык
-            'N' => 10,  // Мова оригіналу
-            'O' => 30,  // Синоніми
-            'P' => 20,  // Серія
-            'Q' => 10,  // Страницы
-            'R' => 10,  // Рейтинг
-            'S' => 15,  // Количество рецензий
-            'T' => 30,  // Категории
-            'U' => 12,  // Рекомендуемая
+            'A' => 30,  // main_book_name
+            'B' => 30,  // book_name_ua
+            'C' => 22,  // slag
+            'D' => 40,  // annotation
+            'E' => 25,  // annotation_source
+            'F' => 28,  // avtor_staryy
+            'G' => 18,  // first_name_author
+            'H' => 22,  // last_name_author
+            'I' => 14,  // UKR_publish_year
+            'J' => 14,  // first_publish_year
+            'K' => 30,  // cover
+            'L' => 14,  // original_language
+            'M' => 30,  // synonym
+            'N' => 20,  // series
+            'O' => 14,  // num_in_series
+            'P' => 22,  // cycle
+            'Q' => 24,  // format
+            'R' => 36,  // included_works
+            'S' => 10,  // pages
+            'T' => 30,  // category
+            'U' => 12,  // recommend
         ];
     }
 }

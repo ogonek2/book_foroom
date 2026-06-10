@@ -66,11 +66,17 @@
                                         class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ !request('letter') ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
                                         Усі
                                     </a>
-                                    @foreach ($letters as $letter)
-                                        <a href="{{ route('authors.index', array_merge(request()->except('letter'), ['letter' => $letter])) }}"
-                                            class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ request('letter') == $letter ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
-                                            {{ $letter }}
-                                        </a>
+                                    @foreach ($letters as $item)
+                                        @if ($item['active'])
+                                            <a href="{{ route('authors.index', array_merge(request()->except('letter'), ['letter' => $item['letter']])) }}"
+                                                class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ request('letter') == $item['letter'] ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
+                                                {{ $item['letter'] }}
+                                            </a>
+                                        @else
+                                            <span class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-default">
+                                                {{ $item['letter'] }}
+                                            </span>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>
@@ -227,11 +233,17 @@
                                         class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ !request('letter') ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
                                         Усі
                                     </a>
-                                    @foreach ($letters as $letter)
-                                        <a href="{{ route('authors.index', array_merge(request()->except('letter'), ['letter' => $letter])) }}"
-                                            class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ request('letter') == $letter ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
-                                            {{ $letter }}
-                                        </a>
+                                    @foreach ($letters as $item)
+                                        @if ($item['active'])
+                                            <a href="{{ route('authors.index', array_merge(request()->except('letter'), ['letter' => $item['letter']])) }}"
+                                                class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full {{ request('letter') == $item['letter'] ? 'bg-gradient-to-r from-brand-500 to-accent-500 text-white scale-110' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' }} transition-all duration-200">
+                                                {{ $item['letter'] }}
+                                            </a>
+                                        @else
+                                            <span class="w-10 h-10 flex items-center justify-center text-sm font-medium rounded-full bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-default">
+                                                {{ $item['letter'] }}
+                                            </span>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>

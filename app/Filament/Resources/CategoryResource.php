@@ -3,35 +3,77 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
-use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
+use App\Services\CategoryTreeService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    
-    protected static ?string $navigationLabel = 'Категории';
-    
-    protected static ?string $modelLabel = 'Категория';
-    
-    protected static ?string $pluralModelLabel = 'Категории';
+
+    protected static ?string $navigationLabel = 'Категорії';
+
+    protected static ?string $modelLabel = 'Категорія';
+
+    protected static ?string $pluralModelLabel = 'Категорії';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('parent_id')
+                    ->label('Батьківська категорія')
+                    ->options(function (?Category $record): array {
+                        $categories = Category::query()
+                            ->orderBy('sort_order')
+                            ->orderBy('name')
+                            ->get();
+
+                        $exclude = [];
+                        if ($record) {
+                            $descendants = CategoryTreeService::descendantIdsMap($categories);
+                            $exclude = array_merge([$record->id], $descendants[$record->id] ?? []);
+                        }
+
+                        $options = [];
+                        foreach ($categories as $category) {
+                            if (in_array($category->id, $exclude, true)) {
+                                continue;
+                            }
+
+                            $prefix = '';
+                            $parent = $category->parent_id
+                                ? $categories->firstWhere('id', $category->parent_id)
+                                : null;
+                            if ($parent) {
+                                $prefix = '— ';
+                            }
+
+                            $options[$category->id] = $prefix . $category->name;
+                        }
+
+                        return $options;
+                    })
+                    ->searchable()
+                    ->nullable()
+                    ->helperText('Залиште порожнім для кореневої категорії'),
                 Forms\Components\TextInput::make('name')
+                    ->label('Назва')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (string $operation, ?string $state, Forms\Set $set) {
+                        if ($operation !== 'create' || !$state) {
+                            return;
+                        }
+                        $set('slug', \Illuminate\Support\Str::slug($state));
+                    }),
                 Forms\Components\TextInput::make('slug')
                     ->required()
                     ->maxLength(255),
@@ -44,11 +86,14 @@ class CategoryResource extends Resource
                 Forms\Components\TextInput::make('icon')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('sort_order')
+                    ->label('Порядок')
                     ->required()
                     ->numeric()
                     ->default(0),
                 Forms\Components\Toggle::make('is_active')
-                    ->required(),
+                    ->label('Активна')
+                    ->required()
+                    ->default(true),
             ]);
     }
 
@@ -57,29 +102,39 @@ class CategoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Назва')
+                    ->searchable()
+                    ->formatStateUsing(function (string $state, Category $record): string {
+                        return ($record->parent_id ? '— ' : '') . $state;
+                    }),
+                Tables\Columns\TextColumn::make('parent.name')
+                    ->label('Батьківська')
+                    ->placeholder('—')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('slug')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('color')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('icon')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('books_count')
+                    ->label('Книг')
+                    ->counts('books'),
+                Tables\Columns\TextColumn::make('children_count')
+                    ->label('Підкатегорій')
+                    ->counts('children'),
                 Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Порядок')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label('Активна')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('sort_order')
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('is_active')->label('Активна'),
+                Tables\Filters\SelectFilter::make('parent_id')
+                    ->label('Батьківська')
+                    ->relationship('parent', 'name')
+                    ->searchable(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -89,13 +144,6 @@ class CategoryResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

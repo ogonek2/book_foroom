@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Author;
 use App\Models\Category;
+use App\Support\UkrainianAlphabet;
 use App\Models\Review;
 use App\Models\Quote;
 use App\Models\Fact;
@@ -51,12 +52,20 @@ class AuthorController extends Controller
                 ->pluck('nationality');
         });
 
-        $letters = Cache::remember('authors_letters', 3600, function () {
-            return Author::selectRaw('UPPER(SUBSTRING(last_name, 1, 1)) as letter')
-                ->distinct()
-                ->orderBy('letter')
-                ->pluck('letter');
+        $activeLetters = Cache::remember('authors_active_letters', 3600, function () {
+            return Author::query()
+                ->get(['last_name', 'last_name_ua'])
+                ->map(fn (Author $author) => UkrainianAlphabet::sortLetter($author->last_name_ua, $author->last_name))
+                ->filter()
+                ->unique()
+                ->values();
         });
+
+        $letters = collect(UkrainianAlphabet::letters())
+            ->map(fn (string $letter) => [
+                'letter' => $letter,
+                'active' => $activeLetters->contains($letter),
+            ]);
 
         return view('authors.index', compact('authors', 'nationalities', 'letters'));
     }

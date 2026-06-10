@@ -1,111 +1,194 @@
 @extends('layouts.app')
 
-@section('title', $category->name . ' - Книги')
+@section('title', $category->name . ' — Категорія')
+
+@php
+    $booksCountLabel = function (int $n): string {
+        $mod10 = $n % 10;
+        $mod100 = $n % 100;
+        if ($mod10 === 1 && $mod100 !== 11) {
+            return $n . ' книга';
+        }
+        if ($mod10 >= 2 && $mod10 <= 4 && ($mod100 < 10 || $mod100 >= 20)) {
+            return $n . ' книги';
+        }
+
+        return $n . ' книг';
+    };
+@endphp
 
 @section('main')
-<div class="max-w-6xl mx-auto">
-    <!-- Breadcrumb -->
-    <nav class="flex mb-6" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-                <a href="{{ route('categories.index') }}" class="text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">
-                    Категории
+<div class="max-w-7xl mx-auto pb-20">
+    {{-- Breadcrumb --}}
+    <nav class="pt-4 pb-2 flex flex-wrap items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400" aria-label="Breadcrumb">
+        <a href="{{ route('categories.index') }}" class="hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+            Категорії
+        </a>
+        @foreach($breadcrumbs as $crumb)
+            <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            @if($crumb->id === $category->id)
+                <span class="text-gray-700 dark:text-gray-200 font-medium truncate max-w-[12rem] sm:max-w-none">{{ $crumb->name }}</span>
+            @else
+                <a href="{{ route('categories.show', $crumb->slug) }}" class="hover:text-orange-600 dark:hover:text-orange-400 transition-colors truncate max-w-[10rem] sm:max-w-none">
+                    {{ $crumb->name }}
                 </a>
-            </li>
-            <li>
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                    </svg>
-                    <span class="ml-1 text-gray-500 md:ml-2 dark:text-gray-400">{{ $category->name }}</span>
-                </div>
-            </li>
-        </ol>
+            @endif
+        @endforeach
     </nav>
 
-    <!-- Category Header -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-        <div class="p-6">
-            <div class="flex items-center space-x-4">
-                <div class="w-16 h-16 rounded-lg flex items-center justify-center" style="background-color: {{ $category->color }}">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $category->name }}</h1>
-                    @if($category->description)
-                        <p class="text-gray-600 dark:text-gray-400 mt-1">{{ $category->description }}</p>
-                    @endif
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $books->total() }} книг</p>
-                    <a href="{{ route('forum.categories.show', $category->slug) }}" 
-                       class="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
-                        Обсуждения →
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- Hero --}}
+    <header class="pt-4 pb-8 sm:pb-10">
+        @if($category->parent)
+            <p class="text-sm font-semibold tracking-wide text-orange-600 dark:text-orange-400 uppercase mb-2">
+                {{ $category->parent->name }}
+            </p>
+        @else
+            <p class="text-sm font-semibold tracking-wide text-orange-600 dark:text-orange-400 uppercase mb-2">FoxyBooks</p>
+        @endif
 
-    <!-- Books Grid -->
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+            <div class="min-w-0 flex-1">
+                <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight"
+                    style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;">
+                    {{ $category->name }}
+                </h1>
+                @if($category->description)
+                    <p class="mt-3 text-lg text-gray-600 dark:text-gray-400 max-w-2xl leading-relaxed">{{ $category->description }}</p>
+                @endif
+                <p class="mt-3 text-base text-gray-500 dark:text-gray-400 font-medium">
+                    {{ $booksCountLabel($booksCount) }}
+                    <span class="text-gray-400 dark:text-gray-500 font-normal">· з урахуванням підкатегорій</span>
+                </p>
+            </div>
+
+            <a href="{{ route('books.index', ['category' => $category->slug]) }}"
+                class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold hover:opacity-90 transition-all shadow-lg flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                Фільтрувати в каталозі
+            </a>
+        </div>
+    </header>
+
+    {{-- Subcategories --}}
+    @if($category->children->isNotEmpty())
+        <section class="mb-10 sm:mb-12">
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 px-0.5">
+                Підкатегорії
+            </h2>
+            <div class="subcat-scroll flex gap-2.5 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory">
+                @foreach($category->children as $child)
+                    <a href="{{ route('categories.show', $child->slug) }}"
+                        class="subcat-pill snap-start flex-shrink-0 inline-flex items-center px-4 py-2.5 rounded-full text-sm font-medium
+                            bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30
+                            text-gray-800 dark:text-gray-200 hover:bg-white/80 dark:hover:bg-gray-800/80 hover:shadow-md
+                            transition-all duration-200">
+                        {{ $child->name }}
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    {{-- Books shelf --}}
     @if($books->count() > 0)
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            @foreach($books as $book)
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-                    <div class="p-4">
-                        <div class="aspect-w-3 aspect-h-4 mb-4">
+        <section>
+            <div class="flex items-baseline justify-between gap-4 mb-5">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight"
+                    style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;">
+                    Книги
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
+                    Сторінка {{ $books->currentPage() }} з {{ $books->lastPage() }}
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-8 sm:gap-x-5 sm:gap-y-10">
+                @foreach($books as $book)
+                    <a href="{{ route('books.show', $book->slug) }}" class="book-shelf-item group block">
+                        <div class="book-cover-wrap relative rounded-xl overflow-hidden shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1">
                             <img src="{{ $book->cover_image_display }}" data-fallback="bookCover"
-                                 alt="{{ $book->title }}" 
-                                 class="w-full h-48 object-cover rounded-lg">
-                        </div>
-                        
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                            <a href="{{ route('books.show', $book->slug) }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                                {{ $book->title }}
-                            </a>
-                        </h3>
-                        
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ $book->author }}</p>
-                        
-                        <div class="flex items-center mb-2">
-                            <div class="flex items-center">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <svg class="w-4 h-4 {{ $i <= $book->rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                    </svg>
-                                @endfor
-                            </div>
-                            <span class="ml-1 text-sm text-gray-600 dark:text-gray-400">{{ $book->rating }}</span>
-                            <span class="ml-2 text-sm text-gray-500 dark:text-gray-500">({{ $book->reviews_count }})</span>
-                        </div>
-                        
-                        <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                            @if($book->publication_year)
-                                <span>{{ $book->publication_year }}</span>
-                            @endif
-                            @if($book->pages)
-                                <span>{{ $book->pages }} стр.</span>
+                                alt="{{ $book->book_name_ua ?: $book->title }}"
+                                class="w-full aspect-[2/3] object-cover bg-gray-100 dark:bg-gray-800"
+                                loading="{{ $loop->iteration <= 10 ? 'eager' : 'lazy' }}"
+                                decoding="async"
+                                @if($loop->iteration <= 10) fetchpriority="high" @endif
+                                width="200"
+                                height="300">
+                            @if($book->rating > 0)
+                                <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded-full text-[11px] font-bold
+                                    bg-black/55 backdrop-blur-sm text-white tabular-nums">
+                                    {{ number_format($book->rating, 1) }}
+                                </div>
                             @endif
                         </div>
-                    </div>
+                        <div class="mt-2.5 px-0.5">
+                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white leading-snug line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                {{ $book->book_name_ua ?: $book->title }}
+                            </h3>
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{{ $book->author }}</p>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+
+            @if($books->hasPages())
+                <div class="mt-12">
+                    {{ $books->links('vendor.pagination.custom') }}
                 </div>
-            @endforeach
-        </div>
-        
-        <!-- Pagination -->
-        <div class="mt-8">
-            {{ $books->links() }}
-        </div>
+            @endif
+        </section>
     @else
-        <div class="text-center py-12">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Нет книг</h3>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">В этой категории пока нет книг.</p>
+        <div class="text-center py-20 px-6 rounded-3xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30">
+            <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gray-100 dark:bg-gray-700/80 flex items-center justify-center">
+                <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white">У цій категорії поки немає книг</h3>
+            <p class="mt-2 text-gray-500 dark:text-gray-400">Спробуйте іншу підкатегорію або перегляньте весь каталог</p>
+            <a href="{{ route('books.index') }}" class="inline-flex items-center mt-6 px-6 py-3 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold hover:opacity-90 transition-all">
+                Перейти до каталогу
+            </a>
         </div>
     @endif
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .subcat-scroll {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .subcat-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .book-shelf-item {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .book-cover-wrap {
+        background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.04));
+    }
+
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+@endpush

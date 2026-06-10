@@ -47,14 +47,8 @@
             'total' => $books->total(),
         ];
 
-        $initialCategories = $categories->map(function ($category) {
-            return [
-                'id' => $category->id,
-                'name' => $category->name,
-                'slug' => $category->slug,
-                'books_count' => $category->books_count ?? 0,
-            ];
-        })->values();
+        $initialCategoryTree = $categoryTree ?? [];
+        $initialTotalBooksCount = $totalBooksCount ?? 0;
 
         $initialUserLibraries = $userLibraries->map(function ($library) {
             return [
@@ -166,40 +160,33 @@
                     <div
                         class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/30 dark:border-gray-700/30 p-6">
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Жанри</h3>
-                            <button v-if="filters.categories.length" @click="filters.categories = []; fetchBooks()"
-                                class="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
-                                Очистити
-                            </button>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Категорії</h3>
+                            <a href="{{ route('categories.index') }}"
+                                class="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline">
+                                Каталог
+                            </a>
                         </div>
 
-                        <input type="text" v-model.trim="categorySearch" placeholder="Пошук жанру..."
-                            class="w-full mb-3 px-4 py-3 border-0 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white dark:focus:bg-gray-600 transition-all duration-200">
+                        <button type="button" @click="openCategoryModal"
+                            class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold bg-purple-600 hover:bg-purple-700 text-white transition-colors">
+                            <span>Обрати категорії</span>
+                            <span v-if="filters.categories.length" class="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                                @{{ filters.categories.length }}
+                            </span>
+                        </button>
 
-                        <div class="space-y-2 max-h-[420px] overflow-y-auto custom-scroll">
-                            <button
-                                class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                                :class="filters.categories.length === 0 ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
-                                @click="filters.categories = []; fetchBooks()">
-                                <span>Всі категорії</span>
-                                <span class="text-xs text-gray-500 dark:text-gray-400">@{{ totalBooksCount }}</span>
-                            </button>
-
-                            <button v-for="category in filteredCategories" :key="category.slug"
-                                class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                                :class="isCategorySelected(category.slug) ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
-                                @click="toggleCategory(category.slug)">
-                                <span class="flex items-center gap-2 text-left">
-                                    <span class="inline-flex w-4">
-                                        <svg v-if="isCategorySelected(category.slug)" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.2 7.2a1 1 0 01-1.42 0l-3.2-3.2a1 1 0 011.42-1.42l2.49 2.49 6.49-6.49a1 1 0 011.42 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    </span>
-                                    @{{ category.name }}
-                                </span>
-                                <span class="text-xs text-gray-500 dark:text-gray-400">@{{ category.books_count }}</span>
-                            </button>
+                        <div v-if="selectedCategoryLabels.length" class="mt-3 flex flex-wrap gap-1.5">
+                            <span v-for="label in selectedCategoryLabels" :key="label.slug"
+                                class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-200">
+                                @{{ label.name }}
+                            </span>
                         </div>
+
+                        <button v-if="filters.categories.length" type="button"
+                            @click="filters.categories = []; fetchBooks()"
+                            class="mt-3 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline">
+                            Очистити категорії
+                        </button>
                     </div>
                 </div>
             </div>
@@ -226,7 +213,7 @@
                     </button>
                     <button v-if="filters.categories.length" @click="filters.categories=[]; fetchBooks()"
                         class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-200 hover:opacity-90 transition">
-                        Жанри: @{{ filters.categories.length }} ✕
+                        Категорії: @{{ filters.categories.length }} ✕
                     </button>
                     <button @click="resetFilters"
                         class="px-3 py-1 rounded-full text-xs font-semibold bg-purple-600 text-white hover:bg-purple-700 transition">
@@ -378,31 +365,12 @@
 
                             <!-- Categories -->
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Жанри</h3>
-                                <div class="space-y-2 max-h-[420px] overflow-y-auto custom-scroll">
-                                    <button
-                                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                                        :class="filters.categories.length === 0 ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
-                                        @click="filters.categories = []; fetchBooks()">
-                                        <span>Всі категорії</span>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">@{{ totalBooksCount }}</span>
-                                    </button>
-                                    <button v-for="category in filteredCategories" :key="category.slug"
-                                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
-                                        :class="isCategorySelected(category.slug) ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/70'"
-                                        @click="toggleCategory(category.slug)">
-                                        <span class="flex items-center gap-2 text-left">
-                                            <span class="inline-flex w-4">
-                                                <svg v-if="isCategorySelected(category.slug)" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.2 7.2a1 1 0 01-1.42 0l-3.2-3.2a1 1 0 011.42-1.42l2.49 2.49 6.49-6.49a1 1 0 011.42 0z" clip-rule="evenodd" />
-                                                </svg>
-                                            </span>
-                                            @{{ category.name }}
-                                        </span>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">@{{ category.books_count
-                                            }}</span>
-                                    </button>
-                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Категорії</h3>
+                                <button type="button" @click="openCategoryModal(); showMobileFilters = false"
+                                    class="w-full px-4 py-3 rounded-xl text-sm font-semibold bg-purple-600 hover:bg-purple-700 text-white transition-colors">
+                                    Обрати категорії
+                                    <span v-if="filters.categories.length">(@{{ filters.categories.length }})</span>
+                                </button>
                             </div>
 
                             <!-- Apply Button -->
@@ -416,6 +384,54 @@
                         </div>
                     </div>
                 </transition>
+            </div>
+        </transition>
+        <!-- Category picker modal -->
+        <transition name="fade">
+            <div v-if="showCategoryModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4"
+                @keydown.esc="showCategoryModal = false">
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showCategoryModal = false"></div>
+                <div class="relative w-full max-w-lg max-h-[85vh] flex flex-col bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Категорії</h3>
+                            <button type="button" @click="showCategoryModal = false"
+                                class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+                                ✕
+                            </button>
+                        </div>
+                        <input type="text" v-model.trim="categoryModalSearch" placeholder="Пошук категорії..."
+                            class="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-3 space-y-1 custom-scroll">
+                        <button v-for="category in filteredModalCategories" :key="category.slug" type="button"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+                            :class="isPendingCategorySelected(category.slug) ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-200' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'"
+                            :style="{ paddingLeft: (12 + category.depth * 16) + 'px' }"
+                            @click="togglePendingCategory(category.slug)">
+                            <span class="flex items-center gap-2 text-left">
+                                <span class="inline-flex w-4 h-4 border rounded"
+                                    :class="isPendingCategorySelected(category.slug) ? 'bg-purple-600 border-purple-600' : 'border-gray-300 dark:border-gray-600'">
+                                    <svg v-if="isPendingCategorySelected(category.slug)" class="w-4 h-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.2 7.2a1 1 0 01-1.42 0l-3.2-3.2a1 1 0 011.42-1.42l2.49 2.49 6.49-6.49a1 1 0 011.42 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                                @{{ category.name }}
+                            </span>
+                            <span class="text-xs text-gray-500">@{{ category.books_count }}</span>
+                        </button>
+                    </div>
+                    <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex gap-2">
+                        <button type="button" @click="pendingCategories = []"
+                            class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200">
+                            Очистити
+                        </button>
+                        <button type="button" @click="applyCategoryFilter"
+                            class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold bg-purple-600 hover:bg-purple-700 text-white">
+                            Застосувати
+                        </button>
+                    </div>
+                </div>
             </div>
         </transition>
     </div>
@@ -450,24 +466,43 @@
                     const booksBrowser = new Vue({
                         el: '#books-browser',
                         computed: {
-                            totalBooksCount() {
-                                return this.categories.reduce((total, category) => total + (Number(category.books_count) || 0), 0);
+                            flatCategories() {
+                                const result = [];
+                                const walk = (nodes, depth = 0) => {
+                                    (nodes || []).forEach(node => {
+                                        result.push({ ...node, depth });
+                                        if (node.children && node.children.length) {
+                                            walk(node.children, depth + 1);
+                                        }
+                                    });
+                                };
+                                walk(this.categoryTree);
+                                return result;
+                            },
+                            filteredModalCategories() {
+                                const q = (this.categoryModalSearch || '').toLowerCase();
+                                if (!q) return this.flatCategories;
+                                return this.flatCategories.filter(c => (c.name || '').toLowerCase().includes(q));
+                            },
+                            selectedCategoryLabels() {
+                                const map = {};
+                                this.flatCategories.forEach(c => { map[c.slug] = c.name; });
+                                return this.filters.categories.map(slug => ({
+                                    slug,
+                                    name: map[slug] || slug,
+                                }));
                             },
                             hasActiveFilters() {
                                 const y = (this.filters.year_from !== null && this.filters.year_from !== '') || (this.filters.year_to !== null && this.filters.year_to !== '');
                                 return !!(this.filters.search || this.filters.categories.length || this.filters.sort !== 'rating' || this.filters.author || this.filters.language || y || this.filters.rating_range[0] !== 1 || this.filters.rating_range[1] !== 10);
                             },
-                            filteredCategories() {
-                                const q = (this.categorySearch || '').toLowerCase();
-                                if (!q) return this.categories;
-                                return this.categories.filter(c => (c.name || '').toLowerCase().includes(q));
-                            }
                         },
                         data: {
                             books: @js($initialBooks), // Початкові дані для SSR
                             pagination: @js($initialPagination),
                             userLibraries: @js($initialUserLibraries),
-                            categories: @js($initialCategories),
+                            categoryTree: @js($initialCategoryTree),
+                            totalBooksCount: @js($initialTotalBooksCount),
                             languages: @js($initialLanguages),
                             filters: {
                                 search: @json(request('search', '')),
@@ -482,7 +517,9 @@
                                     Number(@json(request('rating_max', 10)))
                                 ],
                             },
-                            categorySearch: '',
+                            showCategoryModal: false,
+                            categoryModalSearch: '',
+                            pendingCategories: [],
                             loading: false,
                             error: null,
                             debounceTimer: null,
@@ -717,6 +754,27 @@
             },
             selectCategory(slug) {
                 this.toggleCategory(slug);
+            },
+            openCategoryModal() {
+                this.pendingCategories = [...this.filters.categories];
+                this.categoryModalSearch = '';
+                this.showCategoryModal = true;
+            },
+            applyCategoryFilter() {
+                this.filters.categories = [...this.pendingCategories];
+                this.showCategoryModal = false;
+                this.fetchBooks();
+            },
+            togglePendingCategory(slug) {
+                const idx = this.pendingCategories.indexOf(slug);
+                if (idx >= 0) {
+                    this.pendingCategories.splice(idx, 1);
+                } else {
+                    this.pendingCategories.push(slug);
+                }
+            },
+            isPendingCategorySelected(slug) {
+                return this.pendingCategories.includes(slug);
             },
             resetFilters() {
                 this.filters.search = '';

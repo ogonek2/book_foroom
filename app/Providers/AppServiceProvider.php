@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\App;
+use App\Models\Book;
+use App\Observers\BookObserver;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,8 +25,9 @@ class AppServiceProvider extends ServiceProvider
     {
         \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.custom');
         
-        // Устанавливаем локаль на украинский
         App::setLocale('uk');
         Carbon::setLocale('uk');
+
+        Book::observe(BookObserver::class);
     }
 }

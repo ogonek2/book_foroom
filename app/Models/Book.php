@@ -45,6 +45,8 @@ class Book extends Model
         'synonyms',
         'series',
         'series_number',
+        'cycle',
+        'included_works',
     ];
 
     protected $casts = [
@@ -53,10 +55,10 @@ class Book extends Model
         'pages' => 'integer',
         'publication_year' => 'integer',
         'first_publish_year' => 'integer',
-        'series_number' => 'integer',
         'is_featured' => 'boolean',
         'interesting_facts' => 'array',
         'synonyms' => 'array',
+        'included_works' => 'array',
         'gutenberg_formats' => 'array',
         'gutenberg_issued_at' => 'datetime',
     ];
@@ -101,6 +103,12 @@ class Book extends Model
     {
         return $this->belongsToMany(Category::class, 'book_category')
                     ->withTimestamps();
+    }
+
+    public function formats(): BelongsToMany
+    {
+        return $this->belongsToMany(BookFormat::class, 'book_format')
+            ->withTimestamps();
     }
 
     /**

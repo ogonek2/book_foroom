@@ -13,6 +13,7 @@ use App\Filament\Resources\BookResource\RelationManagers;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Author;
+use App\Support\BookLanguage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -76,18 +77,16 @@ class BookResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Автор и издательство')
+                Forms\Components\Section::make('Автор і видавництво')
                     ->schema([
-                        Forms\Components\TextInput::make('author')
-                            ->label('Автор (старое поле)')
-                            ->maxLength(255)
-                            ->helperText('Для совместимости со старыми данными'),
-                        Forms\Components\Select::make('author_id')
-                            ->label('Автор')
-                            ->relationship('author', 'first_name')
+                        Forms\Components\Select::make('authors')
+                            ->label('Автори')
+                            ->relationship('authors', 'first_name')
                             ->getOptionLabelFromRecordUsing(fn (Author $record): string => $record->full_name)
+                            ->multiple()
                             ->searchable(['first_name', 'last_name', 'middle_name'])
                             ->preload()
+                            ->required()
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('first_name')
                                     ->required()
@@ -98,7 +97,9 @@ class BookResource extends Resource
                                 Forms\Components\Textarea::make('biography')
                                     ->rows(3),
                             ])
-                            ->helperText('Выберите или создайте нового автора'),
+                            ->helperText('Можна обрати кількох авторів (співавторство). Перший автор — основний.'),
+                        Forms\Components\Hidden::make('author_id'),
+                        Forms\Components\Hidden::make('author'),
                         Forms\Components\TextInput::make('publisher')
                             ->maxLength(255)
                             ->helperText('Название издательства'),
@@ -125,33 +126,20 @@ class BookResource extends Resource
                             ->minValue(1)
                             ->helperText('Количество страниц'),
                         Forms\Components\Select::make('language')
-                            ->options([
-                                'ru' => 'Русский',
-                                'uk' => 'Украинский',
-                                'en' => 'Английский',
-                                'de' => 'Немецкий',
-                                'fr' => 'Французский',
-                                'es' => 'Испанский',
-                            ])
-                            ->default('ru')
-                            ->helperText('Язык книги'),
+                            ->label('Мова видання')
+                            ->options(BookLanguage::options())
+                            ->placeholder('Не вказано')
+                            ->nullable()
+                            ->searchable()
+                            ->helperText('Мова цього видання в каталозі (не обовʼязково)'),
                         Forms\Components\Select::make('original_language')
                             ->label('Мова оригіналу')
-                            ->options([
-                                'ru' => 'Русский',
-                                'uk' => 'Українська',
-                                'en' => 'English',
-                                'de' => 'Deutsch',
-                                'fr' => 'Français',
-                                'es' => 'Español',
-                                'it' => 'Italiano',
-                                'pl' => 'Polski',
-                                'ja' => '日本語',
-                                'zh' => '中文',
-                            ])
+                            ->options(BookLanguage::options())
+                            ->placeholder('Не вказано')
+                            ->nullable()
                             ->searchable()
                             ->preload()
-                            ->helperText('Вкажіть мову оригіналу'),
+                            ->helperText('Мова, якою написано твір'),
                     ])
                     ->columns(2),
 
@@ -160,28 +148,60 @@ class BookResource extends Resource
                         Forms\Components\TagsInput::make('synonyms')
                             ->label('Синоніми / альтернативні назви')
                             ->placeholder('Додайте назву та натисніть Enter')
-                            ->helperText('Використовуйте Enter для додавання кількох значень'),
+                            ->helperText('Кожен синонім — окремий тег (Enter). У Excel імпорті розділяйте «;» або «|», не комою.'),
                         Forms\Components\TextInput::make('series')
                             ->label('Серія')
                             ->maxLength(255)
                             ->helperText('Якщо книга входить до серії'),
                         Forms\Components\TextInput::make('series_number')
                             ->label('Номер у серії')
-                            ->numeric()
-                            ->minValue(1)
-                            ->helperText('Номер книги в серії (наприклад, 1, 2, 3...)'),
+                            ->maxLength(50)
+                            ->helperText('Наприклад: 1, 1.5, 2.1, бонус, 0.5'),
+                        Forms\Components\TextInput::make('cycle')
+                            ->label('Цикл')
+                            ->maxLength(255)
+                            ->helperText('Наприклад, спільна назва циклу творів (не плутати з серією видань)'),
+                        Forms\Components\TagsInput::make('included_works')
+                            ->label('Зміст збірника')
+                            ->placeholder('Назва твору та Enter')
+                            ->helperText('Список творів у збірнику. У Excel — через «;» або «|»'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Категорії та статус')
+                Forms\Components\Section::make('Формат видання')
                     ->schema([
-                        Forms\Components\CheckboxList::make('categories')
-                            ->relationship('categories', 'name')
+                        Forms\Components\CheckboxList::make('formats')
+                            ->label('Формати')
+                            ->relationship(
+                                'formats',
+                                'name',
+                                fn ($query) => $query->where('is_active', true)->orderBy('sort_order')
+                            )
                             ->searchable()
                             ->bulkToggleable()
                             ->columns(2)
                             ->gridDirection('row')
-                            ->helperText('Выберите одну или несколько категорий для книги')
+                            ->helperText('Залиште порожнім для звичайної книги. Список форматів — у розділі «Формати книг»'),
+                    ]),
+
+                Forms\Components\Section::make('Категорії та статус')
+                    ->schema([
+                        Forms\Components\CheckboxList::make('categories')
+                            ->relationship(
+                                'categories',
+                                'name',
+                                fn ($query) => $query->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')
+                            )
+                            ->getOptionLabelFromRecordUsing(function (Category $record): string {
+                                $prefix = $record->parent_id ? '— ' : '';
+
+                                return $prefix . $record->name;
+                            })
+                            ->searchable()
+                            ->bulkToggleable()
+                            ->columns(2)
+                            ->gridDirection('row')
+                            ->helperText('Можна обрати кілька категорій, включно з підкатегоріями')
                             ->required(),
                         Forms\Components\Toggle::make('is_featured')
                             ->label('Рекомендуемая')

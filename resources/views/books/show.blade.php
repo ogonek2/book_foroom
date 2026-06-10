@@ -532,7 +532,7 @@ if ($book->publication_year) {
                                 @if($seriesNumber !== null && $seriesNumber !== '')
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">№ у серії</span>
-                                    <span class="text-sm text-gray-900 dark:text-white">{{ (int)$seriesNumber }}</span>
+                                    <span class="text-sm text-gray-900 dark:text-white">{{ $seriesNumber }}</span>
                                 </div>
                                 @endif
                             </div>

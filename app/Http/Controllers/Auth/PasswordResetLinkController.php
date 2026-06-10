@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
+use Symfony\Component\Mailer\Exception\TransportException;
 
 class PasswordResetLinkController extends Controller
 {
@@ -31,9 +33,21 @@ class PasswordResetLinkController extends Controller
             'email' => 'required|email',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        try {
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
+        } catch (TransportException $e) {
+            Log::error('Password reset mail failed', [
+                'email' => $request->input('email'),
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()->withInput($request->only('email'))
+                ->withErrors([
+                    'email' => 'Наразі не вдалося надіслати лист. Спробуйте пізніше або зверніться до адміністратора.',
+                ]);
+        }
 
         if ($status == Password::RESET_LINK_SENT) {
             return back()->with('status', 'Якщо вказана електронна адреса зареєстрована в системі, ми надіслали вам посилання для відновлення пароля.');

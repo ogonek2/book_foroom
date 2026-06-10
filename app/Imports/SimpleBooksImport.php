@@ -5,7 +5,10 @@ namespace App\Imports;
 use App\Helpers\CDNUploader;
 use App\Models\Author;
 use App\Models\Book;
+use App\Models\BookFormat;
 use App\Models\Category;
+use App\Services\CategoryTreeService;
+use App\Support\BookLanguage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -42,7 +45,7 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
             return null;
         }
 
-        Log::info("Обрабатываем строку {$this->currentRowNumber}: " . ($row['nazvanie'] ?? $row['book_name_ua'] ?? 'Без названия'));
+        Log::info("Обрабатываем строку {$this->currentRowNumber}: " . ($this->rowValue($row, ['main_book_name', 'nazvanie']) ?? $row['book_name_ua'] ?? 'Без названия'));
 
         try {
             return DB::transaction(function () use ($row) {
@@ -86,6 +89,18 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
                     $book->categories()->sync($categoryIds);
                 }
 
+                $formatIds = $result['format_ids'] ?? [];
+                if (!empty($formatIds)) {
+                    $book->formats()->sync($formatIds);
+                }
+
+                $authorIds = $result['author_ids'] ?? [];
+                if (!empty($authorIds)) {
+                    $book->authors()->sync($authorIds);
+                } elseif ($book->author_id) {
+                    $book->authors()->syncWithoutDetaching([$book->author_id]);
+                }
+
                 $this->rowCount++;
 
                 $action = $book->wasRecentlyCreated ? 'Создана' : ($existingBookId ? 'Обновлена' : 'Создана');
@@ -106,14 +121,21 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
         $errors = [];
         $warnings = [];
 
-        $title = trim($row['nazvanie'] ?? $row['book_name_ua'] ?? '');
+        $title = trim($this->rowValue($row, ['main_book_name', 'nazvanie']) ?? '');
         if ($title === '') {
-            $errors[] = 'Название книги обязательно';
+            $title = trim((string) ($row['book_name_ua'] ?? ''));
+        }
+        if ($title === '') {
+            $errors[] = 'Назва книги обовʼязкова (main_book_name або book_name_ua)';
         }
 
-        $titleUa = trim($row['book_name_ua'] ?? $row['nazvanie'] ?? '') ?: null;
+        $titleUa = trim((string) ($row['book_name_ua'] ?? '')) ?: null;
+        if ($titleUa === $title) {
+            $titleUa = null;
+        }
 
-        $slug = !empty($row['slag']) ? Str::slug($row['slag']) : Str::slug($title);
+        $slugSource = $this->rowValue($row, ['slag', 'slug']);
+        $slug = $slugSource !== null && $slugSource !== '' ? Str::slug($slugSource) : Str::slug($title);
         $originalSlug = $slug;
 
         $existingBook = $this->findExistingBook($title, $titleUa, $slug);
@@ -157,60 +179,74 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
             : (!empty($row['opisanie']) ? trim($row['opisanie']) : null);
         $annotationSource = !empty($row['annotation_source']) ? trim($row['annotation_source']) : null;
 
-        $isbn = !empty($row['isbn']) ? trim($row['isbn']) : null;
+        $ukrYearRaw = $this->rowValue($row, ['ukr_publish_year', 'UKR_publish_year', 'god_izdaniya']);
+        $firstYearRaw = $this->rowValue($row, ['first_publish_year']);
 
-        $publicationYear = $this->extractYear($row['god_izdaniya'] ?? '');
-        $firstPublishYear = $this->extractYear($row['first_publish_year'] ?? '') ?? $publicationYear;
+        $publicationYear = $ukrYearRaw !== null ? $this->extractYear($ukrYearRaw) : null;
+        $firstPublishYear = $firstYearRaw !== null ? $this->extractYear($firstYearRaw) : null;
+
+        if ($ukrYearRaw !== null && $publicationYear === null) {
+            $warnings[] = "Не вдалося розпізнати UKR_publish_year: '{$ukrYearRaw}'";
+        }
+        if ($firstYearRaw !== null && $firstPublishYear === null) {
+            $warnings[] = "Не вдалося розпізнати first_publish_year: '{$firstYearRaw}'";
+        }
+
         if (!$publicationYear && $firstPublishYear) {
             $publicationYear = $firstPublishYear;
         }
 
-        $publisher = !empty($row['izdatelstvo'] ?? $row['publisher'] ?? $row['publishers'] ?? null)
-            ? trim($row['izdatelstvo'] ?? $row['publisher'] ?? $row['publishers'])
-            : null;
-
-        $coverImageSource = !empty($row['oblozhka'])
-            ? trim($row['oblozhka'])
-            : (!empty($row['img']) ? trim($row['img']) : null);
+        $coverImageSource = $this->rowValue($row, ['cover', 'oblozhka', 'img']);
+        $coverImageSource = $coverImageSource !== null ? trim($coverImageSource) : null;
 
         $coverImage = $this->processCoverImage($coverImageSource, $warnings, $errors);
 
-        $language = $this->mapLanguage($row['yazyk'] ?? '');
-        $originalLanguage = $this->mapLanguage($row['original_language'] ?? $row['book_name_eng'] ?? '') ?: $language;
+        $originalLanguage = BookLanguage::mapImportValue(
+            $row['original_language'] ?? $row['mova_originalu'] ?? null
+        );
 
-        $pages = $this->extractNumber($row['pages'] ?? $row['stranitsy'] ?? '');
-        $rating = $this->extractRating($row['reiting'] ?? '');
-        $reviewsCount = $this->extractNumber($row['kolichestvo_recenziy'] ?? '') ?? 0;
+        $pages = $this->extractNumber($this->rowValue($row, ['pages', 'stranitsy']) ?? '');
 
-        $categorySource = $row['genre'] ?? $row['kategoriya'] ?? '';
+        $categorySource = $this->rowValue($row, ['category', 'kategoriya', 'genre']) ?? '';
         $categories = $this->resolveCategories($categorySource);
         if (empty($categories['names'])) {
-            $errors[] = 'Жанр/категория обязательна';
+            $errors[] = 'Категорія обовʼязкова (category)';
         }
 
-        $legacyAuthor = !empty($row['avtor_staryy']) ? trim($row['avtor_staryy']) : null;
+        $authorsInfo = $this->resolveAuthorsFromRow($row);
+        $authorIds = $authorsInfo['ids'];
+        $authorId = $authorIds[0] ?? null;
+        $warnings = array_merge($warnings, $authorsInfo['warnings']);
 
-        $authorRaw = $row['author'] ?? $row['avtor'] ?? $legacyAuthor ?? '';
-        $authorInfo = $this->resolveAuthor($authorRaw);
-        $authorId = $authorInfo['id'];
-        if ($authorInfo['warning']) {
-            $warnings[] = $authorInfo['warning'];
-        }
-
-        $authorDisplayName = $legacyAuthor
-            ?: ($authorInfo['name'] ?? null)
-            ?: (is_string($authorRaw) ? trim($authorRaw) : null);
+        $authorDisplayName = trim((string) ($row['avtor_staryy'] ?? '')) ?: $authorsInfo['display_name'];
 
         if (!$authorDisplayName) {
-            $errors[] = 'Автор обязателен';
+            $errors[] = 'Автор обовʼязковий: first_name_author + last_name_author або avtor_staryy';
         }
 
-        $isFeatured = $this->parseBoolean($row['rekomenduemaya'] ?? '');
+        $isFeatured = $this->parseBoolean(
+            $this->rowValue($row, ['recommend', 'rekomenduemaya']) ?? ''
+        );
 
-        $synonyms = $this->parseSynonyms($row['synonyms'] ?? '');
-        $series = !empty($row['series'] ?? $row['seriia'] ?? $row['seriya'] ?? $row['series_name'] ?? null)
-            ? trim($row['series'] ?? $row['seriia'] ?? $row['seriya'] ?? $row['series_name'])
-            : null;
+        $synonyms = $this->parseSynonyms(
+            $this->rowValue($row, ['synonym', 'synonyms']) ?? ''
+        );
+        $series = $this->rowValue($row, ['series', 'seriia', 'seriya', 'series_name']);
+        $series = $series !== null && trim($series) !== '' ? trim($series) : null;
+        $seriesNumber = $this->parseSeriesNumber(
+            $this->rowValue($row, ['num_in_series', 'nomer_v_serii', 'series_number', 'nomer_v_seriyi']) ?? ''
+        );
+
+        $cycle = $this->rowValue($row, ['cycle', 'tsikl', 'cikl']);
+        $cycle = $cycle !== null ? trim($cycle) : null;
+
+        $includedWorks = $this->parseListField(
+            $this->rowValue($row, ['included_works', 'included_work', 'zmist_zbirnyka']) ?? ''
+        );
+
+        $formatSource = $this->rowValue($row, ['format', 'formats', 'formaty']) ?? '';
+        $formats = $this->resolveFormats($formatSource);
+        $warnings = array_merge($warnings, $formats['warnings']);
 
         if (!empty($categories['warnings'])) {
             $warnings = array_merge($warnings, $categories['warnings']);
@@ -223,20 +259,18 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
             'annotation' => $annotation,
             'annotation_source' => $annotationSource,
             'author' => $authorDisplayName,
-            'isbn' => $isbn,
             'publication_year' => $publicationYear,
             'first_publish_year' => $firstPublishYear,
-            'publisher' => $publisher,
             'cover_image' => $coverImage,
-            'language' => $language,
             'original_language' => $originalLanguage,
             'pages' => $pages,
-            'rating' => $rating,
-            'reviews_count' => $reviewsCount,
             'author_id' => $authorId,
             'is_featured' => $isFeatured,
             'synonyms' => $synonyms,
             'series' => $series,
+            'series_number' => $seriesNumber,
+            'cycle' => $cycle,
+            'included_works' => $includedWorks,
         ];
 
         if ($existingBook && $coverImage === null && empty($coverImageSource)) {
@@ -252,18 +286,27 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
             'row' => $rowNumber,
             'attributes' => $attributes,
             'category_ids' => $categories['ids'],
+            'format_ids' => $formats['ids'],
+            'author_ids' => $authorIds,
             'errors' => $errors,
             'warnings' => $warnings,
             'existing_book_id' => $existingBook?->id,
             'meta' => [
                 'author' => [
-                    'name' => $authorInfo['name'],
-                    'will_create' => $authorInfo['will_create'],
+                    'name' => $authorDisplayName,
+                    'names' => $authorsInfo['names'],
+                    'will_create' => $authorsInfo['will_create'],
                 ],
                 'categories' => [
                     'names' => $categories['names'],
                     'will_create' => $categories['created'],
                 ],
+                'formats' => [
+                    'names' => $formats['names'],
+                    'will_create' => $formats['created'],
+                ],
+                'cycle' => $cycle,
+                'included_works' => $includedWorks ?? [],
                 'synonyms' => $synonyms ?? [],
                 'slug' => $slug,
                 'action' => $existingBook ? 'update' : 'create',
@@ -275,20 +318,51 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
         ];
     }
 
-    private function extractYear($value): ?int
+    private function extractYear(mixed $value): ?int
     {
-        if (empty($value)) {
+        if ($value === null || $value === '') {
             return null;
         }
 
-        if (preg_match('/\b(19|20)\d{2}\b/u', $value, $matches)) {
-            $year = (int) $matches[0];
-            if ($year >= 1800 && $year <= (date('Y') + 10)) {
-                return $year;
+        if ($value instanceof \DateTimeInterface) {
+            $year = (int) $value->format('Y');
+
+            return $this->isValidYear($year) ? $year : null;
+        }
+
+        if (is_numeric($value)) {
+            $numeric = (float) $value;
+
+            if ($this->isValidYear((int) $numeric) && $numeric == (int) $numeric) {
+                return (int) $numeric;
+            }
+
+            if ($numeric > 10000 && class_exists(\PhpOffice\PhpSpreadsheet\Shared\Date::class)) {
+                try {
+                    $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($numeric);
+                    $year = (int) $date->format('Y');
+
+                    return $this->isValidYear($year) ? $year : null;
+                } catch (\Throwable) {
+                    // fall through to string parsing
+                }
             }
         }
 
+        $value = trim((string) $value);
+
+        if (preg_match('/\b(1[89]\d{2}|20\d{2})\b/u', $value, $matches)) {
+            $year = (int) $matches[1];
+
+            return $this->isValidYear($year) ? $year : null;
+        }
+
         return null;
+    }
+
+    private function isValidYear(int $year): bool
+    {
+        return $year >= 1000 && $year <= ((int) date('Y') + 10);
     }
 
     private function extractNumber($value): ?int
@@ -302,20 +376,20 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
         return $number !== '' ? (int) $number : null;
     }
 
-    private function extractRating($value): float
+    private function parseSeriesNumber($value): ?string
     {
-        if (empty($value)) {
-            return 0.0;
+        if ($value === null || trim((string) $value) === '') {
+            return null;
         }
 
-        $value = str_replace(',', '.', (string) $value);
+        $value = trim((string) $value);
+        $value = str_replace(',', '.', $value);
 
-        if (preg_match('/(\d+\.?\d*)/', $value, $matches)) {
-            $rating = (float) $matches[1];
-            return round(min(5.0, max(0.0, $rating)), 2);
+        if (preg_match('/^\d+(?:\.\d+)?$/', $value)) {
+            return $value;
         }
 
-        return 0.0;
+        return mb_substr($value, 0, 50);
     }
 
     private function resolveCategories($value): array
@@ -339,10 +413,29 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
         $warnings = [];
 
         foreach ($names as $categoryName) {
+            if (preg_match('/[>\/]/u', $categoryName)) {
+                $resolved = CategoryTreeService::resolvePath($categoryName, $this->previewMode);
+
+                if ($resolved['will_create']) {
+                    $created[] = $categoryName;
+                    $warnings[] = "Буде створено категорію (шлях) '{$categoryName}'";
+                }
+
+                if (!empty($resolved['id'])) {
+                    $ids[] = $resolved['id'];
+                }
+
+                continue;
+            }
+
             $slug = Str::slug($categoryName);
             $category = Category::query()
-                ->where('name', $categoryName)
-                ->when($slug !== '', fn ($query) => $query->orWhere('slug', $slug))
+                ->where(function ($query) use ($categoryName, $slug) {
+                    $query->where('name', $categoryName);
+                    if ($slug !== '') {
+                        $query->orWhere('slug', $slug);
+                    }
+                })
                 ->first();
 
             if (!$category) {
@@ -379,9 +472,98 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
         ];
     }
 
-    private function resolveAuthor($authorName): array
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private function resolveAuthorsFromRow(array $row): array
     {
-        if (empty($authorName)) {
+        $firstNames = $this->splitMultiValue(
+            $this->rowValue($row, ['first_name_author', 'first_name']) ?? ''
+        );
+        $lastNames = $this->splitMultiValue(
+            $this->rowValue($row, ['last_name_author', 'last_name']) ?? ''
+        );
+
+        if ($firstNames !== [] || $lastNames !== []) {
+            $ids = [];
+            $names = [];
+            $warnings = [];
+            $willCreate = false;
+
+            foreach ($this->pairAuthorNameParts($firstNames, $lastNames) as $pair) {
+                $resolved = $this->resolveAuthorByParts($pair['first'], $pair['last']);
+                if ($resolved['id']) {
+                    $ids[] = $resolved['id'];
+                }
+                if ($resolved['name']) {
+                    $names[] = $resolved['name'];
+                }
+                if ($resolved['warning']) {
+                    $warnings[] = $resolved['warning'];
+                }
+                if ($resolved['will_create']) {
+                    $willCreate = true;
+                }
+            }
+
+            return [
+                'ids' => array_values(array_unique(array_filter($ids))),
+                'names' => $names,
+                'display_name' => $names !== [] ? implode(', ', $names) : null,
+                'will_create' => $willCreate,
+                'warnings' => $warnings,
+            ];
+        }
+
+        $fallback = $this->rowValue($row, ['avtor_staryy', 'avtor', 'author']) ?? '';
+
+        return $this->resolveAuthors($fallback);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function splitMultiValue(?string $value): array
+    {
+        if ($value === null || trim($value) === '') {
+            return [];
+        }
+
+        $parts = preg_split('/[;|]/u', $value) ?: [$value];
+
+        return array_values(array_filter(array_map('trim', $parts), fn ($part) => $part !== ''));
+    }
+
+    /**
+     * @param  array<int, string>  $firstNames
+     * @param  array<int, string>  $lastNames
+     * @return array<int, array{first: string, last: string}>
+     */
+    private function pairAuthorNameParts(array $firstNames, array $lastNames): array
+    {
+        $count = max(count($firstNames), count($lastNames), 1);
+        $pairs = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $first = trim($firstNames[$i] ?? $firstNames[0] ?? '');
+            $last = trim($lastNames[$i] ?? $lastNames[0] ?? '');
+
+            if ($first === '' && $last === '') {
+                continue;
+            }
+
+            $pairs[] = ['first' => $first, 'last' => $last];
+        }
+
+        return $pairs;
+    }
+
+    private function resolveAuthorByParts(string $firstName, string $lastName): array
+    {
+        $firstName = trim($firstName);
+        $lastName = trim($lastName);
+
+        if ($firstName === '' && $lastName === '') {
             return [
                 'id' => null,
                 'name' => null,
@@ -390,6 +572,122 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
             ];
         }
 
+        $displayName = trim($firstName . ' ' . $lastName);
+
+        $query = Author::query()->where('first_name', $firstName);
+        if ($lastName !== '') {
+            $query->where('last_name', $lastName);
+        } else {
+            $query->where(function ($q) {
+                $q->whereNull('last_name')->orWhere('last_name', '');
+            });
+        }
+
+        $author = $query->first();
+
+        if (!$author) {
+            if ($this->previewMode) {
+                return [
+                    'id' => null,
+                    'name' => $displayName,
+                    'will_create' => true,
+                    'warning' => "Буде створено нового автора '{$displayName}'",
+                ];
+            }
+
+            $author = Author::create([
+                'first_name' => $firstName ?: $lastName,
+                'last_name' => $lastName !== '' ? $lastName : null,
+                'slug' => Str::slug($displayName),
+                'biography' => null,
+                'is_featured' => false,
+            ]);
+
+            Log::info("Создан новый автор: {$author->first_name} {$author->last_name} (ID: {$author->id})");
+
+            return [
+                'id' => $author->id,
+                'name' => trim(($author->first_name ?? '') . ' ' . ($author->last_name ?? '')),
+                'will_create' => true,
+                'warning' => "Создан новый автор '{$displayName}'",
+            ];
+        }
+
+        return [
+            'id' => $author->id,
+            'name' => trim(($author->first_name ?? '') . ' ' . ($author->last_name ?? '')),
+            'will_create' => false,
+            'warning' => null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @param  array<int, string>  $keys
+     */
+    private function rowValue(array $row, array $keys): ?string
+    {
+        foreach ($keys as $key) {
+            if (!array_key_exists($key, $row)) {
+                continue;
+            }
+
+            $value = $row[$key];
+            if ($value !== null && trim((string) $value) !== '') {
+                return trim((string) $value);
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveAuthors($authorValue): array
+    {
+        if (empty($authorValue)) {
+            return [
+                'ids' => [],
+                'names' => [],
+                'display_name' => null,
+                'will_create' => false,
+                'warnings' => [],
+            ];
+        }
+
+        $rawNames = preg_split('/[;|]/u', (string) $authorValue) ?: [(string) $authorValue];
+        $rawNames = array_values(array_filter(array_map('trim', $rawNames), fn ($name) => $name !== ''));
+
+        $ids = [];
+        $names = [];
+        $warnings = [];
+        $willCreate = false;
+
+        foreach ($rawNames as $authorName) {
+            $resolved = $this->resolveSingleAuthor($authorName);
+            if ($resolved['id']) {
+                $ids[] = $resolved['id'];
+            }
+            if ($resolved['name']) {
+                $names[] = $resolved['name'];
+            }
+            if ($resolved['warning']) {
+                $warnings[] = $resolved['warning'];
+            }
+            if ($resolved['will_create']) {
+                $willCreate = true;
+            }
+        }
+
+        return [
+            'ids' => array_values(array_unique(array_filter($ids))),
+            'names' => $names,
+            'display_name' => $names !== [] ? implode(', ', $names) : null,
+            'will_create' => $willCreate,
+            'warnings' => $warnings,
+        ];
+    }
+
+    private function resolveSingleAuthor(string $authorName): array
+    {
         $authorName = trim($authorName);
         $nameParts = preg_split('/\s+/u', $authorName);
         $firstName = $nameParts[0] ?? '';
@@ -406,7 +704,7 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
             if ($this->previewMode) {
                 return [
                     'id' => null,
-                    'name' => trim($authorName),
+                    'name' => $authorName,
                     'will_create' => true,
                     'warning' => "Буде створено нового автора '{$authorName}'",
                 ];
@@ -438,32 +736,6 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
         ];
     }
 
-    private function mapLanguage($value): string
-    {
-        if (empty($value)) {
-            return 'ru';
-        }
-
-        $value = strtolower(trim($value));
-
-        $languageMap = [
-            'русский' => 'ru',
-            'russian' => 'ru',
-            'украинский' => 'uk',
-            'ukrainian' => 'uk',
-            'английский' => 'en',
-            'english' => 'en',
-            'немецкий' => 'de',
-            'german' => 'de',
-            'французский' => 'fr',
-            'french' => 'fr',
-            'испанский' => 'es',
-            'spanish' => 'es',
-        ];
-
-        return $languageMap[$value] ?? substr($value, 0, 5);
-    }
-
     private function parseBoolean($value): bool
     {
         if (empty($value)) {
@@ -476,14 +748,21 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
 
     private function parseSynonyms($value): ?array
     {
+        return $this->parseListField($value);
+    }
+
+    private function parseListField($value): ?array
+    {
         if (empty($value)) {
             return null;
         }
 
         if (is_array($value)) {
             $items = $value;
+        } elseif (str_contains((string) $value, ';') || str_contains((string) $value, '|')) {
+            $items = preg_split('/[;|]/u', (string) $value) ?: [(string) $value];
         } else {
-            $items = preg_split('/[,;|]/u', $value) ?: [$value];
+            $items = [trim((string) $value)];
         }
 
         $items = array_filter(array_map(static function ($item) {
@@ -491,6 +770,78 @@ class SimpleBooksImport implements ToModel, WithHeadingRow, SkipsOnError, WithCh
         }, $items), fn ($item) => $item !== '');
 
         return empty($items) ? null : array_values(array_unique($items));
+    }
+
+    private function resolveFormats(?string $value): array
+    {
+        if ($value === null || trim($value) === '') {
+            return [
+                'ids' => [],
+                'names' => [],
+                'created' => [],
+                'warnings' => [],
+            ];
+        }
+
+        $names = preg_split('/[,;|]/u', $value) ?: [$value];
+        $names = array_values(array_filter(array_map(function ($name) {
+            return $this->normalizeCategoryName($name);
+        }, $names), fn ($name) => $name !== ''));
+
+        $ids = [];
+        $created = [];
+        $warnings = [];
+
+        foreach ($names as $formatName) {
+            $slug = Str::slug($formatName);
+            $format = BookFormat::query()
+                ->where('name', $formatName)
+                ->when($slug !== '', fn ($query) => $query->orWhere('slug', $slug))
+                ->first();
+
+            if (!$format) {
+                if ($this->previewMode) {
+                    $created[] = $formatName;
+                    $warnings[] = "Буде створено новий формат '{$formatName}'";
+                } else {
+                    $uniqueSlug = $this->ensureUniqueFormatSlug($slug !== '' ? $slug : Str::slug($formatName));
+                    $format = BookFormat::create([
+                        'name' => $formatName,
+                        'slug' => $uniqueSlug,
+                        'sort_order' => 0,
+                        'is_active' => true,
+                    ]);
+                    $created[] = $formatName;
+                    $warnings[] = "Створено новий формат '{$formatName}'";
+                    Log::info("Створено формат книги: {$format->name} (ID: {$format->id})");
+                }
+            }
+
+            if ($format) {
+                $ids[] = $format->id;
+            }
+        }
+
+        return [
+            'ids' => array_values(array_unique(array_filter($ids))),
+            'names' => $names,
+            'created' => $created,
+            'warnings' => $warnings,
+        ];
+    }
+
+    private function ensureUniqueFormatSlug(string $baseSlug): string
+    {
+        $baseSlug = $baseSlug !== '' ? $baseSlug : 'format';
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (BookFormat::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     private function processCoverImage(?string $source, array &$warnings, array &$errors): ?string

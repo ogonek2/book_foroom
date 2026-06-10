@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoxyBooks — Аудит виконаних робіт</title>
+    <style>
+        :root {
+            --brand: #c56925;
+            --brand-light: #f5e6d8;
+            --accent: #7c3aed;
+            --accent-soft: #ede9fe;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --success: #059669;
+            --warning: #d97706;
+            --info: #2563eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            font-size: 16px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 45%, var(--brand) 100%);
+            color: #fff;
+            padding: 3.5rem 1.5rem 4rem;
+        }
+
+        .hero-inner { max-width: 960px; margin: 0 auto; }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.25);
+            padding: .35rem .85rem;
+            border-radius: 999px;
+            font-size: .8rem;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: .75rem;
+        }
+
+        .hero p {
+            font-size: 1.05rem;
+            opacity: .92;
+            max-width: 680px;
+        }
+
+        .meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            font-size: .9rem;
+        }
+
+        .meta-row span { opacity: .85; }
+        .meta-row strong { font-weight: 600; }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        .toc-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.75rem 2rem;
+            margin-top: -2.5rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,.08);
+            position: relative;
+            z-index: 1;
+        }
+
+        .toc-card h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: .5rem 1.5rem;
+        }
+
+        .toc-grid a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: .95rem;
+        }
+
+        .toc-grid a:hover { text-decoration: underline; }
+
+        section {
+            margin-top: 3rem;
+        }
+
+        section > h2 {
+            font-size: 1.5rem;
+            margin-bottom: .5rem;
+            color: #111827;
+            padding-bottom: .5rem;
+            border-bottom: 3px solid var(--brand);
+            display: inline-block;
+        }
+
+        section > .lead {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            max-width: 720px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: .875rem;
+            padding: 1.5rem 1.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: .75rem;
+            color: #111827;
+        }
+
+        .card p, .card li { color: #374151; }
+
+        .card ul, .card ol {
+            margin: .5rem 0 0 1.25rem;
+        }
+
+        .card li { margin-bottom: .35rem; }
+
+        .tag {
+            display: inline-block;
+            font-size: .72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            padding: .2rem .55rem;
+            border-radius: .35rem;
+            margin-right: .35rem;
+            vertical-align: middle;
+        }
+
+        .tag-new { background: #d1fae5; color: #065f46; }
+        .tag-fix { background: #fef3c7; color: #92400e; }
+        .tag-admin { background: var(--accent-soft); color: #5b21b6; }
+        .tag-site { background: #dbeafe; color: #1e40af; }
+        .tag-import { background: #fce7f3; color: #9d174d; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .9rem;
+            margin-top: .75rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: .65rem .85rem;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        tr:nth-child(even) td { background: #fafafa; }
+
+        code {
+            background: #f3f4f6;
+            padding: .1rem .35rem;
+            border-radius: .25rem;
+            font-size: .88em;
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        .alert {
+            border-radius: .75rem;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+            font-size: .95rem;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-left: 4px solid var(--info);
+            color: #1e3a8a;
+        }
+
+        .alert-warn {
+            background: #fffbeb;
+            border-left: 4px solid var(--warning);
+            color: #78350f;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            border-left: 4px solid var(--success);
+            color: #064e3b;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: .75rem;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat .num {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat .label {
+            font-size: .8rem;
+            color: var(--text-muted);
+            margin-top: .25rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            color: var(--text-muted);
+            font-size: .85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+
+        @media print {
+            .hero { background: #4c1d95; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .toc-card { box-shadow: none; }
+            section { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="hero-inner">
+        <div class="hero-badge">Технічний звіт для замовника</div>
+        <h1>FoxyBooks — повний аудит виконаних робіт</h1>
+        <p>Документ описує всі зміни, впроваджені в каталозі книг, адмін-панелі, імпорті даних та публічній частині сайту. Призначений для ознайомлення клієнта та команди наповнення контентом.</p>
+        <div class="meta-row">
+            <span><strong>Проєкт:</strong> foxybooks.club</span>
+            <span><strong>Стек:</strong> Laravel 12 · Filament 3 · Vue</span>
+            <span><strong>Дата звіту:</strong> червень 2026</span>
+            <span><strong>Мова документа:</strong> українська</span>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+    <nav class="toc-card" aria-label="Зміст">
+        <h2>Зміст</h2>
+        <div class="toc-grid">
+            <a href="#summary">1. Короткий підсумок</a>
+            <a href="#placeholders">2. Заглушки обкладинок</a>
+            <a href="#books-admin">3. Книги в адмінці</a>
+            <a href="#import">4. Імпорт Excel</a>
+            <a href="#authors">5. Автори</a>
+            <a href="#categories">6. Категорії та підкатегорії</a>
+            <a href="#catalog">7. Каталог на сайті</a>
+            <a href="#gutenberg">8. Імпорт Gutenberg</a>
+            <a href="#password">9. Відновлення пароля</a>
+            <a href="#deploy">10. Розгортання на сервері</a>
+            <a href="#commands">11. Корисні команди</a>
+            <a href="#env">12. Змінні середовища</a>
+        </div>
+    </nav>
+
+    <div class="stats">
+        <div class="stat"><div class="num">14+</div><div class="label">блоків функціоналу</div></div>
+        <div class="stat"><div class="num">8</div><div class="label">нових міграцій БД</div></div>
+        <div class="stat"><div class="num">21</div><div class="label">колонка в шаблоні Excel</div></div>
+        <div class="stat"><div class="num">1</div><div class="label">сторінка категорій</div></div>
+    </div>
+
+    <!-- 1. SUMMARY -->
+    <section id="summary">
+        <h2>1. Короткий підсумок</h2>
+        <p class="lead">За результатами сесії доопрацювань платформа отримала повноцінний інструментарій для наповнення каталогу, зручніший імпорт, вкладені категорії та покращений досвід користувача на сайті.</p>
+
+        <div class="card">
+            <h3>Ключові досягнення</h3>
+            <ul>
+                <li><strong>Імпорт книг</strong> — оновлений формат Excel, розділення авторів на імʼя/прізвище, підтримка підкатегорій, нові поля (цикл, формат, збірник).</li>
+                <li><strong>Адмін-панель</strong> — кілька авторів на книгу, довідник форматів видання, налаштовувані заглушки обкладинок, вкладені категорії.</li>
+                <li><strong>Сайт</strong> — сторінка каталогу категорій, модальне вікно фільтрації, повний український алфавіт авторів.</li>
+                <li><strong>Надійність</strong> — виправлення років видання при імпорті, синхронізація звʼязку автор–книга, кеш і відновлення імпорту Gutenberg.</li>
+            </ul>
+        </div>
+
+        <div class="alert alert-warn">
+            <strong>Увага (відновлення пароля):</strong> листи скидання пароля надсилаються через SMTP. На сервері потрібно перевірити налаштування <code>MAIL_*</code> у файлі <code>.env</code>. Без коректного пароля поштової скриньки функція не працюватиме (замість помилки 500 користувач тепер бачить зрозуміле повідомлення).
+        </div>
+    </section>
+
+    <!-- 2. PLACEHOLDERS -->
+    <section id="placeholders">
+        <h2>2. Заглушки обкладинок та фото авторів</h2>
+        <p class="lead">Окремі зображення-замінники для книг і авторів, що зберігаються локально та керуються з адмінки.</p>
+
+        <div class="card">
+            <span class="tag tag-new">Нове</span><span class="tag tag-admin">Адмінка</span>
+            <h3>Що зроблено</h3>
+            <ul>
+                <li>Сторінка в адмін-панелі: <strong>Заглушки зображень</strong> (<code>/admin11/image-placeholders</code>).</li>
+                <li>Окремі заглушки для <strong>обкладинки книги</strong> та <strong>фото автора</strong>.</li>
+                <li>Файли зберігаються в <code>public/images/placeholders/</code>, шлях — у таблиці <code>site_settings</code>.</li>
+                <li>На всьому сайті (Blade, Vue) використовуються поля <code>cover_image_display</code> та <code>photo_display</code> з автоматичним fallback.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 3. BOOKS ADMIN -->
+    <section id="books-admin">
+        <h2>3. Книги — адмін-панель</h2>
+        <p class="lead">Розширені поля та логіка збереження для повноцінного ведення каталогу.</p>
+
+        <div class="card">
+            <span class="tag tag-fix">Виправлення</span><span class="tag tag-admin">Адмінка</span>
+            <h3>Автори та звʼязок author_book</h3>
+            <ul>
+                <li>У формі книги — поле <strong>«Автори»</strong> (мультивибір) замість одного автора.</li>
+                <li>Перший обраний автор — основний (<code>author_id</code>).</li>
+                <li>Таблиця <code>author_book</code> автоматично заповнюється при збереженні.</li>
+                <li>Команда для існуючих записів: <code>php artisan books:sync-authors-pivot</code>.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <span class="tag tag-new">Нове</span>
+            <h3>Нові поля книги</h3>
+            <table>
+                <thead>
+                    <tr><th>Поле</th><th>Опис</th><th>Обовʼязкове</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>cycle</code></td><td>Цикл творів (текст, як серія, але для циклу)</td><td>Ні</td></tr>
+                    <tr><td><code>formats</code></td><td>Формат видання (графічний роман, комікс тощо) — довідник «Формати книг»</td><td>Ні</td></tr>
+                    <tr><td><code>included_works</code></td><td>Зміст збірника — список творів (теги)</td><td>Ні</td></tr>
+                    <tr><td><code>series_number</code></td><td>Номер у серії — текст: <code>1</code>, <code>1.5</code>, <code>бонус</code></td><td>Ні</td></tr>
+                    <tr><td><code>language</code></td><td>Мова видання — без дефолту «російська», можна залишити порожнім</td><td>Ні</td></tr>
+                    <tr><td><code>original_language</code></td><td>Мова оригіналу твору</td><td>Ні</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <span class="tag tag-admin">Адмінка</span>
+            <h3>Довідник «Формати книг»</h3>
+            <p>Окремий розділ меню для керування списком форматів (назва, slug, порядок, активність). Порожній список форматів у книги = звичайна книга.</p>
+        </div>
+    </section>
+
+    <!-- 4. IMPORT -->
+    <section id="import">
+        <h2>4. Імпорт книг через Excel</h2>
+        <p class="lead">Шаблон і логіка імпорту повністю оновлені відповідно до робочого процесу наповнення каталогу.</p>
+
+        <div class="card">
+            <span class="tag tag-import">Імпорт</span>
+            <h3>Де завантажити шаблон</h3>
+            <ul>
+                <li>Сторінка <code>/admin11/import-books</code></li>
+                <li>Або кнопка «Завантажити шаблон» у розділі «Книги»</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>Колонки шаблону (актуальний формат)</h3>
+            <table>
+                <thead>
+                    <tr><th>Колонка</th><th>Призначення</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>main_book_name</code></td><td>Основна назва (обовʼязково, якщо немає book_name_ua)</td></tr>
+                    <tr><td><code>book_name_ua</code></td><td>Назва українською</td></tr>
+                    <tr><td><code>slag</code></td><td>URL-слаг (автогенерація, якщо порожньо)</td></tr>
+                    <tr><td><code>annotation</code></td><td>Анотація</td></tr>
+                    <tr><td><code>annotation_source</code></td><td>Джерело анотації</td></tr>
+                    <tr><td><code>avtor_staryy</code></td><td>Повне імʼя для картки (необовʼязково)</td></tr>
+                    <tr><td><code>first_name_author</code></td><td>Імʼя автора (обовʼязково разом із прізвищем)</td></tr>
+                    <tr><td><code>last_name_author</code></td><td>Прізвище (подвійне — цілком у цьому полі)</td></tr>
+                    <tr><td><code>UKR_publish_year</code></td><td>Рік українського видання</td></tr>
+                    <tr><td><code>first_publish_year</code></td><td>Рік першого видання (окремо від UKR!)</td></tr>
+                    <tr><td><code>cover</code></td><td>Посилання на обкладинку</td></tr>
+                    <tr><td><code>original_language</code></td><td>Мова оригіналу (<code>uk</code>, <code>en</code>…)</td></tr>
+                    <tr><td><code>synonym</code></td><td>Синоніми через <code>;</code> або <code>|</code></td></tr>
+                    <tr><td><code>series</code></td><td>Назва серії</td></tr>
+                    <tr><td><code>num_in_series</code></td><td>Номер у серії (1, 1.5, бонус)</td></tr>
+                    <tr><td><code>cycle</code></td><td>Цикл творів</td></tr>
+                    <tr><td><code>format</code></td><td>Формат(и) через <code>;</code></td></tr>
+                    <tr><td><code>included_works</code></td><td>Зміст збірника через <code>;</code> або <code>|</code></td></tr>
+                    <tr><td><code>pages</code></td><td>Кількість сторінок</td></tr>
+                    <tr><td><code>category</code></td><td>Категорія (див. розділ 6)</td></tr>
+                    <tr><td><code>recommend</code></td><td>Рекомендована: Так / Ні</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <span class="tag tag-fix">Виправлення</span>
+            <h3>Роки видання</h3>
+            <p>Поля <code>UKR_publish_year</code> та <code>first_publish_year</code> тепер зберігаються <strong>незалежно</strong>. Раніше при помилці розпізнавання другого поля обидва отримували значення року укр. видання. Також покращено читання років з Excel (числа, дати).</p>
+        </div>
+
+        <div class="alert alert-info">
+            <strong>Прибрано з імпорту</strong> (на прохання замовника): ISBN, видавництво, мова видання, рейтинг, кількість відгуків — ці поля не перезаписуються при імпорті.
+        </div>
+    </section>
+
+    <!-- 5. AUTHORS -->
+    <section id="authors">
+        <h2>5. Автори</h2>
+
+        <div class="card">
+            <span class="tag tag-site">Сайт</span>
+            <h3>Алфавітний фільтр</h3>
+            <ul>
+                <li>Відображається <strong>повний український алфавіт</strong>, включно з <strong>Є, Ґ, І, Ї</strong>.</li>
+                <li>Активні літери — ті, для яких є автори; решта показані приглушено.</li>
+                <li>Фільтр враховує <code>last_name_ua</code> та <code>last_name</code>.</li>
+                <li>Автори з латинським прізвищем (наприклад, Eugenides) відображаються під літерою <strong>E</strong>, не Є.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <span class="tag tag-import">Імпорт</span>
+            <h3>Кілька авторів (співавторство)</h3>
+            <p>У Excel: <code>Олександр; Марія</code> в <code>first_name_author</code> та відповідні прізвища в <code>last_name_author</code>, розділені <code>;</code>.</p>
+        </div>
+    </section>
+
+    <!-- 6. CATEGORIES -->
+    <section id="categories">
+        <h2>6. Категорії та підкатегорії</h2>
+        <p class="lead">Повноцінна ієрархія категорій у базі, адмінці, імпорті та на публічному сайті.</p>
+
+        <div class="card">
+            <span class="tag tag-new">Нове</span><span class="tag tag-admin">Адмінка</span>
+            <h3>Адмін-панель</h3>
+            <ul>
+                <li>Поле <strong>«Батьківська категорія»</strong> при створенні/редагуванні.</li>
+                <li>У списку категорій — батько, кількість підкатегорій і книг.</li>
+                <li>У формі книги категорії з відступом для підкатегорій.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <span class="tag tag-import">Імпорт</span>
+            <h3>Підкатегорії в Excel</h3>
+            <p>Шлях через слеш або знак «більше»:</p>
+            <ul>
+                <li><code>Художня / Фантастика</code></li>
+                <li><code>Художня &gt; Детектив</code></li>
+                <li>Кілька категорій: <code>Художня / Фантастика; Нон-фікшн</code></li>
+            </ul>
+            <p>Книга привʼязується до <strong>листової</strong> (останньої) категорії в ланцюжку. Відсутні рівні створюються автоматично.</p>
+        </div>
+
+        <div class="card">
+            <span class="tag tag-site">Сайт</span>
+            <h3>Сторінка <code>/categories</code></h3>
+            <ul>
+                <li>Картки всіх категорій з превʼю перших 4 обкладинок.</li>
+                <li>Показ батьківської категорії для підкатегорій.</li>
+                <li>Лічильник книг з урахуванням підкатегорій.</li>
+                <li>Сторінка категорії: хлібні крошки, чипи підкатегорій, список книг.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 7. CATALOG -->
+    <section id="catalog">
+        <h2>7. Каталог книг на сайті</h2>
+
+        <div class="card">
+            <span class="tag tag-site">Сайт</span>
+            <h3>Фільтр категорій</h3>
+            <ul>
+                <li>Замість довгого списку в сайдбарі — кнопка <strong>«Обрати категорії»</strong>.</li>
+                <li>Модальне вікно з деревом категорій, пошуком і мультивибором.</li>
+                <li>Вибір батьківської категорії включає книги з усіх підкатегорій.</li>
+                <li>Пункт меню <strong>«Категорії»</strong> у головній навігації.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <span class="tag tag-fix">Покращення</span>
+            <h3>Картка книги</h3>
+            <p>Довгі назви коректно обрізаються (до 2 рядків), пріоритет відображення української назви.</p>
+        </div>
+    </section>
+
+    <!-- 8. GUTENBERG -->
+    <section id="gutenberg">
+        <h2>8. Імпорт Gutenberg (фоновий)</h2>
+
+        <div class="card">
+            <span class="tag tag-new">Нове</span>
+            <h3>Оптимізація</h3>
+            <ul>
+                <li>Кешування відповідей API Gutenberg.</li>
+                <li>Відновлення з місця зупинки (<code>--resume</code>).</li>
+                <li>Сповіщення в Telegram після імпорту (за наявності токена).</li>
+                <li>Пропуск повторного збагачення авторів, якщо дані вже є.</li>
+            </ul>
+        </div>
+
+        <div class="alert alert-info">
+            Для коректної роботи кешу та стану відновлення на сервері <code>CACHE_STORE</code> не повинен бути <code>array</code>.
+        </div>
+    </section>
+
+    <!-- 9. PASSWORD -->
+    <section id="password">
+        <h2>9. Відновлення пароля</h2>
+
+        <div class="card">
+            <span class="tag tag-fix">Виправлення</span>
+            <h3>Поведінка системи</h3>
+            <ul>
+                <li>При збої SMTP користувач бачить зрозуміле повідомлення замість сторінки помилки 500.</li>
+                <li>Помилка фіксується в логах сервера для адміністратора.</li>
+            </ul>
+            <p style="margin-top:.75rem"><strong>Необхідна дія на сервері:</strong> перевірити <code>MAIL_HOST</code>, <code>MAIL_USERNAME</code>, <code>MAIL_PASSWORD</code>, <code>MAIL_FROM_ADDRESS</code> у файлі <code>.env</code>, потім <code>php artisan config:clear</code>.</p>
+        </div>
+    </section>
+
+    <!-- 10. DEPLOY -->
+    <section id="deploy">
+        <h2>10. Розгортання змін на сервері</h2>
+        <p class="lead">Типова послідовність після завантаження коду на production (foxybooks.club).</p>
+
+        <div class="card">
+            <h3>Кроки</h3>
+            <ol>
+                <li><code>git pull</code> — отримати останні зміни</li>
+                <li><code>composer install --no-dev --optimize-autoloader</code> — за потреби</li>
+                <li><code>php artisan migrate</code> — застосувати міграції БД</li>
+                <li><code>php artisan books:sync-authors-pivot</code> — один раз, для старих книг без звʼязку author_book</li>
+                <li><code>php artisan optimize:clear</code> — очистити кеш</li>
+                <li>Перевірити права на <code>public/images/placeholders/</code> (запис для www-data)</li>
+                <li>Перевірити <code>MAIL_*</code> у <code>.env</code></li>
+            </ol>
+        </div>
+
+        <div class="alert alert-success">
+            <strong>Документ на сайті:</strong> цей файл доступний за адресою<br>
+            <code>https://foxybooks.club/docs/audyt-robit-foxybooks.html</code>
+        </div>
+    </section>
+
+    <!-- 11. COMMANDS -->
+    <section id="commands">
+        <h2>11. Корисні команди (CLI)</h2>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>Команда</th><th>Призначення</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>php artisan migrate</code></td><td>Міграції БД (нові поля, категорії, формати)</td></tr>
+                    <tr><td><code>php artisan books:sync-authors-pivot</code></td><td>Синхронізація author_book для існуючих книг</td></tr>
+                    <tr><td><code>php artisan optimize:clear</code></td><td>Очистка кешу конфігурації та маршрутів</td></tr>
+                    <tr><td><code>php artisan books:import-gutenberg</code></td><td>Імпорт з Project Gutenberg (з опціями resume, max-pages)</td></tr>
+                    <tr><td><code>php artisan config:clear</code></td><td>Після зміни .env (пошта, кеш, Telegram)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 12. ENV -->
+    <section id="env">
+        <h2>12. Змінні середовища (.env)</h2>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>Змінна</th><th>Призначення</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>MAIL_*</code></td><td>Налаштування SMTP для листів відновлення пароля</td></tr>
+                    <tr><td><code>GUTENBERG_CACHE_ENABLED</code></td><td>Кешування запитів Gutenberg (true/false)</td></tr>
+                    <tr><td><code>GUTENBERG_CACHE_TTL_MINUTES</code></td><td>Час життя кешу Gutenberg (хвилини)</td></tr>
+                    <tr><td><code>TELEGRAM_BOT_TOKEN</code></td><td>Токен бота для сповіщень про імпорт</td></tr>
+                    <tr><td><code>TELEGRAM_CHAT_ID</code></td><td>ID чату для сповіщень</td></tr>
+                    <tr><td><code>CACHE_STORE</code></td><td>Рекомендовано <code>database</code> або <code>redis</code> на production</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="migrations">
+        <h2>Додаток: міграції бази даних (червень 2026)</h2>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>Файл міграції</th><th>Зміст</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>make_books_language_nullable</code></td><td>Мова видання — необовʼязкове поле</td></tr>
+                    <tr><td><code>change_series_number_to_string</code></td><td>Номер у серії — текст (1.5, бонус)</td></tr>
+                    <tr><td><code>add_cycle_and_included_works</code></td><td>Цикл і зміст збірника</td></tr>
+                    <tr><td><code>create_book_formats_tables</code></td><td>Довідник форматів + звʼязок book_format</td></tr>
+                    <tr><td><code>add_parent_id_to_categories</code></td><td>Вкладені категорії</td></tr>
+                    <tr><td><code>create_site_settings_table</code></td><td>Налаштування заглушок зображень</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+<footer>
+  <p><strong>FoxyBooks</strong> — технічний звіт про виконані роботи</p>
+  <p>Документ згенеровано для внутрішнього використання та презентації замовнику · 2026</p>
+</footer>
+
+</body>
+</html>
