@@ -264,13 +264,25 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-size: 14px;
             line-height: 1.6;
+            color: #0f172a;
+            background: #ffffff;
+        }
+
+        .ql-editor.ql-blank::before {
+            color: #64748b !important;
+            font-style: normal;
+            opacity: 1;
+        }
+
+        .dark .ql-editor.ql-blank::before {
+            color: #94a3b8 !important;
         }
 
         .ql-toolbar {
             border-top-left-radius: 0;
             border-top-right-radius: 0;
-            border-bottom: none;
-            background-color: rgba(248, 250, 252, 0.95);
+            border-bottom: 1px solid #e2e8f0;
+            background-color: #f8fafc;
         }
 
         .ql-container {
@@ -280,11 +292,7 @@
             border-left: none;
             border-right: none;
             border-bottom: none;
-            background-color: transparent;
-        }
-
-        .ql-editor {
-            color: rgb(15 23 42);
+            background-color: #ffffff;
         }
 
         .ql-toolbar .ql-stroke {
@@ -317,19 +325,20 @@
         }
 
         .dark .ql-toolbar {
-            background-color: rgba(30, 41, 59, 0.72);
-            border-color: transparent;
+            background-color: rgb(51 65 85);
+            border-bottom-color: rgb(71 85 105);
             color: #f9fafb;
         }
 
         .dark .ql-container {
-            background-color: transparent;
+            background-color: rgb(30 41 59);
             border-color: transparent;
             color: #f9fafb;
         }
 
         .dark .ql-editor {
-            color: #f9fafb;
+            color: #f8fafc;
+            background: rgb(30 41 59);
         }
 
         .dark .ql-stroke {

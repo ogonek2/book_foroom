@@ -122,7 +122,9 @@
                             <span>{{ maxContentLength }}</span> символів)
                         </span>
                     </label>
-                    <div ref="quillEditor" id="quill-editor-review-modal"></div>
+                    <div id="quill-editor-review-modal"
+                         class="review-quill-modal min-h-[220px] border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden bg-white dark:bg-gray-700">
+                    </div>
                     <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                         Мінімум: {{ minContentLength }} символів
                     </div>
@@ -603,3 +605,60 @@ export default {
     }
 };
 </script>
+
+<style>
+.review-quill-modal .ql-toolbar {
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    padding: 0.5rem 0.75rem;
+}
+
+.dark .review-quill-modal .ql-toolbar {
+    background: #374151;
+    border-bottom-color: #4b5563;
+}
+
+.review-quill-modal .ql-container {
+    border: none;
+    font-size: 1rem;
+    min-height: 200px;
+    background: transparent;
+}
+
+.review-quill-modal .ql-editor {
+    min-height: 200px;
+    color: #111827;
+    background: transparent;
+}
+
+.dark .review-quill-modal .ql-editor {
+    color: #f9fafb;
+}
+
+.review-quill-modal .ql-editor.ql-blank::before {
+    color: #6b7280 !important;
+    font-style: normal;
+    opacity: 1;
+}
+
+.dark .review-quill-modal .ql-editor.ql-blank::before {
+    color: #9ca3af !important;
+}
+
+.review-quill-modal .ql-stroke {
+    stroke: #4b5563;
+}
+
+.dark .review-quill-modal .ql-stroke {
+    stroke: #d1d5db;
+}
+
+.review-quill-modal .ql-fill {
+    fill: #4b5563;
+}
+
+.dark .review-quill-modal .ql-fill {
+    fill: #d1d5db;
+}
+</style>

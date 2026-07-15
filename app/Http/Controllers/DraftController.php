@@ -38,25 +38,25 @@ class DraftController extends Controller
         }
         $model->update($payload);
 
-        // Для рецензий обновляем рейтинги при публикации
+        // Для рецензий / отзывов всегда синхронизируем счётчик и рейтинг книги
         if ($type === 'review' && $model instanceof Review) {
             $book = $model->book;
-            if ($book && $model->rating) {
-                // Синхронизируем рейтинг с BookReadingStatus
-                $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
-                    [
-                        'book_id' => $book->id,
-                        'user_id' => Auth::id(),
-                    ],
-                    [
-                        'status' => 'read',
-                        'finished_at' => now(),
-                    ]
-                );
+            if ($book) {
+                if ($model->rating) {
+                    $readingStatus = \App\Models\BookReadingStatus::firstOrCreate(
+                        [
+                            'book_id' => $book->id,
+                            'user_id' => Auth::id(),
+                        ],
+                        [
+                            'status' => 'read',
+                            'finished_at' => now(),
+                        ]
+                    );
 
-                $readingStatus->update(['rating' => $model->rating]);
+                    $readingStatus->update(['rating' => $model->rating]);
+                }
 
-                // Обновляем средний рейтинг книги
                 $book->updateRating();
             }
         }

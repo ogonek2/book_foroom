@@ -51,13 +51,17 @@
             backdrop-filter: blur(4px);
         }
 
-        /* Quill editor styles */
+        /* Quill editor — readable contrast in light & dark themes */
         #quill-editor-review {
             min-height: 400px;
             border: none;
-            border-radius: 0;
+            border-radius: 0.75rem;
             overflow: hidden;
-            background: rgb(15 23 42 / 0.55);
+            background: #ffffff;
+        }
+
+        .dark #quill-editor-review {
+            background: rgb(30 41 59);
         }
 
         .ql-container {
@@ -72,59 +76,81 @@
         .ql-editor {
             min-height: 400px;
             padding: 1.5rem;
-            color: rgb(15 23 42);
+            color: #0f172a;
+            background: transparent;
         }
 
         .dark .ql-editor {
-            color: rgb(241 245 249);
+            color: #f8fafc;
+        }
+
+        .ql-editor.ql-blank::before {
+            color: #64748b !important;
+            font-style: normal;
+            opacity: 1;
+        }
+
+        .dark .ql-editor.ql-blank::before {
+            color: #94a3b8 !important;
+        }
+
+        .ql-editor p,
+        .ql-editor li,
+        .ql-editor span {
+            color: inherit;
         }
 
         .ql-toolbar {
             border: none;
-            border-bottom: none;
+            border-bottom: 1px solid #e2e8f0;
             border-radius: 0;
             padding: 0.65rem 0.75rem;
-            background: rgb(30 41 59 / 0.72);
+            background: #f8fafc;
         }
 
-        .dark #quill-editor-review { background: rgb(30 41 59 / 0.92); }
+        .dark .ql-toolbar {
+            background: rgb(51 65 85);
+            border-bottom-color: rgb(71 85 105);
+        }
 
         #quill-editor-review:focus-within {
             box-shadow: none;
         }
 
         .ql-snow .ql-stroke {
-            stroke: rgb(148 163 184);
+            stroke: #475569;
         }
 
         .dark .ql-snow .ql-stroke {
-            stroke: rgb(148 163 184);
+            stroke: #cbd5e1;
         }
 
         .ql-snow .ql-fill {
-            fill: rgb(148 163 184);
+            fill: #475569;
         }
 
         .dark .ql-snow .ql-fill {
-            fill: rgb(148 163 184);
+            fill: #cbd5e1;
         }
 
         .ql-snow .ql-picker-label {
-            color: rgb(148 163 184);
+            color: #334155;
         }
 
         .dark .ql-snow .ql-picker-label {
-            color: rgb(148 163 184);
+            color: #e2e8f0;
         }
 
         .ql-snow .ql-picker-options {
-            background: rgb(15 23 42 / 0.96);
-            border: 1px solid rgb(71 85 105 / 0.55);
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
         }
 
         .dark .ql-snow .ql-picker-options {
-            background: rgb(15 23 42 / 0.96);
-            border-color: rgb(71 85 105 / 0.55);
+            background: rgb(30 41 59);
+            border-color: rgb(71 85 105);
+            color: #f8fafc;
         }
 
         .ql-snow.ql-toolbar button:hover,
@@ -325,7 +351,7 @@
                                         </span>
                                     </div>
                                     <div id="quill-editor-review"
-                                        class="min-h-[400px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
+                                        class="min-h-[400px] border border-slate-200 dark:border-slate-600 rounded-xl overflow-hidden">
                                     </div>
                                     <input type="hidden" name="content" id="review-content" required>
                                 </div>

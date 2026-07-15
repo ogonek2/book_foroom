@@ -75,7 +75,10 @@ class AuthorController extends Controller
         $author->loadCount('books');
         
         // Загружаем книги с категориями
-        $books = $author->books()->with('categories')->paginate(12);
+        $books = $author->books()
+            ->with('categories')
+            ->withCount('publishedMainReviews as reviews_count')
+            ->paginate(12);
         
         // Получаем библиотеки текущего пользователя
         $userLibraries = [];

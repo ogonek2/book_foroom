@@ -4,7 +4,7 @@
 class BookStatusCache {
     constructor() {
         this.cacheKey = 'book_reading_statuses';
-        this.cacheVersion = '1.0';
+        this.cacheVersion = '1.1';
         this.versionKey = 'book_status_cache_version';
         this.maxAge = 24 * 60 * 60 * 1000; // 24 години в мілісекундах
     }

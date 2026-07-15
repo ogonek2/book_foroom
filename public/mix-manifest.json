@@ -1,6 +1,7 @@
 {
-    "/js/app.js": "/js/app.js?id=eecad075b26aaf8cc37b8b3138eed585",
-    "/js/lexical-editor.js": "/js/lexical-editor.js?id=af82db7e57bb0181f61c2e7bd380b2bb",
-    "/css/account.css": "/css/account.css?id=767f31116f7e55e96e7cba6c58212a93",
-    "/css/app.css": "/css/app.css?id=bd3f1b6b48bbe68bb578e649178a9274"
+    "/js/app.js": "/js/app.js?id=e63e8452f954d0510e1e1ade15cfd412",
+    "/js/lexical-editor.js": "/js/lexical-editor.js?id=f5d387540235443141917d352abe4d71",
+    "/js/account.js": "/js/account.js?id=c002dcf9c55f1d33a05c787daa20a63e",
+    "/css/account.css": "/css/account.css?id=695c4030db6f335e660acf2237b41145",
+    "/css/app.css": "/css/app.css?id=d04eb778b70474808cd6e586d906eabc"
 }

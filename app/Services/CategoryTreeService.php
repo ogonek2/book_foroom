@@ -13,9 +13,9 @@ use Illuminate\Support\Str;
 
 class CategoryTreeService
 {
-    private const CACHE_KEY = 'category_tree_active_v1';
+    private const CACHE_KEY = 'category_tree_active_v2';
 
-    private const CACHE_META_KEY = 'category_catalog_meta_v1';
+    private const CACHE_META_KEY = 'category_catalog_meta_v2';
 
     private const CACHE_TTL = 3600;
 
@@ -85,7 +85,11 @@ class CategoryTreeService
      */
     public static function bookIdsByCategory(): array
     {
-        $rows = DB::table('book_category')->select('book_id', 'category_id')->get();
+        // Лише книги, які реально є в books (без «сиріт» у pivot)
+        $rows = DB::table('book_category')
+            ->join('books', 'books.id', '=', 'book_category.book_id')
+            ->select('book_category.book_id', 'book_category.category_id')
+            ->get();
         $map = [];
 
         foreach ($rows as $row) {

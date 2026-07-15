@@ -168,11 +168,24 @@ class Review extends Model
         static::created(function ($review) {
             if ($review->parent_id) {
                 $review->parent->updateRepliesCount();
-                
+
                 // Создаем уведомление о новом ответе
                 if ($review->user_id) {
                     \App\Services\NotificationService::createReviewReplyNotification($review, $review->user);
                 }
+            } elseif ($review->book) {
+                // Основна рецензія / відгук — оновлюємо reviews_count на книзі
+                $review->book->updateRating();
+            }
+        });
+
+        static::updated(function ($review) {
+            if ($review->parent_id || !$review->book) {
+                return;
+            }
+
+            if ($review->wasChanged(['is_draft', 'parent_id', 'book_id', 'rating'])) {
+                $review->book->updateRating();
             }
         });
 
@@ -180,8 +193,10 @@ class Review extends Model
         static::deleted(function ($review) {
             if ($review->parent_id) {
                 $review->parent->updateRepliesCount();
+            } elseif ($review->book) {
+                $review->book->updateRating();
             }
-            
+
             // Оновлюємо лічильники хештегів при видаленні рецензії
             foreach ($review->hashtags as $hashtag) {
                 $hashtag->decrementUsage();

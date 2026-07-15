@@ -151,7 +151,8 @@ if ($book->publication_year) {
                                             :user-libraries='@json($userLibraries)'
                                             :is-authenticated="{{ auth()->check() ? 'true' : 'false' }}"
                                             :initial-status="{{ $currentReadingStatus ? "'{$currentReadingStatus->status}'" : 'null' }}"
-                                            @notification="handleNotification"></add-to-library-button>
+                                            :status-from-server="true"
+                                            @@notification="handleNotification"></add-to-library-button>
                                     </div>
                                 </div>
                                 <div class="flex-1">

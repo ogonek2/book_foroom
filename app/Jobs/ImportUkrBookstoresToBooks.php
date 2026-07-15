@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Category;
+use App\Services\CategoryTreeService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -170,5 +171,7 @@ class ImportUkrBookstoresToBooks implements ShouldQueue
         if (! empty($categoryIds)) {
             $book->categories()->syncWithoutDetaching($categoryIds);
         }
+
+        CategoryTreeService::forgetCache();
     }
 }

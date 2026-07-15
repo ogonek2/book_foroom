@@ -16,7 +16,9 @@ class BookController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Book::with(['categories', 'author']);
+        $query = Book::with(['categories', 'author'])
+            // Живий підрахунок для карток / сортування (рецензії + відгуки)
+            ->withCount('publishedMainReviews as reviews_count');
 
         // Filter by category
         if ($request->has('category') && $request->category) {
@@ -177,6 +179,7 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
+        $book->loadCount('publishedMainReviews as reviews_count');
         $book->load(['categories', 'author']);
 
         $authorModel = $book->getRelation('author');

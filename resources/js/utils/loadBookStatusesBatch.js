@@ -17,7 +17,7 @@ export async function loadBookStatusesBatch(books) {
     // Спочатку отримуємо ID всіх книг
     const bookIds = [];
     const slugToIdMap = {};
-    
+
     for (const book of books) {
         if (book.id) {
             bookIds.push(book.id);
@@ -46,44 +46,35 @@ export async function loadBookStatusesBatch(books) {
         return {};
     }
 
-    // Перевіряємо кеш для всіх книг
+    // Always revalidate with server so removals from the cabinet stay in sync
     const cachedStatuses = {};
-    const missingBookIds = [];
-    
     for (const bookId of bookIds) {
         const cached = bookStatusCache.get(bookId);
         if (cached) {
             cachedStatuses[bookId] = cached;
-        } else {
-            missingBookIds.push(bookId);
         }
     }
 
-    // Якщо всі статуси є в кеші, повертаємо їх
-    if (missingBookIds.length === 0) {
-        return cachedStatuses;
-    }
-
-    // Завантажуємо відсутні статуси з сервера одним запитом
     try {
         const response = await axios.post('/api/reading-status/batch', {
-            book_ids: missingBookIds
+            book_ids: bookIds
         });
 
         if (response.data && response.data.statuses) {
-            // Оновлюємо кеш
             const statusesToCache = {};
             for (const [bookId, statusData] of Object.entries(response.data.statuses)) {
-                if (statusData) {
+                if (statusData && statusData.status) {
                     statusesToCache[bookId] = statusData;
                     bookStatusCache.set(bookId, statusData);
+                } else {
+                    bookStatusCache.remove(bookId);
+                    delete cachedStatuses[bookId];
                 }
             }
-            
-            // Об'єднуємо кешовані та нові статуси
+
             return {
                 ...cachedStatuses,
-                ...statusesToCache
+                ...statusesToCache,
             };
         }
     } catch (error) {
@@ -92,4 +83,3 @@ export async function loadBookStatusesBatch(books) {
 
     return cachedStatuses;
 }
-

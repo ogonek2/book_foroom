@@ -145,12 +145,17 @@ export default {
         initialStatus: {
             type: String,
             default: null
+        },
+        statusFromServer: {
+            type: Boolean,
+            default: false
         }
     },
     data() {
         // Ініціалізуємо статус синхронно з кешу для миттєвого відображення
         let initialStatus = this.initialStatus;
-        if (!initialStatus && this.isAuthenticated && this.book && this.book.id && window.bookStatusCache) {
+        // Do not revive deleted statuses from localStorage when server already passed the truth
+        if (!this.statusFromServer && !initialStatus && this.isAuthenticated && this.book && this.book.id && window.bookStatusCache) {
             const cachedStatus = window.bookStatusCache.get(this.book.id);
             if (cachedStatus && cachedStatus.status) {
                 initialStatus = cachedStatus.status;
@@ -179,7 +184,17 @@ export default {
         }
     },
     created() {
-        // Миттєво завантажуємо статус з кешу, якщо він є
+        // Prefer server-provided status on book pages; keep cache in sync
+        if (this.statusFromServer && this.isAuthenticated && this.book && this.book.id && window.bookStatusCache) {
+            if (this.initialStatus) {
+                window.bookStatusCache.set(this.book.id, { status: this.initialStatus });
+            } else {
+                window.bookStatusCache.remove(this.book.id);
+            }
+            return;
+        }
+
+        // Instant paint from cache for catalog cards
         if (this.isAuthenticated && this.book && this.book.id && window.bookStatusCache) {
             const cachedStatus = window.bookStatusCache.get(this.book.id);
             if (cachedStatus && cachedStatus.status) {
@@ -189,10 +204,8 @@ export default {
     },
     mounted() {
         if (this.isAuthenticated) {
-            // Завантажуємо з сервера тільки якщо статусу немає в кеші
-            if (!this.currentStatus) {
-                this.loadStatusFromServer();
-            }
+            // Always revalidate with server so removals from cabinet stay in sync
+            this.loadStatusFromServer();
             this.loadBookLibraries();
         }
     },
@@ -316,15 +329,6 @@ export default {
                 if (!bookId) return;
             }
             
-            // Перевіряємо кеш перед запитом до сервера
-            if (window.bookStatusCache) {
-                const cachedStatus = window.bookStatusCache.get(bookId);
-                if (cachedStatus && cachedStatus.status) {
-                    this.currentStatus = cachedStatus.status;
-                    return; // Статус вже є в кеші, не робимо запит
-                }
-            }
-            
             try {
                 const response = await axios.get(`/api/reading-status/book/${bookId}`, {
                     timeout: 5000
@@ -356,6 +360,15 @@ export default {
             } catch (error) {
                 // Ігноруємо помилки переривання запиту
                 if (error.code === 'ECONNABORTED' || error.message === 'Request aborted') {
+                    return;
+                }
+
+                // 404 = status removed
+                if (error.response && error.response.status === 404) {
+                    if (window.bookStatusCache) {
+                        window.bookStatusCache.remove(bookId);
+                    }
+                    this.currentStatus = null;
                     return;
                 }
                 

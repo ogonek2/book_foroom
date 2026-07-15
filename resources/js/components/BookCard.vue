@@ -266,7 +266,7 @@ export default {
         }
     },
     created() {
-        // Миттєво завантажуємо статус з кешу, якщо він є
+        // Миттєво завантажуємо статус з кешу для першого кадру
         if (this.isAuthenticated && this.book && this.book.id && window.bookStatusCache) {
             const cachedStatus = window.bookStatusCache.get(this.book.id);
             if (cachedStatus && cachedStatus.status) {
@@ -276,10 +276,8 @@ export default {
     },
     mounted() {
         if (this.isAuthenticated) {
-            // Завантажуємо з сервера тільки якщо статусу немає в кеші
-            if (!this.currentStatus) {
-                this.loadReadingStatus();
-            }
+            // Завжди перевіряємо на сервері, щоб статуси після видалення в кабінеті синхронізувались
+            this.loadReadingStatus();
             this.loadBookLibraries();
         }
     },
@@ -378,15 +376,7 @@ export default {
                 if (!bookId) return;
             }
             
-            // Перевіряємо кеш перед запитом до сервера
-            if (window.bookStatusCache) {
-                const cachedStatus = window.bookStatusCache.get(bookId);
-                if (cachedStatus && cachedStatus.status) {
-                    this.currentStatus = cachedStatus.status;
-                    return; // Статус вже є в кеші, не робимо запит
-                }
-            }
-            
+            // Always verify with server (do not trust stale localStorage)
             try {
                 
                 const response = await axios.get(`/api/reading-status/book/${bookId}`, {
@@ -419,6 +409,14 @@ export default {
             } catch (error) {
                 // Ігноруємо помилки переривання запиту
                 if (error.code === 'ECONNABORTED' || error.message === 'Request aborted') {
+                    return;
+                }
+
+                if (error.response && error.response.status === 404) {
+                    if (window.bookStatusCache) {
+                        window.bookStatusCache.remove(bookId);
+                    }
+                    this.currentStatus = null;
                     return;
                 }
                 

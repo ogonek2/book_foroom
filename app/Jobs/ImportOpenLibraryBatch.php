@@ -6,6 +6,7 @@ use App\Models\Author;
 use App\Models\Book;
 use App\Models\Category;
 use App\Services\TranslationService;
+use App\Services\CategoryTreeService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -145,6 +146,8 @@ class ImportOpenLibraryBatch implements ShouldQueue
                 }
             }
         }
+
+        CategoryTreeService::forgetCache();
     }
 
     protected function normalizeWorkKey(mixed $key): ?string

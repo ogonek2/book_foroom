@@ -20,6 +20,7 @@ class HomeController extends Controller
 
         $featuredBooks = Book::where('is_featured', true)
             ->with('categories')
+            ->withCount('publishedMainReviews as reviews_count')
             ->orderBy('rating', 'desc')
             ->limit(6)
             ->get();
@@ -32,9 +33,13 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
-        // Получаем рекомендуемые книги для слайдера
-        $recommendedBooks = Book::with('categories')
-            ->orderBy('rating', 'desc')
+        // Рекомендовані книги для слайдера — лише з прапорцем is_featured (адмінка)
+        $recommendedBooks = Book::query()
+            ->where('is_featured', true)
+            ->with('categories')
+            ->withCount('publishedMainReviews as reviews_count')
+            ->orderByDesc('rating')
+            ->orderByDesc('created_at')
             ->limit(3)
             ->get();
 

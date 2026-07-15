@@ -35,6 +35,7 @@ class SearchController extends Controller
                         });
                 })
                 ->with('categories')
+                ->withCount('publishedMainReviews as reviews_count')
                 ->orderByRaw("
                     CASE 
                         WHEN title LIKE ? THEN 1

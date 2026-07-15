@@ -155,6 +155,7 @@
 <script lang="js">
 import axios from 'axios';
 import ISO6391 from 'iso-639-1';
+import bookStatusCache from '../../utils/bookStatusCache';
 
 export default {
   name: 'ProfileLibrary',
@@ -273,6 +274,7 @@ export default {
         subtitle: 'Редагування статусу і колекцій.',
         bookUrl: item?.book?.slug ? `/books/${item.book.slug}` : '',
         bookSlug: item?.book?.slug || '',
+        book: item?.book ? { id: item.book.id, slug: item.book.slug, title: item.book.title } : null,
       };
       this.editForm = {
         status: item?.status || 'want_to_read',
@@ -309,14 +311,32 @@ export default {
     removeSession(index) {
       this.editForm.sessions.splice(index, 1);
     },
+    syncBookStatusCache(bookId, statusData = null) {
+      if (!bookId) return;
+      if (statusData && statusData.status) {
+        bookStatusCache.set(bookId, statusData);
+      } else {
+        bookStatusCache.remove(bookId);
+      }
+      if (window.bookStatusCache && window.bookStatusCache !== bookStatusCache) {
+        if (statusData && statusData.status) {
+          window.bookStatusCache.set(bookId, statusData);
+        } else {
+          window.bookStatusCache.remove(bookId);
+        }
+      }
+    },
     async saveEdit() {
       if (!this.actionModal?.id) return;
+      const bookId = this.actionModal?.book?.id || this.actionModal?.book_id || null;
+
       if (this.editForm.status === '__delete_status') {
         const confirmed = window.confirm('Видалити статус книги? Дію неможливо скасувати.');
         if (!confirmed) return;
         this.saving = true;
         try {
           await axios.delete(`/api/account/reading-status/${this.actionModal.id}`);
+          this.syncBookStatusCache(bookId, null);
           window.location.reload();
         } catch (e) {
           alert(e?.response?.data?.message || 'Не вдалося видалити статус книги.');
@@ -336,6 +356,11 @@ export default {
           library_ids: this.editForm.library_ids || [],
         };
         await axios.put(`/api/account/reading-status/${this.actionModal.id}`, payload);
+        this.syncBookStatusCache(bookId, {
+          status: this.editForm.status,
+          times_read: this.editForm.times_read || 1,
+          reading_language: this.editForm.reading_language || null,
+        });
         window.location.reload();
       } catch (e) {
         alert(e?.response?.data?.message || 'Не вдалося зберегти зміни книги.');

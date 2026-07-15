@@ -681,52 +681,39 @@
                     
                     if (bookIds.length === 0) return;
                     
-                    // Перевіряємо кеш (якщо він доступний)
-                    const missingBookIds = [];
-                    if (window.bookStatusCache) {
-                        for (const bookId of bookIds) {
-                            const cached = window.bookStatusCache.get(bookId);
-                            if (!cached) {
-                                missingBookIds.push(bookId);
-                            }
-                        }
-                    } else {
-                        missingBookIds.push(...bookIds);
-                    }
-                    
-                    // Якщо всі статуси є в кеші, не робимо запит
-                    if (missingBookIds.length === 0) return;
-                    
-                    // Завантажуємо відсутні статуси одним запитом
+                    // Always revalidate page statuses from server (cache alone caused stale "in library" buttons)
                     const response = await axiosInstance.post('/api/reading-status/batch', {
-                        book_ids: missingBookIds
+                        book_ids: bookIds
                     }, {
                         timeout: 10000
                     });
                     
-                    if (response.data && response.data.statuses && window.bookStatusCache) {
-                        // Оновлюємо кеш
+                    if (response.data && response.data.statuses) {
                         const statusesToUpdate = {};
                         for (const [bookId, statusData] of Object.entries(response.data.statuses)) {
-                            if (statusData) {
+                            if (statusData && statusData.status) {
                                 statusesToUpdate[bookId] = statusData;
-                                window.bookStatusCache.set(bookId, statusData);
+                                if (window.bookStatusCache) {
+                                    window.bookStatusCache.set(bookId, statusData);
+                                }
+                            } else if (window.bookStatusCache) {
+                                window.bookStatusCache.remove(bookId);
+                                statusesToUpdate[bookId] = null;
                             }
                         }
                         
-                        // Оновлюємо компоненти тільки для книг, статуси яких змінилися
-                        if (Object.keys(statusesToUpdate).length > 0) {
-                            this.$nextTick(() => {
-                                this.$children.forEach(child => {
-                                    if (child.$options.name === 'BookCard' && child.book && child.book.id) {
-                                        const bookId = child.book.id.toString();
-                                        if (statusesToUpdate[bookId]) {
-                                            child.currentStatus = statusesToUpdate[bookId].status;
-                                        }
+                        this.$nextTick(() => {
+                            this.$children.forEach(child => {
+                                if (child.$options.name === 'BookCard' && child.book && child.book.id) {
+                                    const bookId = child.book.id.toString();
+                                    if (Object.prototype.hasOwnProperty.call(statusesToUpdate, bookId)) {
+                                        child.currentStatus = statusesToUpdate[bookId]
+                                            ? statusesToUpdate[bookId].status
+                                            : null;
                                     }
-                                });
+                                }
                             });
-                        }
+                        });
                     }
                 } catch (error) {
                     // Ігноруємо помилки переривання

@@ -132,14 +132,10 @@
 
         <div>
           <div class="flex items-start md:items-center flex-col md:flex-row justify-between mb-3 gap-2">
-            <div class="text-base font-extrabold">Улюблені</div>
+            <div class="text-base font-extrabold">Збережене</div>
             <div class="flex gap-1 text-xs">
-              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'books' }"
-                @click="activeFavoritesTab = 'books'">Книги</button>
               <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'reviews' }"
                 @click="activeFavoritesTab = 'reviews'">Рецензії</button>
-              <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'discussions' }"
-                @click="activeFavoritesTab = 'discussions'">Обговорення</button>
               <button class="acc-btn !px-2 !py-1" :class="{ 'opacity-70': activeFavoritesTab !== 'quotes' }"
                 @click="activeFavoritesTab = 'quotes'">Цитати</button>
             </div>
@@ -155,10 +151,16 @@
                   <div class="text-xs text-white/55">{{ item.meta }}</div>
                 </div>
               </div>
+              <a v-if="profile && profile.username" :href="`/account/u/${profile.username}/favorites`"
+                class="inline-flex text-xs font-semibold text-indigo-300 hover:text-indigo-200">
+                Переглянути все →
+              </a>
             </div>
             <template v-else>
-              <div class="text-sm font-bold">Список поки порожній</div>
-              <div class="text-xs text-white/60 mt-1">Тут зʼявиться активність для обраного типу.</div>
+              <div class="text-sm font-bold">Поки порожньо</div>
+              <div class="text-xs text-white/60 mt-1">
+                Додайте рецензію або цитату в збережене окремою дією (★) — книги з бібліотеки сюди не потрапляють автоматично.
+              </div>
             </template>
           </div>
         </div>
@@ -392,35 +394,21 @@ export default {
       return `linear-gradient(120deg, ${accent}, ${secondary}, ${accent})`;
     },
     favoriteItems() {
-      if (this.activeFavoritesTab === 'reviews') {
-        return (this.dashboard?.recent_reviews || []).map((item) => ({
-          id: item.id,
-          title: item?.book?.title || 'Рецензія',
-          meta: item.created_at_human || 'щойно',
-          cover: item?.book?.cover || '',
-        }));
-      }
-      if (this.activeFavoritesTab === 'discussions') {
-        return (this.dashboard?.recent_discussions || []).map((item) => ({
-          id: item.id,
-          title: item.title || 'Обговорення',
-          meta: item.created_at_human || 'щойно',
-          cover: '',
-        }));
-      }
       if (this.activeFavoritesTab === 'quotes') {
-        return (this.dashboard?.recent_quotes || []).map((item) => ({
+        return (this.dashboard?.favorite_quotes || []).map((item) => ({
           id: item.id,
-          title: item?.book?.title || 'Цитата',
+          title: item.book_title || 'Цитата',
           meta: item.created_at_human || 'щойно',
-          cover: item?.book?.cover || '',
+          cover: item.book_cover || '',
         }));
       }
-      return (this.dashboard?.recent_read_books || []).map((item) => ({
+
+      // Default: saved reviews only (never library reading statuses)
+      return (this.dashboard?.favorite_reviews || []).map((item) => ({
         id: item.id,
-        title: item?.book?.title || 'Книга',
-        meta: item.updated_at_human || 'щойно',
-        cover: item?.book?.cover || '',
+        title: item.book_title || 'Рецензія',
+        meta: item.created_at_human || 'щойно',
+        cover: item.book_cover || '',
       }));
     },
     activityBars() {
@@ -534,7 +522,7 @@ export default {
     return {
       showPlannerModal: false,
       overviewStatsTab: 'books',
-      activeFavoritesTab: 'books',
+      activeFavoritesTab: 'reviews',
       plannerBookQuery: '',
       plannerSearchResults: [],
       plannerSaving: false,

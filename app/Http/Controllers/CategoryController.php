@@ -49,7 +49,6 @@ class CategoryController extends Controller
             'children' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')->orderBy('name'),
         ]);
 
-        $meta = CategoryTreeService::catalogMeta();
         $allCategories = CategoryTreeService::activeCategories()->keyBy('id');
 
         $books = CategoryTreeService::booksQueryForCategory($category)
@@ -57,11 +56,9 @@ class CategoryController extends Controller
             ->orderByDesc('rating')
             ->paginate(12);
 
-        $booksCount = CategoryTreeService::booksCountForCategory(
-            $category->id,
-            $meta['descendantIdsMap'],
-            $meta['bookIdsByCategory']
-        );
+        // Завжди з живого запиту (paginator.total), не з кешу CategoryTree —
+        // інакше нові книги в категорії видно в списку, а лічильник відстає.
+        $booksCount = $books->total();
 
         $breadcrumbs = [];
         $current = $category;

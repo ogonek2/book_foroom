@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use App\Services\ImagePlaceholderService;
+use App\Services\CategoryTreeService;
 
 class Book extends Model
 {
@@ -66,7 +67,7 @@ class Book extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($book) {
             if (empty($book->slug)) {
                 $sourceTitle = $book->book_name_ua ?: $book->title;
@@ -94,6 +95,10 @@ class Book extends Model
                 $book->slug = $slug;
             }
         });
+
+        // Оновлюємо кеш дерева категорій після змін книги / категорій
+        static::saved(fn () => CategoryTreeService::forgetCache());
+        static::deleted(fn () => CategoryTreeService::forgetCache());
     }
 
     /**
@@ -150,6 +155,15 @@ class Book extends Model
     public function mainReviews(): HasMany
     {
         return $this->hasMany(Review::class)->whereNull('parent_id');
+    }
+
+    /**
+     * Опубліковані основні рецензії / відгуки (для withCount на картках).
+     * Рахує і review, і opinion — обидва типи відображаються на сторінці книги.
+     */
+    public function publishedMainReviews(): HasMany
+    {
+        return $this->mainReviews()->where('is_draft', false);
     }
 
     /**
@@ -287,16 +301,17 @@ class Book extends Model
         $avgRating = $this->readingStatuses()
             ->whereNotNull('rating')
             ->avg('rating');
-        
-        // Получаем количество рецензий (не ответов, не черновиков)
-        $mainReviews = $this->reviews()
-            ->whereNull('parent_id')
-            ->where('is_draft', false);
-        
+
+        // Рецензії + відгуки (review_type будь-який), без відповідей і чернеток
+        $reviewsCount = $this->publishedMainReviews()->count();
+
         $this->update([
             'rating' => $avgRating ? round($avgRating, 2) : 0, // Рейтинги уже в 10-балльной системе
-            'reviews_count' => $mainReviews->count(),
+            'reviews_count' => $reviewsCount,
         ]);
+
+        $this->clearBookCache();
+        $this->cacheBookData();
     }
 
     /**
